@@ -1,0 +1,58 @@
+@prefix ta: <https://example.org/transhumance-atlas/ontology#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://example.org/transhumance-atlas/vocab/transhumance> a skos:ConceptScheme ;
+    skos:prefLabel "Transhumance research concepts"@en ;
+    skos:definition "A small English-language controlled vocabulary for the educational Naryn research-data atlas prototype."@en ;
+    dcterms:creator "Mini Transhumance Research Data Atlas project" ;
+    skos:hasTopConcept ta:SummerPastureConcept, ta:WinterPastureConcept,
+        ta:SeasonalMigrationRouteConcept, ta:DroughtRiskConcept,
+        ta:WaterAvailabilityConcept, ta:VegetationConditionConcept,
+        ta:LivestockObservationConcept .
+
+ta:SummerPastureConcept a skos:Concept ;
+    skos:inScheme <https://example.org/transhumance-atlas/vocab/transhumance> ;
+    skos:topConceptOf <https://example.org/transhumance-atlas/vocab/transhumance> ;
+    skos:prefLabel "Summer pasture"@en ;
+    skos:altLabel "summer grazing area"@en ;
+    skos:definition "A pasture area used for grazing during the summer season, where that seasonal use is supported by research evidence."@en .
+
+ta:WinterPastureConcept a skos:Concept ;
+    skos:inScheme <https://example.org/transhumance-atlas/vocab/transhumance> ;
+    skos:topConceptOf <https://example.org/transhumance-atlas/vocab/transhumance> ;
+    skos:prefLabel "Winter pasture"@en ;
+    skos:altLabel "winter grazing area"@en ;
+    skos:definition "A pasture area used for grazing during the winter season, where that seasonal use is supported by research evidence."@en .
+
+ta:SeasonalMigrationRouteConcept a skos:Concept ;
+    skos:inScheme <https://example.org/transhumance-atlas/vocab/transhumance> ;
+    skos:topConceptOf <https://example.org/transhumance-atlas/vocab/transhumance> ;
+    skos:prefLabel "Seasonal migration route"@en ;
+    skos:altLabel "seasonal livestock movement route"@en ;
+    skos:definition "A route documented as being used for seasonal livestock movement. A road or path from a general map is not sufficient evidence."@en .
+
+ta:DroughtRiskConcept a skos:Concept ;
+    skos:inScheme <https://example.org/transhumance-atlas/vocab/transhumance> ;
+    skos:topConceptOf <https://example.org/transhumance-atlas/vocab/transhumance> ;
+    skos:prefLabel "Drought risk"@en ;
+    skos:definition "A potential for water or vegetation stress associated with a shortage of precipitation or related environmental conditions, assessed using a stated method."@en .
+
+ta:WaterAvailabilityConcept a skos:Concept ;
+    skos:inScheme <https://example.org/transhumance-atlas/vocab/transhumance> ;
+    skos:topConceptOf <https://example.org/transhumance-atlas/vocab/transhumance> ;
+    skos:prefLabel "Water availability"@en ;
+    skos:definition "The presence or accessibility of water resources at a stated place and time, based on an identified source."@en .
+
+ta:VegetationConditionConcept a skos:Concept ;
+    skos:inScheme <https://example.org/transhumance-atlas/vocab/transhumance> ;
+    skos:topConceptOf <https://example.org/transhumance-atlas/vocab/transhumance> ;
+    skos:prefLabel "Vegetation condition"@en ;
+    skos:altLabel "vegetation status"@en ;
+    skos:definition "A description or indicator of vegetation state derived from a stated observation, sensor product or assessment method."@en .
+
+ta:LivestockObservationConcept a skos:Concept ;
+    skos:inScheme <https://example.org/transhumance-atlas/vocab/transhumance> ;
+    skos:topConceptOf <https://example.org/transhumance-atlas/vocab/transhumance> ;
+    skos:prefLabel "Livestock observation"@en ;
+    skos:definition "A record concerning livestock presence, distribution or an explicitly described modelled livestock measure, with source and units retained."@en .

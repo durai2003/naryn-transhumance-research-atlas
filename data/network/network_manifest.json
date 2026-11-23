@@ -1,0 +1,116 @@
+{
+  "stage": "Stage 1 — Spatial, Temporal and Semantic Transhumance Network",
+  "generated_utc": "2026-11-21T23:06:19.827049+00:00",
+  "generator_version": "3.0.0-stage1",
+  "random_seed": 42,
+  "scenario_id": "SCENARIO_BASELINE",
+  "simulation_period": [
+    "2024-01-01",
+    "2024-12-31"
+  ],
+  "environment_inputs": {
+    "boundary_path": "data/processed/vectors/naryn_adm1_clean.geojson",
+    "dem_available": false,
+    "dem_source": "unavailable_no_local_dem",
+    "worldcover_tiles_available": 0,
+    "osm_gpkg_available": false,
+    "climate_daily_available": true
+  },
+  "layer_a_physical": {
+    "layer": "physical_geographical",
+    "osm_gpkg_available": false,
+    "wikidata_locations_available": false,
+    "settlements_loaded": 1,
+    "water_points_loaded": 0,
+    "physical_access_edges_loaded": 0,
+    "notes": [
+      "Local osm_naryn_context.gpkg not found in this workspace; Layer A contains verified Wikidata references only. Run on a workspace with data/processed/vectors/osm_naryn_context.gpkg to populate full OSM settlements, water points, and road access links."
+    ]
+  },
+  "layer_b_pastures": {
+    "pastures_generated": 40,
+    "pastures_by_type": {
+      "winter_pasture": 10,
+      "spring_pasture": 10,
+      "summer_pasture": 10,
+      "autumn_pasture": 10
+    },
+    "passes_generated": 6,
+    "water_point_mode": "synthetic_demo_water_points",
+    "dem_constrained": false,
+    "worldcover_constrained": false
+  },
+  "layer_b_routing": {
+    "routing_method": "boundary_constrained_grid_dijkstra_no_dem",
+    "has_dem": false,
+    "used_osm_roads": false,
+    "resting_points_generated": 14,
+    "total_pastoral_edges": 149,
+    "edges_by_type": {
+      "SEASONAL_MOVEMENT": 50,
+      "WATER_ACCESS": 40,
+      "LEAST_COST_CORRIDOR": 22,
+      "SETTLEMENT_CONNECTION": 15,
+      "ACCESS_ROUTE": 12,
+      "ALTERNATIVE_ROUTE": 10
+    }
+  },
+  "layer_b_simulation": {
+    "herds_generated": 90,
+    "species_breakdown": {
+      "sheep": 24,
+      "mixed": 20,
+      "horse": 17,
+      "goat": 15,
+      "cattle": 14
+    },
+    "movement_events_generated": 433,
+    "timestamped_positions_generated": 34240,
+    "movement_state_counts": {
+      "GRAZING": 30196,
+      "RESTING": 1910,
+      "TRAVELLING": 793,
+      "RETURNING": 699,
+      "DEPARTING": 416,
+      "ARRIVING": 226
+    },
+    "edges_used_count": 78,
+    "edges_unused_count": 71,
+    "herds_using_alternative_routes": 24
+  },
+  "layer_c_semantic_entities": 163,
+  "multigraph_summary": {
+    "graph_class": "networkx.MultiDiGraph",
+    "total_nodes": 73,
+    "total_edges": 149
+  },
+  "exported_files": {
+    "layer_a": [
+      "layer_a_physical_nodes.geojson",
+      "layer_a_physical_edges.geojson"
+    ],
+    "layer_b": [
+      "layer_b_pastoral_nodes.geojson",
+      "layer_b_pastoral_edges.geojson"
+    ],
+    "layer_c": [
+      "layer_c_semantic_links.json"
+    ],
+    "multigraph": [
+      "transhumance_multigraph.json",
+      "transhumance_multigraph.graphml"
+    ],
+    "herds": [
+      "herds.csv"
+    ],
+    "movement_events": [
+      "movement_events.csv"
+    ],
+    "herd_positions": [
+      "herd_positions.csv"
+    ],
+    "edge_utilisation": [
+      "edge_utilisation.csv"
+    ]
+  }
+}

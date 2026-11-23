@@ -1,0 +1,127 @@
+{
+  "generated_at_utc": "2026-11-23T01:04:29.875920+00:00",
+  "project_root": "/Users/duraisrs/Desktop/transhumance-atlas1",
+  "locations": 1,
+  "boundary_geometry_added": true,
+  "climate_observations_by_file": {
+    "nasa_power_daily.csv": 4018,
+    "nasa_power_monthly.csv": 132,
+    "nasa_power_seasonal.csv": 44
+  },
+  "livestock_observations": 0,
+  "optional_synthetic_records": {
+    "InterviewRecord": 12,
+    "MultimediaAsset": 3
+  },
+  "rejected_optional_synthetic_rows": [],
+  "derived_datasets_added": [
+    "NASA-POWER-DAILY-CLEAN",
+    "NASA-POWER-MONTHLY",
+    "NASA-POWER-SEASONAL",
+    "NARYN-ADM1-CLEAN",
+    "OSM-NARYN-CONTEXT",
+    "LOCATIONS-WIKIDATA",
+    "DERIVED-RASTER-ESA_WorldCover_10m_2021_v200_N39E072_Map_naryn_clip",
+    "DERIVED-RASTER-ESA_WorldCover_10m_2021_v200_N39E075_Map_naryn_clip",
+    "DERIVED-RASTER-ESA_WorldCover_10m_2021_v200_N42E072_Map_naryn_clip",
+    "DERIVED-RASTER-ESA_WorldCover_10m_2021_v200_N42E075_Map_naryn_clip"
+  ],
+  "warnings": [],
+  "counts": {
+    "triples": 82906,
+    "locations": 2,
+    "pastures": 18,
+    "routes": 21,
+    "climate_observations": 4194,
+    "livestock_observations": 0,
+    "interview_records": 12,
+    "multimedia_assets": 3,
+    "datasets": 17,
+    "skos_concepts": 7,
+    "herd_groups": 48,
+    "movement_events": 1152,
+    "simulation_scenarios": 3,
+    "suitability_assessments": 216
+  },
+  "data_integrity_policy": "No pasture, livestock, climate, route, interview or media observations are invented. Synthetic records are accepted only with is_synthetic=true, provenance='synthetic_demo' and a non-empty disclaimer.",
+  "source_dataset_status": {
+    "GB-ADM1-KGZ": {
+      "uri": "https://example.org/transhumance-atlas/dataset/gb-adm1-kgz",
+      "local_availability": "available",
+      "local_assets": [
+        "data/processed/vectors/naryn_adm1_clean.geojson"
+      ],
+      "schema_only_artifact": null
+    },
+    "KDC-PASTURE-SNOW-DROUGHT": {
+      "uri": "https://example.org/transhumance-atlas/dataset/kdc-pasture-snow-drought",
+      "local_availability": "not_available_in_this_workspace",
+      "local_assets": [],
+      "schema_only_artifact": null
+    },
+    "FAO-GLW4-2020-DENSITY": {
+      "uri": "https://example.org/transhumance-atlas/dataset/fao-glw4-2020-density",
+      "local_availability": "not_available_in_this_workspace",
+      "local_assets": [],
+      "schema_only_artifact": null
+    },
+    "ESA-WORLDCOVER-2021-V200": {
+      "uri": "https://example.org/transhumance-atlas/dataset/esa-worldcover-2021-v200",
+      "local_availability": "available",
+      "local_assets": [
+        "data/processed/rasters/worldcover/ESA_WorldCover_10m_2021_v200_N39E072_Map_naryn_clip.tif",
+        "data/processed/rasters/worldcover/ESA_WorldCover_10m_2021_v200_N39E075_Map_naryn_clip.tif",
+        "data/processed/rasters/worldcover/ESA_WorldCover_10m_2021_v200_N42E072_Map_naryn_clip.tif",
+        "data/processed/rasters/worldcover/ESA_WorldCover_10m_2021_v200_N42E075_Map_naryn_clip.tif"
+      ],
+      "schema_only_artifact": null
+    },
+    "NASA-POWER-DAILY": {
+      "uri": "https://example.org/transhumance-atlas/dataset/nasa-power-daily",
+      "local_availability": "available",
+      "local_assets": [
+        "data/processed/climate/nasa_power_daily.csv"
+      ],
+      "schema_only_artifact": null
+    },
+    "OSM-KGZ-GEOFABRIK": {
+      "uri": "https://example.org/transhumance-atlas/dataset/osm-kgz-geofabrik",
+      "local_availability": "available",
+      "local_assets": [
+        "data/processed/vectors/osm_naryn_context.gpkg"
+      ],
+      "schema_only_artifact": null
+    },
+    "WIKIDATA-NARYN-ENTITIES": {
+      "uri": "https://example.org/transhumance-atlas/dataset/wikidata-naryn-entities",
+      "local_availability": "not_available_in_this_workspace",
+      "local_assets": [],
+      "schema_only_artifact": null
+    }
+  },
+  "synthetic_candidate_pastures": 18,
+  "synthetic_corridors": 21,
+  "synthetic_herds": 48,
+  "synthetic_movement_events": 1152,
+  "synthetic_suitability_assessments": 216,
+  "validation": {
+    "status": "PASS",
+    "triple_count": 82906,
+    "dataset_nodes": 17,
+    "sameAs_links": 0,
+    "unresolved_sameAs": [],
+    "synthetic_provenance_issues": [],
+    "missing_dataset_metadata": [],
+    "issues": []
+  },
+  "shacl_validation": {
+    "status": "PASS",
+    "conforms": true,
+    "results_triples": 2,
+    "details": "Validation Report\nConforms: True\n"
+  },
+  "outputs": {
+    "turtle": "linked_data/research_graph.ttl",
+    "jsonld": "linked_data/research_graph.jsonld"
+  }
+}

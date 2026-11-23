@@ -1,0 +1,14 @@
+field,data_type,definition
+location_id,string,Stable local key derived from external identifier; e.g. wikidata:Q311946
+location_name,string,Display label from the verified entity page
+latitude,float,WGS84 latitude from source coordinate statement
+longitude,float,WGS84 longitude from source coordinate statement
+observation_id,string,Stable key NASA-POWER:{location_id}:{date}
+observation_date,date,"Source daily date, normalised to ISO 8601 YYYY-MM-DD"
+t2m_c,float,NASA POWER T2M; degrees Celsius; source missing codes become null
+precipitation_mm_day,float,NASA POWER PRECTOTCORR; millimetres/day; source missing codes become null
+sheep_density_heads_km2,float,FAO sheep density sampled at location; null if source raster absent
+goat_density_heads_km2,float,FAO goat density sampled at location; null if source raster absent
+worldcover_class_code,integer,ESA WorldCover source class sampled at location; null if unavailable
+is_synthetic,boolean,False for externally sourced records; no research synthetic records produced in Stage 3
+provenance,string,Source lineage label identifying the upstream provider/method

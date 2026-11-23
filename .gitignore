@@ -1,0 +1,41 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Large or licensed source downloads (track registers and code, not raw assets)
+data/raw/boundaries/*.geojson
+data/raw/boundaries/*.zip
+data/raw/glw4/*.tif
+data/raw/glw4/*.tiff
+data/raw/worldcover/*.tif
+data/raw/osm/*.zip
+data/raw/osm/*.gpkg
+data/raw/osm/*.pbf
+data/raw/kdc/*GetCapabilities*.xml
+data/raw/nasa_power/*.json
+data/raw/wikidata/*sparql*.json
+
+# Generated caches
+.cache/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+
+# macOS files
+.DS_Store
+._*
+
+# Python environments
+.venv/
+venv/
+
+# Secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Original raw datasets (not for repository)
+data/raw/

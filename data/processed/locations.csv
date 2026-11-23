@@ -1,0 +1,2 @@
+location_id,location_name,latitude,longitude,external_identifier,external_uri,coordinate_provenance,coordinate_precision_note,is_synthetic,provenance,source_url
+wikidata:Q311946,Naryn,41.4333333333,76.0,Q311946,http://www.wikidata.org/entity/Q311946,verified_wikidata_entity_page_coordinate_statement,entity-page coordinate; not an administrative boundary or weather station,False,wikidata_entity_page,https://www.wikidata.org/wiki/Q311946

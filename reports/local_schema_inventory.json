@@ -1,0 +1,795 @@
+{
+  "generated_utc": "2026-11-21T11:41:17.658852+00:00",
+  "files": [
+    {
+      "path": "data/raw/.DS_Store",
+      "bytes": 12292,
+      "inspection": "generic file metadata only"
+    },
+    {
+      "path": "data/raw/boundaries/geoBoundaries-KGZ-ADM1.geojson",
+      "bytes": 805339,
+      "inspection": "GeoPandas local-file inspection",
+      "feature_count": 7,
+      "crs": "EPSG:4326",
+      "geometry_types": [
+        "MultiPolygon",
+        "Polygon"
+      ],
+      "columns": [
+        "shapeName",
+        "shapeISO",
+        "shapeID",
+        "shapeGroup",
+        "shapeType",
+        "geometry"
+      ],
+      "bounds": [
+        69.2649523,
+        39.1728437,
+        80.2295793,
+        43.2667971
+      ]
+    },
+    {
+      "path": "data/raw/boundaries/naryn_adm1.geojson",
+      "bytes": 219574,
+      "inspection": "GeoPandas local-file inspection",
+      "feature_count": 1,
+      "crs": "EPSG:4326",
+      "geometry_types": [
+        "Polygon"
+      ],
+      "columns": [
+        "shapeName",
+        "shapeISO",
+        "shapeID",
+        "shapeGroup",
+        "shapeType",
+        "geometry"
+      ],
+      "bounds": [
+        73.3861082,
+        40.2797924,
+        77.9069014,
+        42.454551
+      ]
+    },
+    {
+      "path": "data/raw/kdc/wcs_GetCapabilities.xml",
+      "bytes": 18161,
+      "inspection": "XML well-formedness inspected",
+      "root_tag": "{http://www.opengis.net/wcs}WCS_Capabilities"
+    },
+    {
+      "path": "data/raw/kdc/wms_GetCapabilities.xml",
+      "bytes": 184540,
+      "inspection": "XML well-formedness inspected",
+      "root_tag": "{http://www.opengis.net/wms}WMS_Capabilities"
+    },
+    {
+      "path": "data/raw/nasa_power/naryn_city_2015_2025_daily.json",
+      "bytes": 211042,
+      "inspection": "JSON structure inspected",
+      "top_level_type": "dict",
+      "top_level_keys": [
+        "type",
+        "geometry",
+        "properties",
+        "header",
+        "messages",
+        "parameters",
+        "times"
+      ]
+    },
+    {
+      "path": "data/raw/osm/.DS_Store",
+      "bytes": 8196,
+      "inspection": "generic file metadata only"
+    },
+    {
+      "path": "data/raw/osm/extracted/kyrgyzstan.gpkg",
+      "bytes": 354738176,
+      "inspection": "generic file metadata only",
+      "layers": [
+        {
+          "name": "gis_osm_places_free",
+          "geometry_type": "Point",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "population",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_traffic_free",
+          "geometry_type": "Point",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "calming",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_transport_free",
+          "geometry_type": "Point",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_natural_free",
+          "geometry_type": "Point",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_pois_free",
+          "geometry_type": "Point",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_pofw_free",
+          "geometry_type": "Point",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_roads_free",
+          "geometry_type": "LineString",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "ref",
+            "oneway",
+            "maxspeed",
+            "layer",
+            "bridge",
+            "tunnel",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_railways_free",
+          "geometry_type": "LineString",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "layer",
+            "bridge",
+            "tunnel",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_waterways_free",
+          "geometry_type": "LineString",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "width",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_water_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_transport_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_landuse_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_pois_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_places_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "population",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_buildings_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "type",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_natural_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_pofw_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_traffic_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "calming",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_adminareas_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_protected_areas_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "geometry"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "data/raw/osm/kyrgyzstan-latest-free.gpkg/README",
+      "bytes": 656,
+      "inspection": "generic file metadata only"
+    },
+    {
+      "path": "data/raw/osm/kyrgyzstan-latest-free.gpkg/kyrgyzstan.gpkg",
+      "bytes": 354738176,
+      "inspection": "generic file metadata only",
+      "layers": [
+        {
+          "name": "gis_osm_places_free",
+          "geometry_type": "Point",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "population",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_traffic_free",
+          "geometry_type": "Point",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "calming",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_transport_free",
+          "geometry_type": "Point",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_natural_free",
+          "geometry_type": "Point",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_pois_free",
+          "geometry_type": "Point",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_pofw_free",
+          "geometry_type": "Point",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_roads_free",
+          "geometry_type": "LineString",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "ref",
+            "oneway",
+            "maxspeed",
+            "layer",
+            "bridge",
+            "tunnel",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_railways_free",
+          "geometry_type": "LineString",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "layer",
+            "bridge",
+            "tunnel",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_waterways_free",
+          "geometry_type": "LineString",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "width",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_water_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_transport_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_landuse_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_pois_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_places_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "population",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_buildings_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "type",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_natural_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_pofw_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_traffic_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "calming",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_adminareas_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "name",
+            "geometry"
+          ]
+        },
+        {
+          "name": "gis_osm_protected_areas_a_free",
+          "geometry_type": "MultiPolygon",
+          "crs": "GEOGCS[\"WGS 84 (CRS84)\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH],AUTHORITY[\"OGC\",\"CRS84\"]]",
+          "columns": [
+            "osm_id",
+            "code",
+            "fclass",
+            "geometry"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "data/raw/osm/kyrgyzstan-latest-free.gpkg.zip",
+      "bytes": 171963239,
+      "inspection": "archive directory inspected",
+      "archive_members": [
+        "README",
+        "kyrgyzstan.gpkg"
+      ],
+      "archive_member_count": 2
+    },
+    {
+      "path": "data/raw/wikidata/naryn_entities_sparql.json",
+      "bytes": 1425,
+      "inspection": "JSON structure inspected",
+      "top_level_type": "dict",
+      "top_level_keys": [
+        "endpoint",
+        "query",
+        "retrieved_utc",
+        "results"
+      ]
+    },
+    {
+      "path": "data/raw/wikidata/verified_entity_references.json",
+      "bytes": 1027,
+      "inspection": "JSON structure inspected",
+      "top_level_type": "dict",
+      "top_level_keys": [
+        "retrieval_date",
+        "retrieval_method",
+        "entities",
+        "redirects",
+        "sparql_endpoint_v2",
+        "licence"
+      ]
+    },
+    {
+      "path": "data/raw/worldcover/ESA_WorldCover_10m_2021_v200_N39E072_Map.tif",
+      "bytes": 93125265,
+      "inspection": "rasterio local-file inspection",
+      "driver": "GTiff",
+      "width": 36000,
+      "height": 36000,
+      "count": 1,
+      "dtypes": [
+        "uint8"
+      ],
+      "crs": "EPSG:4326",
+      "transform": [
+        8.333333333333333e-05,
+        0.0,
+        72.0,
+        0.0,
+        -8.333333333333333e-05,
+        42.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "bounds": [
+        72.0,
+        39.0,
+        75.0,
+        42.0
+      ],
+      "nodata": 0.0,
+      "resolution": [
+        8.333333333333333e-05,
+        8.333333333333333e-05
+      ]
+    },
+    {
+      "path": "data/raw/worldcover/ESA_WorldCover_10m_2021_v200_N39E075_Map.tif",
+      "bytes": 91612550,
+      "inspection": "rasterio local-file inspection",
+      "driver": "GTiff",
+      "width": 36000,
+      "height": 36000,
+      "count": 1,
+      "dtypes": [
+        "uint8"
+      ],
+      "crs": "EPSG:4326",
+      "transform": [
+        8.333333333333333e-05,
+        0.0,
+        75.0,
+        0.0,
+        -8.333333333333333e-05,
+        42.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "bounds": [
+        75.0,
+        39.0,
+        78.0,
+        42.0
+      ],
+      "nodata": 0.0,
+      "resolution": [
+        8.333333333333333e-05,
+        8.333333333333333e-05
+      ]
+    },
+    {
+      "path": "data/raw/worldcover/ESA_WorldCover_10m_2021_v200_N42E072_Map.tif",
+      "bytes": 68174596,
+      "inspection": "rasterio local-file inspection",
+      "driver": "GTiff",
+      "width": 36000,
+      "height": 36000,
+      "count": 1,
+      "dtypes": [
+        "uint8"
+      ],
+      "crs": "EPSG:4326",
+      "transform": [
+        8.333333333333333e-05,
+        0.0,
+        72.0,
+        0.0,
+        -8.333333333333333e-05,
+        45.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "bounds": [
+        72.0,
+        42.0,
+        75.0,
+        45.0
+      ],
+      "nodata": 0.0,
+      "resolution": [
+        8.333333333333333e-05,
+        8.333333333333333e-05
+      ]
+    },
+    {
+      "path": "data/raw/worldcover/ESA_WorldCover_10m_2021_v200_N42E075_Map.tif",
+      "bytes": 54019129,
+      "inspection": "rasterio local-file inspection",
+      "driver": "GTiff",
+      "width": 36000,
+      "height": 36000,
+      "count": 1,
+      "dtypes": [
+        "uint8"
+      ],
+      "crs": "EPSG:4326",
+      "transform": [
+        8.333333333333333e-05,
+        0.0,
+        75.0,
+        0.0,
+        -8.333333333333333e-05,
+        45.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "bounds": [
+        75.0,
+        42.0,
+        78.0,
+        45.0
+      ],
+      "nodata": 0.0,
+      "resolution": [
+        8.333333333333333e-05,
+        8.333333333333333e-05
+      ]
+    }
+  ],
+  "warnings": []
+}

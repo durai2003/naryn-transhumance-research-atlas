@@ -1,0 +1,9 @@
+PREFIX ta: <https://example.org/transhumance-atlas/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+SELECT ?pasture ?label ?geometry
+WHERE {
+  ?pasture a ta:Pasture ; rdfs:label ?label .
+  OPTIONAL { ?pasture geo:hasGeometry ?geometry . }
+}
+ORDER BY ?label

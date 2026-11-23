@@ -1,0 +1,39 @@
+{
+  "generated_utc": "2026-11-21T12:08:07.935392+00:00",
+  "stage": 3,
+  "project_root": "/Users/duraisrs/Desktop/transhumance_atlas/transhumance-atlas",
+  "output_files": [
+    "data/processed/locations.csv",
+    "data/processed/vectors/naryn_adm1_clean.geojson",
+    "data/processed/climate/nasa_power_daily.csv",
+    "data/processed/climate/nasa_power_monthly.csv",
+    "data/processed/climate/nasa_power_seasonal.csv",
+    "data/processed/rasters/worldcover/ESA_WorldCover_10m_2021_v200_N39E072_Map_naryn_clip.tif",
+    "data/processed/rasters/worldcover/ESA_WorldCover_10m_2021_v200_N39E075_Map_naryn_clip.tif",
+    "data/processed/rasters/worldcover/ESA_WorldCover_10m_2021_v200_N42E072_Map_naryn_clip.tif",
+    "data/processed/rasters/worldcover/ESA_WorldCover_10m_2021_v200_N42E075_Map_naryn_clip.tif",
+    "data/processed/vectors/osm_naryn_context.gpkg",
+    "data/processed/location_context.csv",
+    "metadata/data_dictionary_stage3.csv",
+    "reports/stage3_data_quality_report.json",
+    "reports/stage3_transformation_log.csv",
+    "reports/stage3_processing_manifest.json",
+    "reports/stage3_execution_report.md"
+  ],
+  "raw_assets": {
+    "naryn_boundary": true,
+    "nasa_power_daily_json": true,
+    "fao_glw4_rasters": false,
+    "worldcover_rasters": true,
+    "osm_geopackage": true,
+    "osm_geopackage_archive": true
+  },
+  "policy": "No synthetic replacements, interpolation or imputation of unavailable public source data.",
+  "notes": [
+    "The verified Naryn city point is a named Wikidata entity coordinate, not a weather station.",
+    "Spatial processing used the downloaded geoBoundaries Naryn ADM1 geometry.",
+    "Processed 4018 source NASA POWER daily observations; monthly and seasonal summaries are derived from those rows.",
+    "Processed 4 clipped raster output(s).",
+    "OSM context layers were processed from the available Geofabrik GeoPackage; mapped roads and paths are not verified transhumance routes."
+  ]
+}

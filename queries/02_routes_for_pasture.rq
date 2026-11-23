@@ -1,0 +1,8 @@
+PREFIX ta: <https://example.org/transhumance-atlas/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?route ?routeLabel ?pasture ?pastureLabel
+WHERE {
+  ?route a ta:Route ; rdfs:label ?routeLabel ; ta:connectsPasture ?pasture .
+  ?pasture rdfs:label ?pastureLabel .
+}
+ORDER BY ?pastureLabel ?routeLabel

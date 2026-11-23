@@ -1,0 +1,17 @@
+PREFIX ta: <https://example.org/transhumance-atlas/ontology#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+SELECT ?observation ?date ?period ?resolution ?temperatureC ?temperatureMeanC ?precipitationMmDay ?precipitationSumMm
+WHERE {
+  ?location owl:sameAs <http://www.wikidata.org/entity/Q311946> .
+  ?observation a ta:ClimateObservation ; ta:atLocation ?location .
+  OPTIONAL { ?observation ta:observedAt ?date . }
+  OPTIONAL { ?observation ta:observationPeriod ?period . }
+  OPTIONAL { ?observation ta:temporalResolution ?resolution . }
+  OPTIONAL { ?observation ta:temperatureC ?temperatureC . }
+  OPTIONAL { ?observation ta:temperatureMeanC ?temperatureMeanC . }
+  OPTIONAL { ?observation ta:precipitationMmDay ?precipitationMmDay . }
+  OPTIONAL { ?observation ta:precipitationSumMm ?precipitationSumMm . }
+  FILTER(BOUND(?date) || BOUND(?period))
+}
+ORDER BY ?date ?period
+LIMIT 100

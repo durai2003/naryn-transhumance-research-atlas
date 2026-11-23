@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ta: <https://example.org/transhumance-atlas/ontology#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ta:DatasetShape a sh:NodeShape ;
+    sh:targetClass dcat:Dataset ;
+    sh:property [ sh:path dcterms:identifier ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [
+        sh:path dcterms:title ;
+        sh:minCount 1 ;
+        sh:or ( [ sh:datatype xsd:string ] [ sh:datatype rdf:langString ] )
+    ] ;
+    sh:property [ sh:path dcterms:publisher ; sh:minCount 1 ] ;
+    sh:property [ sh:path ta:localAvailability ; sh:minCount 1 ; sh:datatype xsd:string ] .
+
+ta:SyntheticProvenanceShape a sh:NodeShape ;
+    sh:targetSubjectsOf ta:isSynthetic ;
+    sh:sparql [
+        sh:message "A synthetic record must carry provenanceLabel 'synthetic_demo'." ;
+        sh:select """
+          PREFIX ta: <https://example.org/transhumance-atlas/ontology#>
+          SELECT $this WHERE {
+            $this ta:isSynthetic true .
+            FILTER NOT EXISTS { $this ta:provenanceLabel "synthetic_demo" }
+          }
+        """
+    ] ;
+    sh:sparql [
+        sh:message "A synthetic record must carry a non-empty syntheticDisclaimer." ;
+        sh:select """
+          PREFIX ta: <https://example.org/transhumance-atlas/ontology#>
+          SELECT $this WHERE {
+            $this ta:isSynthetic true .
+            FILTER NOT EXISTS {
+              $this ta:syntheticDisclaimer ?disclaimer .
+              FILTER(STRLEN(STR(?disclaimer)) > 0)
+            }
+          }
+        """
+    ] .

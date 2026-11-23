@@ -1,0 +1,12 @@
+PREFIX ta: <https://example.org/transhumance-atlas/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+SELECT ?record ?recordType ?label ?synthetic ?provenance
+WHERE {
+  ?location owl:sameAs <http://www.wikidata.org/entity/Q311946> .
+  ?record (ta:aboutLocation|ta:locatedIn) ?location ; rdfs:label ?label ; a ?recordType .
+  VALUES ?recordType { ta:InterviewRecord ta:MultimediaAsset ta:Route ta:Pasture }
+  OPTIONAL { ?record ta:isSynthetic ?synthetic . }
+  OPTIONAL { ?record ta:provenanceLabel ?provenance . }
+}
+ORDER BY ?recordType ?label

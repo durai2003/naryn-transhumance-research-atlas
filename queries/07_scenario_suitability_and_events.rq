@@ -1,0 +1,17 @@
+PREFIX ta: <https://example.org/transhumance-atlas/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?event ?timestamp ?eventType ?legName ?herd ?pasture ?route ?scenario ?originClass ?provenance
+WHERE {
+  ?event a ta:MovementEvent ;
+         ta:occurredAt ?timestamp ;
+         ta:involvesHerd ?herd ;
+         ta:provenanceLabel ?provenance .
+  OPTIONAL { ?event ta:eventType ?eventType . }
+  OPTIONAL { ?event ta:legName ?legName . }
+  OPTIONAL { ?event ta:aboutLocation ?pasture . }
+  OPTIONAL { ?event ta:usesRoute ?route . }
+  OPTIONAL { ?event ta:underScenario ?scenario . }
+  OPTIONAL { ?event ta:originClass ?originClass . }
+}
+ORDER BY ?timestamp ?event
+LIMIT 100

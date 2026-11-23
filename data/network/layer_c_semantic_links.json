@@ -1,0 +1,1644 @@
+{
+  "layer": "linked_knowledge",
+  "generated_utc": "2026-11-21T23:06:19.826951+00:00",
+  "generator_version": "3.0.0-stage1",
+  "random_seed": 42,
+  "scenario_id": "SCENARIO_BASELINE",
+  "note": "Prototype example.org URIs are local stage identifiers, not registered persistent identifiers. Connects Layer A (physical) and Layer B (pastoral) to existing Stage 4 ontology/transhumance.ttl and linked_data/research_graph.ttl.",
+  "study_area_sameAs": "http://www.wikidata.org/entity/Q486375",
+  "reference_city_sameAs": "http://www.wikidata.org/entity/Q311946",
+  "linked_entity_count": 163,
+  "pastoral_edge_count": 149,
+  "entities": [
+    {
+      "stable_id": "PUB-SET-Q311946",
+      "network_layer": "physical_geographical",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/PUB-SET-Q311946",
+      "external_uri": "http://www.wikidata.org/entity/Q311946",
+      "evidence_status": "verified_public",
+      "is_synthetic": false,
+      "prov_wasDerivedFrom": "wikidata_entity_page"
+    },
+    {
+      "stable_id": "SYN-PAS-W01",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-W01",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-W02",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-W02",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-W03",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-W03",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-W04",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-W04",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-W05",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-W05",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-W06",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-W06",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-W07",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-W07",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-W08",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-W08",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-W09",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-W09",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-W10",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-W10",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SP01",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SP01",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SP02",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SP02",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SP03",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SP03",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SP04",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SP04",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SP05",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SP05",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SP06",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SP06",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SP07",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SP07",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SP08",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SP08",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SP09",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SP09",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SP10",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SP10",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SU01",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SU01",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SU02",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SU02",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SU03",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SU03",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SU04",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SU04",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SU05",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SU05",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SU06",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SU06",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SU07",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SU07",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SU08",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SU08",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SU09",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SU09",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-SU10",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-SU10",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-AU01",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-AU01",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-AU02",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-AU02",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-AU03",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-AU03",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-AU04",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-AU04",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-AU05",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-AU05",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-AU06",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-AU06",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-AU07",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-AU07",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-AU08",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-AU08",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-AU09",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-AU09",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PAS-AU10",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Pasture",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PAS-AU10",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PASS-01",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PASS-01",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PASS-02",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PASS-02",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PASS-03",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PASS-03",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PASS-04",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PASS-04",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PASS-05",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PASS-05",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-PASS-06",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-PASS-06",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-WAT-01",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-WAT-01",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-WAT-02",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-WAT-02",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-WAT-03",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-WAT-03",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-WAT-04",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-WAT-04",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-WAT-05",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-WAT-05",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-WAT-06",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-WAT-06",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-WAT-07",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-WAT-07",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-WAT-08",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-WAT-08",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-WAT-09",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-WAT-09",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-WAT-10",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-WAT-10",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-WAT-11",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-WAT-11",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-WAT-12",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-WAT-12",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-REST-001",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-REST-001",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-REST-002",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-REST-002",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-REST-003",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-REST-003",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-REST-004",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-REST-004",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-REST-005",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-REST-005",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-REST-006",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-REST-006",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-REST-007",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-REST-007",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-REST-008",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-REST-008",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-REST-009",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-REST-009",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-REST-010",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-REST-010",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-REST-011",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-REST-011",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-REST-012",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-REST-012",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-REST-013",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-REST-013",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "SYN-REST-014",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:Location",
+      "prototype_uri": "https://example.org/transhumance-atlas/node/SYN-REST-014",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-001",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-001",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-002",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-002",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-003",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-003",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-004",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-004",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-005",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-005",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-006",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-006",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-007",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-007",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-008",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-008",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-009",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-009",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-010",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-010",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-011",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-011",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-012",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-012",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-013",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-013",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-014",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-014",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-015",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-015",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-016",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-016",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-017",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-017",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-018",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-018",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-019",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-019",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-020",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-020",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-021",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-021",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-022",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-022",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-023",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-023",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-024",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-024",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-025",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-025",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-026",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-026",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-027",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-027",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-028",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-028",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-029",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-029",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-030",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-030",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-031",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-031",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-032",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-032",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-033",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-033",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-034",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-034",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-035",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-035",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-036",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-036",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-037",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-037",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-038",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-038",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-039",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-039",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-040",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-040",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-041",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-041",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-042",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-042",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-043",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-043",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-044",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-044",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-045",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-045",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-046",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-046",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-047",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-047",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-048",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-048",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-049",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-049",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-050",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-050",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-051",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-051",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-052",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-052",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-053",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-053",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-054",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-054",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-055",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-055",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-056",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-056",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-057",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-057",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-058",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-058",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-059",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-059",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-060",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-060",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-061",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-061",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-062",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-062",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-063",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-063",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-064",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-064",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-065",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-065",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-066",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-066",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-067",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-067",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-068",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-068",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-069",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-069",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-070",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-070",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-071",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-071",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-072",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-072",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-073",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-073",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-074",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-074",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-075",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-075",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-076",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-076",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-077",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-077",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-078",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-078",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-079",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-079",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-080",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-080",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-081",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-081",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-082",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-082",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-083",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-083",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-084",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-084",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-085",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-085",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-086",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-086",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-087",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-087",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-088",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-088",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-089",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-089",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    },
+    {
+      "stable_id": "H-090",
+      "network_layer": "pastoral_mobility",
+      "rdf_type": "ta:HerdGroup",
+      "prototype_uri": "https://example.org/transhumance-atlas/herd/H-090",
+      "external_uri": null,
+      "evidence_status": "synthetic_demo",
+      "is_synthetic": true,
+      "prov_wasDerivedFrom": "synthetic_demo"
+    }
+  ]
+}

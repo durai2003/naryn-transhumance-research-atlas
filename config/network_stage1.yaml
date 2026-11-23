@@ -1,0 +1,105 @@
+# Stage 1 Transhumance Network & Reproducible Synthetic Simulation Configuration
+# Preserves strict separation between Layer A (Physical Public), Layer B (Pastoral Mobility), and Layer C (Linked Semantics).
+generator_version: "3.0.0-stage1"
+random_seed: 42
+scenario_id: "SCENARIO_BASELINE"
+study_area: "Naryn Region, Kyrgyzstan"
+study_area_qid: "Q486375"
+reference_city_qid: "Q311946"
+metric_crs: "EPSG:32643"
+web_crs: "EPSG:4326"
+
+# Full 12-month simulation period within verified NASA POWER coverage (2015-2025)
+simulation_year: 2024
+start_date: "2024-01-01"
+end_date: "2024-12-31"
+
+# Target Stage 1 network scale (all configurable via CLI or YAML)
+network_scale:
+  num_herds: 90
+  num_pastures: 40
+  pastures_per_season:
+    winter_pasture: 10
+    spring_pasture: 10
+    summer_pasture: 10
+    autumn_pasture: 10
+  num_resting_points: 14
+  num_mountain_passes: 6
+  num_water_points: 12
+  max_physical_settlements: 25
+  max_physical_road_segments: 400
+  max_physical_water_features: 120
+
+# Environmental masks applied when local Copernicus DEM + ESA WorldCover + OSM are present
+pasture_constraints:
+  max_slope_deg: 26.0
+  preferred_worldcover_codes: [30, 20, 90, 100, 40, 60]
+  elevation_bands_m:
+    winter_pasture: [1650.0, 2350.0]
+    spring_pasture: [2150.0, 2850.0]
+    summer_pasture: [2750.0, 3750.0]
+    autumn_pasture: [2150.0, 2900.0]
+
+# Least-cost routing configuration in EPSG:32643
+routing:
+  grid_cell_size_m: 3200.0
+  elevation_barrier_m: 4150.0
+  max_passable_slope_deg: 36.0
+  osm_track_discount: 0.72
+  water_proximity_bonus: 0.90
+  alternative_route_penalty_factor: 2.35
+  main_corridors_target: 28
+  alternative_corridors_target: 10
+
+# Structured livestock profiles (reproducible, non-arbitrary variation)
+livestock_profiles:
+  sheep:
+    weight: 0.34
+    animal_count_range: [140, 460]
+    speed_km_day_range: [7.5, 12.5]
+    rest_days_range: [2, 6]
+    max_slope_deg: 32.0
+    max_elevation_m: 3850.0
+  goat:
+    weight: 0.16
+    animal_count_range: [70, 240]
+    speed_km_day_range: [8.5, 14.0]
+    rest_days_range: [2, 5]
+    max_slope_deg: 35.0
+    max_elevation_m: 3950.0
+  cattle:
+    weight: 0.16
+    animal_count_range: [35, 145]
+    speed_km_day_range: [5.5, 9.5]
+    rest_days_range: [3, 8]
+    max_slope_deg: 24.0
+    max_elevation_m: 3350.0
+  horse:
+    weight: 0.14
+    animal_count_range: [25, 115]
+    speed_km_day_range: [11.5, 18.5]
+    rest_days_range: [1, 5]
+    max_slope_deg: 32.0
+    max_elevation_m: 3900.0
+  mixed:
+    weight: 0.20
+    animal_count_range: [95, 340]
+    speed_km_day_range: [6.8, 11.5]
+    rest_days_range: [2, 7]
+    max_slope_deg: 28.0
+    max_elevation_m: 3650.0
+
+# Staggered seasonal calendar windows (day-of-year)
+calendar_windows:
+  spring_departure_doy: [80, 120]
+  summer_departure_doy: [142, 180]
+  autumn_departure_doy: [232, 270]
+  winter_return_doy: [288, 330]
+  alternative_route_probability: 0.26
+  movement_subdaily_samples_per_day: 2
+
+provenance:
+  is_synthetic: true
+  provenance_label: "synthetic_demo"
+  evidence_status: "synthetic_demo"
+  disclaimer: "Synthetic educational demonstration only. Generated candidate pastures, modelled corridors, herd populations, movement events, and positions are simulated and must not be interpreted as verified field observations, GPS tracks, or official pasture rights."

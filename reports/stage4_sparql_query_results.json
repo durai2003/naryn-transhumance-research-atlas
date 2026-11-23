@@ -1,0 +1,549 @@
+{
+  "graph_validation": {
+    "status": "PASS",
+    "triple_count": 82906,
+    "dataset_nodes": 17,
+    "sameAs_links": 0,
+    "unresolved_sameAs": [],
+    "synthetic_provenance_issues": [],
+    "missing_dataset_metadata": [],
+    "issues": []
+  },
+  "graph_counts": {
+    "triples": 82906,
+    "locations": 2,
+    "pastures": 18,
+    "routes": 21,
+    "climate_observations": 4194,
+    "livestock_observations": 0,
+    "interview_records": 12,
+    "multimedia_assets": 3,
+    "datasets": 17,
+    "skos_concepts": 7,
+    "herd_groups": 48,
+    "movement_events": 1152,
+    "simulation_scenarios": 3,
+    "suitability_assessments": 216
+  },
+  "queries": {
+    "01_pasture_locations.rq": {
+      "row_count": 18,
+      "rows": [
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-005",
+          "label": "Ak-Talaa Valley Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-005/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-017",
+          "label": "Aksai High Valley Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-017/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-018",
+          "label": "At-Bashi High Ridge Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-018/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-006",
+          "label": "At-Bashi Valley Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-006/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-011",
+          "label": "Bash-Kaindy Transition Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-011/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-015",
+          "label": "Eki-Naryn Alpine Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-015/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-004",
+          "label": "Jumgal Valley Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-004/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-009",
+          "label": "Kara-Kujur Transition Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-009/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-012",
+          "label": "Kazarman Approach Foothill Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-012/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-003",
+          "label": "Kochkor Basin Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-003/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-008",
+          "label": "Kulanak Foothill Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-008/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-007",
+          "label": "Kyzyl-Oi Foothill Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-007/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-002",
+          "label": "Naryn Valley Central Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-002/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-001",
+          "label": "Naryn Valley West Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-001/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-010",
+          "label": "On-Archa Foothill Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-010/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-016",
+          "label": "Solton-Sary High Plateau Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-016/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-013",
+          "label": "Son-Kul North Alpine Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-013/geometry"
+        },
+        {
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-014",
+          "label": "Son-Kul South Alpine Candidate",
+          "geometry": "https://example.org/transhumance-atlas/pasture/demo-pasture-014/geometry"
+        }
+      ]
+    },
+    "02_routes_for_pasture.rq": {
+      "row_count": 42,
+      "rows": [
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-005",
+          "routeLabel": "Ak-Talaa Valley Candidate → Kazarman Approach Foothill Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-005",
+          "pastureLabel": "Ak-Talaa Valley Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-021",
+          "routeLabel": "Bash-Kaindy Transition Candidate → Aksai High Valley Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-017",
+          "pastureLabel": "Aksai High Valley Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-015",
+          "routeLabel": "Bash-Kaindy Transition Candidate → At-Bashi High Ridge Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-018",
+          "pastureLabel": "At-Bashi High Ridge Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-010",
+          "routeLabel": "Kulanak Foothill Candidate → At-Bashi High Ridge Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-018",
+          "pastureLabel": "At-Bashi High Ridge Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-006",
+          "routeLabel": "At-Bashi Valley Candidate → Bash-Kaindy Transition Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-006",
+          "pastureLabel": "At-Bashi Valley Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-006",
+          "routeLabel": "At-Bashi Valley Candidate → Bash-Kaindy Transition Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-011",
+          "pastureLabel": "Bash-Kaindy Transition Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-021",
+          "routeLabel": "Bash-Kaindy Transition Candidate → Aksai High Valley Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-011",
+          "pastureLabel": "Bash-Kaindy Transition Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-015",
+          "routeLabel": "Bash-Kaindy Transition Candidate → At-Bashi High Ridge Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-011",
+          "pastureLabel": "Bash-Kaindy Transition Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-012",
+          "routeLabel": "Kara-Kujur Transition Candidate → Eki-Naryn Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-015",
+          "pastureLabel": "Eki-Naryn Alpine Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-019",
+          "routeLabel": "Kochkor Basin Candidate → Eki-Naryn Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-015",
+          "pastureLabel": "Eki-Naryn Alpine Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-014",
+          "routeLabel": "On-Archa Foothill Candidate → Eki-Naryn Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-015",
+          "pastureLabel": "Eki-Naryn Alpine Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-004",
+          "routeLabel": "Jumgal Valley Candidate → Kyzyl-Oi Foothill Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-004",
+          "pastureLabel": "Jumgal Valley Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-020",
+          "routeLabel": "Jumgal Valley Candidate → Solton-Sary High Plateau Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-004",
+          "pastureLabel": "Jumgal Valley Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-012",
+          "routeLabel": "Kara-Kujur Transition Candidate → Eki-Naryn Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-009",
+          "pastureLabel": "Kara-Kujur Transition Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-011",
+          "routeLabel": "Kara-Kujur Transition Candidate → Solton-Sary High Plateau Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-009",
+          "pastureLabel": "Kara-Kujur Transition Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-003",
+          "routeLabel": "Kochkor Basin Candidate → Kara-Kujur Transition Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-009",
+          "pastureLabel": "Kara-Kujur Transition Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-005",
+          "routeLabel": "Ak-Talaa Valley Candidate → Kazarman Approach Foothill Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-012",
+          "pastureLabel": "Kazarman Approach Foothill Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-016",
+          "routeLabel": "Kazarman Approach Foothill Candidate → Son-Kul South Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-012",
+          "pastureLabel": "Kazarman Approach Foothill Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-019",
+          "routeLabel": "Kochkor Basin Candidate → Eki-Naryn Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-003",
+          "pastureLabel": "Kochkor Basin Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-003",
+          "routeLabel": "Kochkor Basin Candidate → Kara-Kujur Transition Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-003",
+          "pastureLabel": "Kochkor Basin Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-010",
+          "routeLabel": "Kulanak Foothill Candidate → At-Bashi High Ridge Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-008",
+          "pastureLabel": "Kulanak Foothill Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-009",
+          "routeLabel": "Kulanak Foothill Candidate → Son-Kul South Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-008",
+          "pastureLabel": "Kulanak Foothill Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-001",
+          "routeLabel": "Naryn Valley West Candidate → Kulanak Foothill Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-008",
+          "pastureLabel": "Kulanak Foothill Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-004",
+          "routeLabel": "Jumgal Valley Candidate → Kyzyl-Oi Foothill Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-007",
+          "pastureLabel": "Kyzyl-Oi Foothill Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-008",
+          "routeLabel": "Kyzyl-Oi Foothill Candidate → Son-Kul North Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-007",
+          "pastureLabel": "Kyzyl-Oi Foothill Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-007",
+          "routeLabel": "Kyzyl-Oi Foothill Candidate → Son-Kul South Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-007",
+          "pastureLabel": "Kyzyl-Oi Foothill Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-002",
+          "routeLabel": "Naryn Valley Central Candidate → On-Archa Foothill Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-002",
+          "pastureLabel": "Naryn Valley Central Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-018",
+          "routeLabel": "Naryn Valley Central Candidate → Son-Kul South Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-002",
+          "pastureLabel": "Naryn Valley Central Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-001",
+          "routeLabel": "Naryn Valley West Candidate → Kulanak Foothill Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-001",
+          "pastureLabel": "Naryn Valley West Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-017",
+          "routeLabel": "Naryn Valley West Candidate → Son-Kul North Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-001",
+          "pastureLabel": "Naryn Valley West Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-002",
+          "routeLabel": "Naryn Valley Central Candidate → On-Archa Foothill Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-010",
+          "pastureLabel": "On-Archa Foothill Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-014",
+          "routeLabel": "On-Archa Foothill Candidate → Eki-Naryn Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-010",
+          "pastureLabel": "On-Archa Foothill Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-013",
+          "routeLabel": "On-Archa Foothill Candidate → Solton-Sary High Plateau Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-010",
+          "pastureLabel": "On-Archa Foothill Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-020",
+          "routeLabel": "Jumgal Valley Candidate → Solton-Sary High Plateau Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-016",
+          "pastureLabel": "Solton-Sary High Plateau Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-011",
+          "routeLabel": "Kara-Kujur Transition Candidate → Solton-Sary High Plateau Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-016",
+          "pastureLabel": "Solton-Sary High Plateau Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-013",
+          "routeLabel": "On-Archa Foothill Candidate → Solton-Sary High Plateau Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-016",
+          "pastureLabel": "Solton-Sary High Plateau Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-008",
+          "routeLabel": "Kyzyl-Oi Foothill Candidate → Son-Kul North Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-013",
+          "pastureLabel": "Son-Kul North Alpine Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-017",
+          "routeLabel": "Naryn Valley West Candidate → Son-Kul North Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-013",
+          "pastureLabel": "Son-Kul North Alpine Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-016",
+          "routeLabel": "Kazarman Approach Foothill Candidate → Son-Kul South Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-014",
+          "pastureLabel": "Son-Kul South Alpine Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-009",
+          "routeLabel": "Kulanak Foothill Candidate → Son-Kul South Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-014",
+          "pastureLabel": "Son-Kul South Alpine Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-007",
+          "routeLabel": "Kyzyl-Oi Foothill Candidate → Son-Kul South Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-014",
+          "pastureLabel": "Son-Kul South Alpine Candidate"
+        },
+        {
+          "route": "https://example.org/transhumance-atlas/route/syn-corridor-018",
+          "routeLabel": "Naryn Valley Central Candidate → Son-Kul South Alpine Candidate",
+          "pasture": "https://example.org/transhumance-atlas/pasture/demo-pasture-014",
+          "pastureLabel": "Son-Kul South Alpine Candidate"
+        }
+      ]
+    },
+    "03_climate_observations_for_location.rq": {
+      "row_count": 0,
+      "rows": []
+    },
+    "04_research_records_for_location.rq": {
+      "row_count": 0,
+      "rows": []
+    },
+    "05_datasets_and_metadata.rq": {
+      "row_count": 17,
+      "rows": [
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/derived-raster-esa-worldcover-10m-2021-v200-n39e072-map-naryn-clip",
+          "identifier": "DERIVED-RASTER-ESA_WorldCover_10m_2021_v200_N39E072_Map_naryn_clip",
+          "title": "ESA WorldCover 10m 2021 v200 N39E072 Map naryn clip",
+          "publisher": "Derived geospatial processing output",
+          "licence": null,
+          "availability": "available",
+          "source": null
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/derived-raster-esa-worldcover-10m-2021-v200-n39e075-map-naryn-clip",
+          "identifier": "DERIVED-RASTER-ESA_WorldCover_10m_2021_v200_N39E075_Map_naryn_clip",
+          "title": "ESA WorldCover 10m 2021 v200 N39E075 Map naryn clip",
+          "publisher": "Derived geospatial processing output",
+          "licence": null,
+          "availability": "available",
+          "source": null
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/derived-raster-esa-worldcover-10m-2021-v200-n42e072-map-naryn-clip",
+          "identifier": "DERIVED-RASTER-ESA_WorldCover_10m_2021_v200_N42E072_Map_naryn_clip",
+          "title": "ESA WorldCover 10m 2021 v200 N42E072 Map naryn clip",
+          "publisher": "Derived geospatial processing output",
+          "licence": null,
+          "availability": "available",
+          "source": null
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/derived-raster-esa-worldcover-10m-2021-v200-n42e075-map-naryn-clip",
+          "identifier": "DERIVED-RASTER-ESA_WorldCover_10m_2021_v200_N42E075_Map_naryn_clip",
+          "title": "ESA WorldCover 10m 2021 v200 N42E075 Map naryn clip",
+          "publisher": "Derived geospatial processing output",
+          "licence": null,
+          "availability": "available",
+          "source": null
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/esa-worldcover-2021-v200",
+          "identifier": "ESA-WORLDCOVER-2021-V200",
+          "title": "ESA WorldCover 2021 land-cover map",
+          "publisher": "ESA WorldCover Consortium",
+          "licence": "https://creativecommons.org/licenses/by/4.0/",
+          "availability": "available",
+          "source": "https://esa-worldcover.org/en/data-access"
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/fao-glw4-2020-density",
+          "identifier": "FAO-GLW4-2020-DENSITY",
+          "title": "GLW4 2020 sheep and goat density",
+          "publisher": "FAO",
+          "licence": "https://creativecommons.org/licenses/by/4.0/",
+          "availability": "not_available_in_this_workspace",
+          "source": "https://data.fao.org/catalog/dataset/e056a913-2a28-454d-ad83-d6ef126bf0ff"
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/gb-adm1-kgz",
+          "identifier": "GB-ADM1-KGZ",
+          "title": "Kyrgyzstan ADM1 administrative boundaries (Naryn feature to select)",
+          "publisher": "geoBoundaries",
+          "licence": "https://opendatacommons.org/licenses/odbl/1-0/",
+          "availability": "available",
+          "source": "https://www.geoboundaries.org/api/current/gbOpen/KGZ/ADM1/"
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/kdc-pasture-snow-drought",
+          "identifier": "KDC-PASTURE-SNOW-DROUGHT",
+          "title": "Kyrgyz Data Cube pasture, snow and drought products",
+          "publisher": "CAIAG / SIBELIUS",
+          "licence": null,
+          "availability": "not_available_in_this_workspace",
+          "source": "https://caiag.kg/en/projects/519-proekt-sibelius-kyrgyz-opendatacube"
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/locations-wikidata",
+          "identifier": "LOCATIONS-WIKIDATA",
+          "title": "Verified location reference table",
+          "publisher": "Wikidata",
+          "licence": null,
+          "availability": "available",
+          "source": null
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/naryn-adm1-clean",
+          "identifier": "NARYN-ADM1-CLEAN",
+          "title": "Cleaned Naryn ADM1 boundary",
+          "publisher": "geoBoundaries",
+          "licence": null,
+          "availability": "available",
+          "source": null
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/nasa-power-daily",
+          "identifier": "NASA-POWER-DAILY",
+          "title": "Daily temperature and precipitation point time series",
+          "publisher": "NASA POWER",
+          "licence": null,
+          "availability": "available",
+          "source": "https://power.larc.nasa.gov/docs/services/api/temporal/daily/"
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/nasa-power-daily-clean",
+          "identifier": "NASA-POWER-DAILY-CLEAN",
+          "title": "NASA POWER cleaned daily climate table",
+          "publisher": "NASA POWER",
+          "licence": null,
+          "availability": "available",
+          "source": null
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/nasa-power-monthly",
+          "identifier": "NASA-POWER-MONTHLY",
+          "title": "NASA POWER monthly climate summary",
+          "publisher": "NASA POWER",
+          "licence": null,
+          "availability": "available",
+          "source": null
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/nasa-power-seasonal",
+          "identifier": "NASA-POWER-SEASONAL",
+          "title": "NASA POWER seasonal climate summary",
+          "publisher": "NASA POWER",
+          "licence": null,
+          "availability": "available",
+          "source": null
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/osm-kgz-geofabrik",
+          "identifier": "OSM-KGZ-GEOFABRIK",
+          "title": "OpenStreetMap Kyrgyzstan context layers",
+          "publisher": "OpenStreetMap via Geofabrik",
+          "licence": "https://opendatacommons.org/licenses/odbl/1-0/",
+          "availability": "available",
+          "source": "https://download.geofabrik.de/asia/kyrgyzstan/"
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/osm-naryn-context",
+          "identifier": "OSM-NARYN-CONTEXT",
+          "title": "OpenStreetMap context clipped to Naryn",
+          "publisher": "OpenStreetMap via Geofabrik",
+          "licence": null,
+          "availability": "available",
+          "source": null
+        },
+        {
+          "dataset": "https://example.org/transhumance-atlas/dataset/wikidata-naryn-entities",
+          "identifier": "WIKIDATA-NARYN-ENTITIES",
+          "title": "External identifiers for Naryn Region and Naryn city",
+          "publisher": "Wikidata",
+          "licence": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "availability": "not_available_in_this_workspace",
+          "source": "https://query.wikidata.org/sparql"
+        }
+      ]
+    }
+  },
+  "note": "Zero rows indicate no matching verified records in the currently built graph; they are not evidence that such features do not exist in the real world."
+}

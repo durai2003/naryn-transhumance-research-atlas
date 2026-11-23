@@ -1,0 +1,14 @@
+PREFIX ta: <https://example.org/transhumance-atlas/ontology#>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+SELECT ?dataset ?identifier ?title ?publisher ?licence ?availability ?source
+WHERE {
+  ?dataset a dcat:Dataset ;
+           dcterms:identifier ?identifier ;
+           dcterms:title ?title ;
+           dcterms:publisher ?publisher ;
+           ta:localAvailability ?availability .
+  OPTIONAL { ?dataset dcterms:license ?licence . }
+  OPTIONAL { ?dataset ta:sourceURL ?source . }
+}
+ORDER BY ?identifier

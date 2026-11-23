@@ -1,0 +1,62 @@
+# Transparent Rule-Based Pasture Suitability & Climate Scenario Assumptions
+# PastureSuitability =
+#   w_climate * climate_score
+# + w_vegetation * vegetation_score
+# + w_water * water_access_score
+# + w_season * season_score
+# - w_terrain * terrain_penalty
+# - w_route * route_cost_penalty
+# Clamped to [0.0, 1.0]. Missing environmental inputs degrade cleanly to neutral 0.50 (never fabricated).
+
+weights:
+  climate: 0.34
+  vegetation: 0.22
+  water_access: 0.18
+  season: 0.26
+  terrain_penalty: 0.14
+  route_cost_penalty: 0.10
+
+climate_model:
+  lapse_rate_c_per_1000m: -6.5
+  optimal_grazing_temp_c: 11.0
+  temp_tolerance_c: 10.5
+  freezing_snow_threshold_c: -2.0
+  optimal_monthly_precip_mm: 45.0
+  drought_precip_threshold_mm: 15.0
+
+scenarios:
+  SCENARIO_BASELINE:
+    label: "Historical / Baseline (NASA POWER)"
+    origin_class: "public"
+    description: "Uses actual downloaded NASA POWER daily T2M and PRECTOTCORR for Naryn city (Q311946) with baseline synthetic herd schedules."
+    temp_offset_summer_c: 0.0
+    temp_offset_shoulder_c: 0.0
+    temp_offset_winter_c: 0.0
+    precip_multiplier_summer: 1.0
+    precip_multiplier_autumn: 1.0
+    early_snow_shift_days: 0
+    high_altitude_snow_penalty: 0.0
+
+  SCENARIO_WARMER_DRIER:
+    label: "Warmer & Drier Summer (Illustrative)"
+    origin_class: "simulated_scenario"
+    description: "Hypothetical +2.8 C summer warming and 45% summer precipitation reduction; lowers mid-altitude moisture suitability and nudges herds toward higher, better-watered alpine candidates."
+    temp_offset_summer_c: 2.8
+    temp_offset_shoulder_c: 1.5
+    temp_offset_winter_c: 1.0
+    precip_multiplier_summer: 0.55
+    precip_multiplier_autumn: 0.75
+    early_snow_shift_days: 0
+    high_altitude_snow_penalty: 0.0
+
+  SCENARIO_EARLY_SNOW:
+    label: "Early Snow / Earlier Autumn Return (Illustrative)"
+    origin_class: "simulated_scenario"
+    description: "Hypothetical early high-altitude cooling (-3.8 C late Aug-Oct) and +60% autumn precipitation (snow proxy), triggering earlier descent from alpine pastures (>2850 m) and rerouting to sheltered lower-altitude refuges."
+    temp_offset_summer_c: -0.6
+    temp_offset_shoulder_c: -3.8
+    temp_offset_winter_c: -2.0
+    precip_multiplier_summer: 1.05
+    precip_multiplier_autumn: 1.60
+    early_snow_shift_days: 22
+    high_altitude_snow_penalty: 0.42

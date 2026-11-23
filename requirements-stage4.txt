@@ -1,0 +1,9 @@
+# Stage 4: RDF, SKOS, JSON-LD and SPARQL
+rdflib>=7.0,<8.0
+pandas>=2.1,<3.0
+geopandas>=0.14
+shapely>=2.0
+rasterio>=1.3
+pytest>=8.0
+# Optional SHACL validation (install separately if desired):
+# pyshacl>=0.25

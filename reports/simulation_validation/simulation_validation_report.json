@@ -1,0 +1,87 @@
+{
+  "summary": {
+    "generated_utc": "2026-11-21T18:57:48.401919+00:00",
+    "simulation_version": "2.0.0",
+    "random_seed": 42,
+    "date_range": [
+      "2024-01-01",
+      "2024-12-31"
+    ],
+    "boundary_source": "data/processed/vectors/naryn_adm1_clean.geojson",
+    "counts": {
+      "pastures": 18,
+      "corridors": 21,
+      "herds": 48,
+      "scenarios": 3,
+      "trajectory_records_total": 52704,
+      "trajectory_records_per_scenario": 17568,
+      "movement_events": 1152,
+      "suitability_rows": 216,
+      "herds_switching_destination_across_scenarios": 42
+    },
+    "species_breakdown": {
+      "sheep": 17,
+      "mixed": 9,
+      "horse": 8,
+      "cattle": 8,
+      "goat": 6
+    },
+    "trajectory_files": [
+      "herd_trajectories.csv"
+    ],
+    "scenario_climate_files": [
+      "scenario_climate.csv"
+    ],
+    "is_synthetic": true,
+    "provenance": "synthetic_demo",
+    "disclaimer": "Synthetic educational demonstration only. Generated herds, candidate grazing locations, modelled corridors, and climate scenario trajectories are fictional and must not be interpreted as verified field observations, GPS tracks, or official pasture rights."
+  },
+  "checks": [
+    {
+      "check": "synthetic_herds",
+      "rows": 48,
+      "status": "PASS",
+      "issues": []
+    },
+    {
+      "check": "synthetic_pastures",
+      "rows": 18,
+      "outside_boundary": 0,
+      "status": "PASS",
+      "issues": []
+    },
+    {
+      "check": "synthetic_routes",
+      "rows": 21,
+      "outside_boundary": 0,
+      "status": "PASS",
+      "issues": []
+    },
+    {
+      "check": "herd_trajectories",
+      "rows": 52704,
+      "max_daily_step_km": 17.68,
+      "teleport_violations": 0,
+      "outside_boundary_points": 0,
+      "status": "PASS",
+      "issues": []
+    },
+    {
+      "check": "climate_scenarios",
+      "rows": 1098,
+      "scenarios_present": [
+        "SCENARIO_BASELINE",
+        "SCENARIO_EARLY_SNOW",
+        "SCENARIO_WARMER_DRIER"
+      ],
+      "status": "PASS",
+      "issues": []
+    },
+    {
+      "check": "reproducibility_seed_42",
+      "status": "PASS",
+      "issues": []
+    }
+  ],
+  "all_passed": true
+}

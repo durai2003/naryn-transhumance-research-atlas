@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stage 2 · Synchronised Geographical &amp; Abstract Graph Explorer</title>
+  <script>
+    window.CESIUM_BASE_URL = "/cesium/";
+  </script>
+  <link href="/cesium/Widgets/widgets.css" rel="stylesheet" />
+  <script src="/cesium/Cesium.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #070d19; color: #e2e8f0; }
+
+    #appShell { display: flex; flex-direction: column; width: 100%; height: 100%; }
+
+    #topBar {
+      height: 44px; flex: 0 0 44px;
+      background: #0f172a; border-bottom: 1px solid rgba(148,163,184,0.24);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 10px; gap: 8px; overflow-x: auto; white-space: nowrap;
+    }
+    .bar-group { display: flex; align-items: center; gap: 6px; }
+    .brand { font-weight: 700; font-size: 12.5px; color: #f8fafc; }
+    .pill {
+      padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 600;
+      border: 1px solid rgba(148,163,184,0.32);
+    }
+    .pill-ok { background: rgba(16,185,129,0.20); color: #6ee7b7; border-color: #10b981; }
+    .pill-pub { background: rgba(56,189,248,0.20); color: #7dd3fc; border-color: #38bdf8; }
+    .pill-der { background: rgba(245,158,11,0.22); color: #fcd34d; border-color: #f59e0b; }
+    .pill-syn { background: rgba(192,38,211,0.22); color: #f0abfc; border-color: #c026d3; }
+    .pill-muted { background: rgba(30,41,59,0.9); color: #cbd5e1; }
+
+    .btn {
+      background: #1e293b; color: #e2e8f0; border: 1px solid rgba(148,163,184,0.32);
+      border-radius: 5px; padding: 3px 8px; font-size: 11px; cursor: pointer; transition: 0.14s;
+    }
+    .btn:hover, .btn.active { background: #2563eb; border-color: #60a5fa; color: #fff; }
+    .sel {
+      background: #1e293b; color: #f8fafc; border: 1px solid rgba(148,163,184,0.35);
+      border-radius: 5px; padding: 3px 6px; font-size: 11px;
+    }
+
+    #splitMain {
+      flex: 1 1 auto; min-height: 0;
+      display: grid; grid-template-columns: 53% 47%;
+      width: 100%;
+    }
+
+    /* LEFT: GEOGRAPHICAL VIEW */
+    #geoPane {
+      position: relative; width: 100%; height: 100%;
+      border-right: 1px solid rgba(148,163,184,0.26); overflow: hidden;
+    }
+    #cesiumContainer { width: 100%; height: 100%; }
+    .cesium-viewer-bottom { display: none !important; }
+
+    #geoOverlayHeader {
+      position: absolute; top: 8px; left: 8px; z-index: 15;
+      background: rgba(15,23,42,0.84); backdrop-filter: blur(6px);
+      border: 1px solid rgba(148,163,184,0.28); border-radius: 7px;
+      padding: 4px 8px; font-size: 11px; display: flex; align-items: center; gap: 6px;
+    }
+
+    #geoLegend {
+      position: absolute; bottom: 8px; left: 8px; z-index: 15;
+      background: rgba(15,23,42,0.86); backdrop-filter: blur(6px);
+      border: 1px solid rgba(148,163,184,0.26); border-radius: 7px;
+      padding: 6px 9px; font-size: 10px; line-height: 1.5; max-width: 260px;
+    }
+    .leg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 10px; }
+    .sw-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+    .sw-line { display: inline-block; width: 14px; height: 0; border-top: 2.5px solid #fff; margin-right: 4px; vertical-align: middle; }
+
+    /* RIGHT: ABSTRACT GRAPH + INSPECTOR */
+    #rightPane {
+      display: flex; flex-direction: column; width: 100%; height: 100%;
+      background: #0b1222; overflow: hidden;
+    }
+    #graphToolbar {
+      flex: 0 0 auto; padding: 6px 8px;
+      background: #0f172a; border-bottom: 1px solid rgba(148,163,184,0.22);
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px;
+    }
+    #graphWrap {
+      position: relative; flex: 1 1 56%; min-height: 220px; width: 100%;
+      background: radial-gradient(circle at 50% 45%, #111c33 0%, #090f1d 100%);
+      overflow: hidden;
+    }
+    #graphCanvas { width: 100%; height: 100%; display: block; cursor: grab; }
+    #graphCanvas:active { cursor: grabbing; }
+
+    #graphTooltip {
+      position: absolute; pointer-events: none; z-index: 30; display: none;
+      background: rgba(15,23,42,0.95); border: 1px solid rgba(148,163,184,0.45);
+      border-radius: 6px; padding: 5px 8px; font-size: 11px; color: #f8fafc;
+      max-width: 260px; box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+    }
+
+    #syncBanner {
+      position: absolute; top: 6px; right: 8px; z-index: 10;
+      background: rgba(15,23,42,0.82); border: 1px solid rgba(56,189,248,0.35);
+      border-radius: 6px; padding: 3px 7px; font-size: 10px; color: #93c5fd;
+    }
+
+    /* INSPECTOR DRAWER */
+    #inspectorPane {
+      flex: 0 0 44%; min-height: 205px; max-height: 52%;
+      background: #0f172a; border-top: 1px solid rgba(148,163,184,0.28);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    #inspHeader {
+      flex: 0 0 auto; padding: 6px 10px;
+      background: #131f35; border-bottom: 1px solid rgba(148,163,184,0.2);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    #inspTitle { font-weight: 700; font-size: 12px; color: #f8fafc; }
+    #inspContent {
+      flex: 1 1 auto; overflow-y: auto; padding: 8px 10px; font-size: 11px; line-height: 1.48;
+    }
+    .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 12px; margin-bottom: 7px; }
+    .kv { display: flex; justify-content: space-between; gap: 6px; border-bottom: 1px solid rgba(148,163,184,0.12); padding: 2px 0; }
+    .kv .k { color: #94a3b8; }
+    .kv .v { color: #f1f5f9; font-weight: 500; text-align: right; }
+
+    .sec-title {
+      font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      color: #93c5fd; margin: 7px 0 4px;
+    }
+    .chip-list { display: flex; flex-wrap: wrap; gap: 4px; }
+    .chip {
+      background: #1e293b; border: 1px solid rgba(148,163,184,0.3); color: #e2e8f0;
+      border-radius: 5px; padding: 2px 6px; font-size: 10px; cursor: pointer;
+    }
+    .chip:hover { background: #2563eb; border-color: #60a5fa; color: #fff; }
+    .chip-static { cursor: default; }
+    .chip-static:hover { background: #1e293b; border-color: rgba(148,163,184,0.3); }
+
+    .route-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 6px;
+      padding: 3px 6px; margin-bottom: 3px; border-radius: 5px;
+      background: rgba(30,41,59,0.65); border: 1px solid rgba(148,163,184,0.18);
+      cursor: pointer; font-size: 10.5px;
+    }
+    .route-row:hover { border-color: #facc15; background: rgba(37,99,235,0.28); }
+    .profile-box {
+      background: #09101f; border: 1px solid rgba(148,163,184,0.22);
+      border-radius: 6px; padding: 5px 6px; margin: 5px 0;
+    }
+    .season-pills { display: flex; gap: 5px; flex-wrap: wrap; margin: 4px 0; }
+  </style>
+</head>
+<body>
+<div id="appShell">
+  <div id="topBar">
+    <div class="bar-group">
+      <span class="brand">Naryn Network Explorer</span>
+      <span id="terrainBadge" class="pill pill-der">Terrain: Loading…</span>
+      <span id="countsBadge" class="pill pill-muted">0 nodes · 0 edges · 0 components</span>
+    </div>
+    <div class="bar-group">
+      <button class="btn" id="btnWorld" title="Complete 3D Globe (Top View)">🌍 World</button>
+      <button class="btn active" id="btnNaryn" title="Naryn Region Top-Down">🏔️ Naryn</button>
+      <button class="btn" id="btnSonKul" title="Son-Kul Top-Down">⛰️ Son-Kul</button>
+      <button class="btn" id="btnAtBashi" title="At-Bashi Top-Down">🏞️ At-Bashi</button>
+      <button class="btn" id="btnTilt" title="Toggle Top-Down (-90°) / 3D Tilt (-32°)">📐 3D Tilt</button>
+      <select class="sel" id="basemapSel" title="Basemap">
+        <option value="esri_satellite">Satellite + Relief</option>
+        <option value="esri_topo">Esri Topo</option>
+        <option value="opentopo">OpenTopoMap</option>
+        <option value="osm">OpenStreetMap</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="splitMain">
+    <!-- LEFT: GEOGRAPHICAL VIEW (CESIUMJS) -->
+    <div id="geoPane">
+      <div id="cesiumContainer"></div>
+      <div id="geoOverlayHeader">
+        <b>Geographical View</b> · Click any node or route to synchronise with Graph
+      </div>
+      <div id="geoLegend">
+        <div style="font-weight:700;margin-bottom:3px;color:#f8fafc;">Nodes &amp; Edges Legend</div>
+        <div class="leg-grid">
+          <div><span class="sw-dot" style="background:#38bdf8;"></span>Winter Pasture</div>
+          <div><span class="sw-dot" style="background:#4ade80;"></span>Spring Pasture</div>
+          <div><span class="sw-dot" style="background:#facc15;"></span>Summer Pasture</div>
+          <div><span class="sw-dot" style="background:#fb923c;"></span>Autumn Pasture</div>
+          <div><span class="sw-dot" style="background:#f8fafc;border-radius:50%;"></span>Settlement (Public)</div>
+          <div><span class="sw-dot" style="background:#06b6d4;border-radius:50%;"></span>Water Point</div>
+          <div><span class="sw-dot" style="background:#f43f5e;"></span>Mountain Pass</div>
+          <div><span class="sw-dot" style="background:#c084fc;border-radius:50%;"></span>Resting Point</div>
+        </div>
+        <div style="margin-top:4px;border-top:1px solid rgba(148,163,184,0.2);padding-top:3px;">
+          <div><span class="sw-line" style="border-color:#f59e0b;"></span>Physical Road / Access · <span class="sw-line" style="border-color:#e879f9;"></span>Seasonal</div>
+          <div><span class="sw-line" style="border-color:#a855f7;border-top-style:dashed;"></span>Least-Cost · <span class="sw-line" style="border-color:#22d3ee;border-top-style:dotted;"></span>Alternative · <span class="sw-line" style="border-color:#facc15;"></span>Selected</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: ABSTRACT GRAPH VIEW + INSPECTOR -->
+    <div id="rightPane">
+      <div id="graphToolbar">
+        <div class="bar-group">
+          <b style="font-size:11.5px;color:#f8fafc;">Abstract Graph View</b>
+          <select class="sel" id="layoutSel" title="Graph Layout">
+            <option value="geographic">Layout: Geographic</option>
+            <option value="spring">Layout: Force Layout</option>
+          </select>
+          <select class="sel" id="compSel" title="Highlight Connected Component">
+            <option value="0">All Components</option>
+          </select>
+        </div>
+        <div class="bar-group">
+                    <button class="btn" id="btnFitGraph" title="Reset Graph Zoom/Pan">Fit</button>
+          <button class="btn" id="btnClearSel" title="Clear Selection">Clear</button>
+        </div>
+      </div>
+
+      <div id="graphWrap">
+        <canvas id="graphCanvas"></canvas>
+        <div id="syncBanner" style="display:none;"></div>
+        <div id="graphTooltip"></div>
+      </div>
+
+      <div id="inspectorPane">
+        <div id="inspHeader">
+          <span id="inspTitle">Feature Inspector — Click a node or edge</span>
+          <span id="inspBadge" class="pill pill-muted">No selection</span>
+        </div>
+        <div id="inspContent">
+          <p style="color:#94a3b8;">
+            Click any <b>node</b> (pasture, settlement, water point, mountain pass, resting point) or <b>edge</b>
+            (migration corridor, alternative route, water/settlement access, or physical road link) in either the
+            <b>Geographical View</b> or the <b>Abstract Graph View</b>. Both views will synchronise and highlight
+            connected neighbours, components, and route geometry.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const COMP_PALETTE = ["#38bdf8", "#4ade80", "#facc15", "#fb923c", "#f472b6", "#a78bfa", "#2dd4bf", "#f87171"];
+
+function decodeLocalDemGrid(raw) {
+  if (!raw || !raw.data_b64_u16) return null;
+  try {
+    const bin = atob(raw.data_b64_u16);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return {
+      source: raw.source, width: raw.width, height: raw.height,
+      west: raw.bounds[0], south: raw.bounds[1], east: raw.bounds[2], north: raw.bounds[3],
+      offset: raw.offset_m, scale: raw.scale_m, values: new Uint16Array(bytes.buffer),
+    };
+  } catch (e) { return null; }
+}
+
+function sampleLocalDem(grid, lonDeg, latDeg) {
+  if (!grid || lonDeg < grid.west || lonDeg > grid.east || latDeg < grid.south || latDeg > grid.north) return null;
+  const u = ((lonDeg - grid.west) / (grid.east - grid.west)) * (grid.width - 1);
+  const v = ((grid.north - latDeg) / (grid.north - grid.south)) * (grid.height - 1);
+  const c0 = Math.max(0, Math.min(grid.width - 2, Math.floor(u)));
+  const r0 = Math.max(0, Math.min(grid.height - 2, Math.floor(v)));
+  const fu = u - c0, fv = v - r0;
+  const idx = (r, c) => grid.values[r * grid.width + c];
+  const v00 = idx(r0, c0), v10 = idx(r0, c0 + 1), v01 = idx(r0 + 1, c0), v11 = idx(r0 + 1, c0 + 1);
+  if (!v00 || !v10 || !v01 || !v11) return null;
+  const rawVal = (v00 * (1 - fu) + v10 * fu) * (1 - fv) + (v01 * (1 - fu) + v11 * fu) * fv;
+  return rawVal * grid.scale + grid.offset;
+}
+
+class TerrariumTerrainProvider {
+  constructor(localDem, onStatus) {
+    this.tilingScheme = new Cesium.WebMercatorTilingScheme();
+    this.errorEvent = new Cesium.Event();
+    this.credit = new Cesium.Credit("AWS Terrarium + Copernicus DEM");
+    this.hasWaterMask = false;
+    this.hasVertexNormals = false;
+    this.availability = undefined;
+    this.ready = true;
+    this._localDem = localDem;
+    this._onStatus = onStatus;
+    this._tileWidth = 41;
+    this._maxLevel = 13;
+    this._active = 0;
+    this._ok = 0;
+    this._canvas = document.createElement("canvas");
+    this._canvas.width = this._tileWidth;
+    this._canvas.height = this._tileWidth;
+    this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
+    this._l0 = Cesium.TerrainProvider.getEstimatedLevelZeroGeometricErrorForAHeightmap(
+      this.tilingScheme.ellipsoid, this._tileWidth, this.tilingScheme.getNumberOfXTilesAtLevel(0)
+    );
+  }
+  getLevelMaximumGeometricError(level) { return this._l0 / (1 << level); }
+  getTileDataAvailable(x, y, level) { return level <= this._maxLevel; }
+  loadTileDataAvailability() { return undefined; }
+  requestTileGeometry(x, y, level) {
+    if (level > this._maxLevel || this._active >= 8) return undefined;
+    this._active++;
+    const dim = this._tileWidth;
+    const rect = this.tilingScheme.tileXYToRectangle(x, y, level);
+    const west = Cesium.Math.toDegrees(rect.west), east = Cesium.Math.toDegrees(rect.east);
+    const south = Cesium.Math.toDegrees(rect.south), north = Cesium.Math.toDegrees(rect.north);
+    return fetch(`/proxy/terrarium/${level}/${x}/${y}.png`)
+      .then(async (resp) => {
+        const heights = new Float32Array(dim * dim);
+        let ok = false;
+        if (resp.ok) {
+          const bmp = await createImageBitmap(await resp.blob());
+          this._ctx.clearRect(0, 0, dim, dim);
+          this._ctx.drawImage(bmp, 0, 0, dim, dim);
+          bmp.close();
+          const img = this._ctx.getImageData(0, 0, dim, dim).data;
+          for (let i = 0, p = 0; i < heights.length; i++, p += 4) {
+            const h = (img[p] * 256.0 + img[p + 1] + img[p + 2] / 256.0) - 32768.0;
+            heights[i] = Number.isFinite(h) ? Math.max(-500, Math.min(9000, h)) : 0;
+          }
+          ok = true;
+          this._ok++;
+        }
+        if (!ok && this._localDem && east >= this._localDem.west && west <= this._localDem.east && north >= this._localDem.south && south <= this._localDem.north) {
+          for (let r = 0; r < dim; r++) {
+            const lat = north - (r / (dim - 1)) * (north - south);
+            for (let c = 0; c < dim; c++) {
+              const lon = west + (c / (dim - 1)) * (east - west);
+              const e = sampleLocalDem(this._localDem, lon, lat);
+              if (e !== null) heights[r * dim + c] = e;
+            }
+          }
+        }
+        if (this._onStatus) this._onStatus(this._ok);
+        return new Cesium.HeightmapTerrainData({ buffer: heights, width: dim, height: dim, childTileMask: level < this._maxLevel ? 15 : 0 });
+      })
+      .catch(() => new Cesium.HeightmapTerrainData({ buffer: new Float32Array(dim * dim), width: dim, height: dim, childTileMask: 0 }))
+      .finally(() => { this._active = Math.max(0, this._active - 1); });
+  }
+}
+
+// Create crisp category marker icon data URLs for Cesium Billboards (distinct shapes per node type!)
+const ICON_CACHE = {};
+function getMarkerIcon(shape, fillHex, strokeHex = "#0f172a", size = 28) {
+  const key = `${shape}|${fillHex}|${strokeHex}|${size}`;
+  if (ICON_CACHE[key]) return ICON_CACHE[key];
+  const c = document.createElement("canvas");
+  c.width = size; c.height = size;
+  const ctx = c.getContext("2d");
+  const cx = size / 2, cy = size / 2, r = size * 0.36;
+  ctx.fillStyle = fillHex;
+  ctx.strokeStyle = strokeHex;
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  if (shape === "square") {
+    ctx.rect(cx - r, cy - r, r * 2, r * 2);
+  } else if (shape === "triangle") {
+    ctx.moveTo(cx, cy - r * 1.15); ctx.lineTo(cx + r * 1.1, cy + r * 0.95); ctx.lineTo(cx - r * 1.1, cy + r * 0.95); ctx.closePath();
+  } else if (shape === "diamond") {
+    ctx.moveTo(cx, cy - r * 1.2); ctx.lineTo(cx + r * 1.1, cy); ctx.lineTo(cx, cy + r * 1.2); ctx.lineTo(cx - r * 1.1, cy); ctx.closePath();
+  } else if (shape === "hexagon") {
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI / 3) * i - Math.PI / 6;
+      const px = cx + r * 1.1 * Math.cos(a), py = cy + r * 1.1 * Math.sin(a);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  } else if (shape === "star") {
+    for (let i = 0; i < 10; i++) {
+      const rr = i % 2 === 0 ? r * 1.2 : r * 0.52;
+      const a = (Math.PI / 5) * i - Math.PI / 2;
+      const px = cx + rr * Math.cos(a), py = cy + rr * Math.sin(a);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  } else if (shape === "chevron") {
+    ctx.moveTo(cx, cy - r * 1.15); ctx.lineTo(cx + r * 1.15, cy + r * 0.9);
+    ctx.lineTo(cx, cy + r * 0.35); ctx.lineTo(cx - r * 1.15, cy + r * 0.9); ctx.closePath();
+  } else if (shape === "dot") {
+    ctx.arc(cx, cy, r * 0.72, 0, Math.PI * 2);
+  } else {
+    ctx.arc(cx, cy, r * 0.95, 0, Math.PI * 2);
+  }
+  ctx.fill();
+  ctx.stroke();
+  const url = c.toDataURL();
+  ICON_CACHE[key] = url;
+  return url;
+}
+
+function drawShapeOnCtx(ctx, shape, x, y, r) {
+  ctx.beginPath();
+  if (shape === "square") {
+    ctx.rect(x - r, y - r, r * 2, r * 2);
+  } else if (shape === "triangle") {
+    ctx.moveTo(x, y - r * 1.2); ctx.lineTo(x + r * 1.1, y + r); ctx.lineTo(x - r * 1.1, y + r); ctx.closePath();
+  } else if (shape === "diamond") {
+    ctx.moveTo(x, y - r * 1.25); ctx.lineTo(x + r * 1.15, y); ctx.lineTo(x, y + r * 1.25); ctx.lineTo(x - r * 1.15, y); ctx.closePath();
+  } else if (shape === "hexagon") {
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI / 3) * i - Math.PI / 6;
+      const px = x + r * 1.12 * Math.cos(a), py = y + r * 1.12 * Math.sin(a);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  } else if (shape === "star") {
+    for (let i = 0; i < 10; i++) {
+      const rr = i % 2 === 0 ? r * 1.25 : r * 0.55;
+      const a = (Math.PI / 5) * i - Math.PI / 2;
+      const px = x + rr * Math.cos(a), py = y + rr * Math.sin(a);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  } else if (shape === "chevron") {
+    ctx.moveTo(x, y - r * 1.2); ctx.lineTo(x + r * 1.15, y + r * 0.9);
+    ctx.lineTo(x, y + r * 0.35); ctx.lineTo(x - r * 1.15, y + r * 0.9); ctx.closePath();
+  } else if (shape === "dot") {
+    ctx.arc(x, y, r * 0.72, 0, Math.PI * 2);
+  } else {
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+  }
+}
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+}
+
+function renderElevationSvg(profile) {
+  if (!profile || profile.length < 2) {
+    return `<div style="color:#94a3b8;font-size:10.5px;">Elevation profile unavailable (no local DEM samples).</div>`;
+  }
+  const valid = profile.filter((p) => p.elevation_m !== null && p.elevation_m !== undefined);
+  if (valid.length < 2) {
+    return `<div style="color:#94a3b8;font-size:10.5px;">Elevation profile unavailable (elevation_status = unavailable_no_local_dem).</div>`;
+  }
+  const W = 380, H = 96, padL = 38, padR = 10, padT = 10, padB = 20;
+  const maxD = Math.max(valid[valid.length - 1].distance_m || 1, 1);
+  const elevs = valid.map((p) => Number(p.elevation_m));
+  const minE = Math.min(...elevs), maxE = Math.max(...elevs);
+  const spanE = Math.max(maxE - minE, 25);
+
+  const pts = valid.map((p) => {
+    const x = padL + ((p.distance_m / maxD) * (W - padL - padR));
+    const y = padT + (1 - ((Number(p.elevation_m) - minE) / spanE)) * (H - padT - padB);
+    return [x, y];
+  });
+  const lineD = pts.map((pt, i) => `${i === 0 ? "M" : "L"}${pt[0].toFixed(1)},${pt[1].toFixed(1)}`).join(" ");
+  const areaD = `${lineD} L${pts[pts.length - 1][0].toFixed(1)},${(H - padB).toFixed(1)} L${pts[0][0].toFixed(1)},${(H - padB).toFixed(1)} Z`;
+
+  return `
+    <div class="profile-box">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-bottom:2px;">
+        <span>Copernicus DEM Elevation Profile</span>
+        <span>Min ${Math.round(minE)}m · Max ${Math.round(maxE)}m · ${(maxD/1000).toFixed(1)} km</span>
+      </div>
+      <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:88px;display:block;">
+        <defs>
+          <linearGradient id="elevGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#facc15" stop-opacity="0.48" />
+            <stop offset="100%" stop-color="#a855f7" stop-opacity="0.06" />
+          </linearGradient>
+        </defs>
+        <line x1="${padL}" y1="${padT}" x2="${W-padR}" y2="${padT}" stroke="rgba(148,163,184,0.18)" />
+        <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="rgba(148,163,184,0.3)" />
+        <path d="${areaD}" fill="url(#elevGrad)" />
+        <path d="${lineD}" fill="none" stroke="#facc15" stroke-width="2" />
+        <text x="2" y="${padT + 8}" fill="#94a3b8" font-size="9">${Math.round(maxE)}m</text>
+        <text x="2" y="${H - padB}" fill="#94a3b8" font-size="9">${Math.round(minE)}m</text>
+        <text x="${padL}" y="${H - 5}" fill="#94a3b8" font-size="9">0 km</text>
+        <text x="${W - padR - 36}" y="${H - 5}" fill="#94a3b8" font-size="9">${(maxD/1000).toFixed(1)} km</text>
+      </svg>
+    </div>`;
+}
+
+(async function initStage2Explorer() {
+  const terrainBadge = document.getElementById("terrainBadge");
+  const countsBadge = document.getElementById("countsBadge");
+
+  const params = new URLSearchParams(window.location.search);
+  const stateId = params.get("state") || "empty";
+  let DATA = {};
+  try {
+    const resp = await fetch(`/network/payload.json?state=${encodeURIComponent(stateId)}`);
+    DATA = await resp.json();
+  } catch (err) {
+    terrainBadge.textContent = "Failed to load Stage 2 network payload";
+    return;
+  }
+
+  const cfg = DATA.config || {};
+  const nodeMeta = (DATA.meta && DATA.meta.nodeCategories) || {};
+  const edgeMeta = (DATA.meta && DATA.meta.edgeCategories) || {};
+  const nodes = DATA.nodes || [];
+  const edges = DATA.edges || [];
+  const components = DATA.components || [];
+  const layouts = DATA.layouts || {};
+  const localDem = decodeLocalDemGrid(DATA.localDemGrid);
+
+  const nodeById = Object.fromEntries(nodes.map((n) => [n.node_id, n]));
+  const edgeById = Object.fromEntries(edges.map((e) => [e.edge_id, e]));
+
+  countsBadge.textContent = `${nodes.length} nodes · ${edges.length} edges · ${components.length} component${components.length === 1 ? "" : "s"}`;
+
+  // Populate component selector
+  const compSel = document.getElementById("compSel");
+  for (const c of components) {
+    const opt = document.createElement("option");
+    opt.value = String(c.component_id);
+    opt.textContent = `Component #${c.component_id} (${c.node_count} nodes, ${c.edge_count} edges)`;
+    compSel.appendChild(opt);
+  }
+
+  // --- 1. INITIALISE CESIUMJS GEOGRAPHICAL VIEW (STRAIGHT TOP-DOWN -90°) ---
+  const viewer = new Cesium.Viewer("cesiumContainer", {
+    animation: false, timeline: false, baseLayerPicker: false, geocoder: false,
+    homeButton: false, sceneModePicker: false, navigationHelpButton: false,
+    fullscreenButton: false, infoBox: false, selectionIndicator: false,
+    shouldAnimate: false, skyAtmosphere: new Cesium.SkyAtmosphere(), baseLayer: false,
+  });
+  viewer.scene.globe.show = true;
+  viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#16324f");
+  viewer.scene.globe.enableLighting = false;
+  viewer.scene.globe.depthTestAgainstTerrain = false;
+  viewer.scene.verticalExaggeration = Math.max(1.0, cfg.verticalExaggeration || 1.4);
+
+  let activeImagery = [];
+  function setBasemap(key) {
+    for (const l of activeImagery) viewer.imageryLayers.remove(l, true);
+    activeImagery = [];
+    if (key === "esri_topo") {
+      activeImagery.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_topo/{z}/{y}/{x}", maximumLevel: 18 })));
+    } else if (key === "opentopo") {
+      activeImagery.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/opentopo/{z}/{y}/{x}", maximumLevel: 16 })));
+    } else if (key === "osm") {
+      activeImagery.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/osm/{z}/{y}/{x}", maximumLevel: 19 })));
+    } else {
+      const sat = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_satellite/{z}/{y}/{x}", maximumLevel: 18 }));
+      sat.contrast = 1.06; sat.saturation = 1.08; activeImagery.push(sat);
+      const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_hillshade/{z}/{y}/{x}", maximumLevel: 16 }));
+      hs.alpha = 0.28; activeImagery.push(hs);
+      const lbl = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_labels/{z}/{y}/{x}", maximumLevel: 15 }));
+      lbl.alpha = 0.85; activeImagery.push(lbl);
+    }
+  }
+  const basemapSel = document.getElementById("basemapSel");
+  basemapSel.value = cfg.basemap || "esri_satellite";
+  setBasemap(basemapSel.value);
+  basemapSel.onchange = (e) => setBasemap(e.target.value);
+
+  viewer.terrainProvider = new TerrariumTerrainProvider(localDem, (ok) => {
+    if (ok === 1 || ok === 12) {
+      terrainBadge.className = "pill pill-ok";
+      terrainBadge.textContent = localDem ? `3D Terrain: AWS + ${localDem.source}` : "3D Terrain: AWS Global";
+    }
+  });
+  terrainBadge.className = "pill pill-ok";
+  terrainBadge.textContent = localDem ? `3D Terrain: AWS + ${localDem.source}` : "3D Terrain: AWS Global";
+
+  // Draw Naryn ADM1 boundary draped cleanly
+  function drawBoundaryRing(coords) {
+    const flat = [];
+    for (const c of coords || []) if (Number.isFinite(c[0]) && Number.isFinite(c[1])) flat.push(c[0], c[1]);
+    if (flat.length < 4) return;
+    viewer.entities.add({
+      polyline: {
+        positions: Cesium.Cartesian3.fromDegreesArray(flat),
+        width: 3.0,
+        material: Cesium.Color.fromCssColorString("#38bdf8").withAlpha(0.92),
+        clampToGround: true,
+      },
+    });
+  }
+  if (DATA.boundary && DATA.boundary.features) {
+    for (const f of DATA.boundary.features) {
+      const g = f.geometry;
+      if (!g) continue;
+      if (g.type === "Polygon" && g.coordinates[0]) drawBoundaryRing(g.coordinates[0]);
+      else if (g.type === "MultiPolygon") for (const p of g.coordinates) if (p[0]) drawBoundaryRing(p[0]);
+    }
+  }
+
+  // Camera controls (straight top-down -90° by default + 3D Tilt toggle)
+  let isTilted = false;
+  function setTiltState(tilted) {
+    isTilted = tilted;
+    const b = document.getElementById("btnTilt");
+    b.classList.toggle("active", tilted);
+    b.textContent = tilted ? "⬇️ Top View" : "📐 3D Tilt";
+  }
+  function flyTop(lon, lat, height, duration = 1.0) {
+    setTiltState(false);
+    viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(lon, lat, height),
+      orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
+      duration,
+    });
+  }
+  document.getElementById("btnWorld").onclick = () => flyTop(75.5, 41.3, 13000000, 1.2);
+  document.getElementById("btnNaryn").onclick = () => flyTop(75.65, 41.38, 470000, 1.0);
+  document.getElementById("btnSonKul").onclick = () => flyTop(75.16, 41.83, 92000, 1.0);
+  document.getElementById("btnAtBashi").onclick = () => flyTop(75.72, 41.06, 125000, 1.0);
+  document.getElementById("btnTilt").onclick = () => {
+    const canvas = viewer.scene.canvas;
+    const ray = viewer.camera.getPickRay(new Cesium.Cartesian2(canvas.clientWidth / 2, canvas.clientHeight / 2));
+    const pos = ray ? (viewer.scene.globe.pick(ray, viewer.scene) || viewer.camera.pickEllipsoid(new Cesium.Cartesian2(canvas.clientWidth / 2, canvas.clientHeight / 2))) : undefined;
+    let lon = 75.65, lat = 41.38, dist = 160000;
+    if (Cesium.defined(pos)) {
+      const c = Cesium.Cartographic.fromCartesian(pos);
+      lon = Cesium.Math.toDegrees(c.longitude);
+      lat = Cesium.Math.toDegrees(c.latitude);
+      dist = Math.max(25000, Math.min(450000, Cesium.Cartesian3.distance(viewer.camera.positionWC, pos)));
+    }
+    if (!isTilted) {
+      setTiltState(true);
+      const latOff = (dist * Math.cos(Cesium.Math.toRadians(32))) / 111320.0;
+      const alt = dist * Math.sin(Cesium.Math.toRadians(32)) + 3000;
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(lon, lat - latOff, alt),
+        orientation: { heading: 0, pitch: Cesium.Math.toRadians(-32), roll: 0 },
+        duration: 0.9,
+      });
+    } else {
+      flyTop(lon, lat, dist, 0.9);
+    }
+  };
+
+  // --- 2. ADD GEOGRAPHICAL EDGES & NODES TO CESIUM ---
+  const geoEdgeEntities = {};
+  const geoNodeEntities = {};
+  const highlightEntities = [];
+
+  function edgeMaterialFor(e, alpha = 0.82) {
+    const info = edgeMeta[e.edge_type] || { color: "#e879f9", dash: "solid" };
+    const colHex = e.network_layer === "physical_geographical" ? "#f59e0b" : info.color;
+    const col = Cesium.Color.fromCssColorString(colHex).withAlpha(alpha);
+    if (info.dash === "dashed") return new Cesium.PolylineDashMaterialProperty({ color: col, dashLength: 14 });
+    if (info.dash === "dotted") return new Cesium.PolylineDashMaterialProperty({ color: col, dashLength: 7 });
+    return col;
+  }
+
+  for (const e of edges) {
+    if (!e.coordinates || e.coordinates.length < 2) continue;
+    const flat = [];
+    for (const pt of e.coordinates) flat.push(pt[0], pt[1]);
+    const isUsed = e.utilisation && e.utilisation.movement_event_count > 0;
+    const baseWidth = e.network_layer === "physical_geographical" ? 2.4 : (isUsed ? Math.min(4.0, 2.1 + e.utilisation.herd_count * 0.14) : 1.7);
+    const ent = viewer.entities.add({
+      id: "GEO-E-" + e.edge_id,
+      polyline: {
+        positions: Cesium.Cartesian3.fromDegreesArray(flat),
+        width: baseWidth,
+        material: edgeMaterialFor(e, isUsed ? 0.88 : 0.56),
+        clampToGround: true,
+      },
+    });
+    ent._netKind = "edge";
+    ent._netId = e.edge_id;
+    geoEdgeEntities[e.edge_id] = ent;
+  }
+
+  for (const n of nodes) {
+    const info = nodeMeta[n.node_type] || { color: "#e2e8f0", shape: "circle" };
+    const iconUrl = getMarkerIcon(info.shape, info.color, n.is_synthetic ? "#0f172a" : "#ffffff", 28);
+    const shortLbl = n.node_id.replace("DER-PAS-", "P").replace("SYN-PAS-", "P").replace("PUB-SET-OSM-", "").replace("PUB-WAT-OSM-", "");
+    const ent = viewer.entities.add({
+      id: "GEO-N-" + n.node_id,
+      position: Cesium.Cartesian3.fromDegrees(n.longitude, n.latitude),
+      billboard: {
+        image: iconUrl,
+        width: n.node_type === "resting_point" ? 15 : 21,
+        height: n.node_type === "resting_point" ? 15 : 21,
+        eyeOffset: new Cesium.Cartesian3(0, 0, -4500),
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+      label: {
+        text: n.node_type === "settlement" ? n.node_name : shortLbl,
+        font: "600 10.5px sans-serif",
+        fillColor: Cesium.Color.WHITE,
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 3,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        pixelOffset: new Cesium.Cartesian2(0, -16),
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, n.node_type === "settlement" ? 360000 : 210000),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    });
+    ent._netKind = "node";
+    ent._netId = n.node_id;
+    geoNodeEntities[n.node_id] = ent;
+  }
+
+  function clearGeoHighlights() {
+    while (highlightEntities.length) viewer.entities.remove(highlightEntities.pop());
+  }
+
+  function updateGeoHighlights() {
+    clearGeoHighlights();
+    if (selectedEdgeId && edgeById[selectedEdgeId]) {
+      const e = edgeById[selectedEdgeId];
+      if (e.coordinates && e.coordinates.length >= 2) {
+        const flat = [];
+        for (const pt of e.coordinates) flat.push(pt[0], pt[1]);
+        highlightEntities.push(viewer.entities.add({
+          polyline: {
+            positions: Cesium.Cartesian3.fromDegreesArray(flat),
+            width: 6.5,
+            material: Cesium.Color.fromCssColorString("#facc15"),
+            clampToGround: true,
+          },
+        }));
+      }
+      const sNode = nodeById[e.source_node_id];
+      const tNode = nodeById[e.target_node_id];
+      if (sNode) {
+        highlightEntities.push(viewer.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(sNode.longitude, sNode.latitude),
+          point: { pixelSize: 16, color: Cesium.Color.fromCssColorString("#22c55e"), outlineColor: Cesium.Color.WHITE, outlineWidth: 3, heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+          label: { text: `ORIGIN: ${sNode.node_id}`, font: "700 11px sans-serif", fillColor: Cesium.Color.fromCssColorString("#86efac"), outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE, pixelOffset: new Cesium.Cartesian2(0, -22), heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+        }));
+      }
+      if (tNode) {
+        highlightEntities.push(viewer.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(tNode.longitude, tNode.latitude),
+          point: { pixelSize: 16, color: Cesium.Color.fromCssColorString("#f43f5e"), outlineColor: Cesium.Color.WHITE, outlineWidth: 3, heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+          label: { text: `DEST: ${tNode.node_id}`, font: "700 11px sans-serif", fillColor: Cesium.Color.fromCssColorString("#fda4af"), outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE, pixelOffset: new Cesium.Cartesian2(0, -22), heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+        }));
+      }
+    } else if (selectedNodeId && nodeById[selectedNodeId]) {
+      const n = nodeById[selectedNodeId];
+      // Highlight all connected routes of this node in bright gold/cyan
+      for (const r of n.connected_routes || []) {
+        const e = edgeById[r.edge_id];
+        if (!e || !e.coordinates || e.coordinates.length < 2) continue;
+        const flat = [];
+        for (const pt of e.coordinates) flat.push(pt[0], pt[1]);
+        highlightEntities.push(viewer.entities.add({
+          polyline: {
+            positions: Cesium.Cartesian3.fromDegreesArray(flat),
+            width: 4.8,
+            material: Cesium.Color.fromCssColorString(r.relation === "outgoing" ? "#facc15" : "#38bdf8").withAlpha(0.95),
+            clampToGround: true,
+          },
+        }));
+      }
+      // Highlight selected node
+      highlightEntities.push(viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(n.longitude, n.latitude),
+        point: { pixelSize: 18, color: Cesium.Color.TRANSPARENT, outlineColor: Cesium.Color.YELLOW, outlineWidth: 3.5, heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+        label: { text: `${n.node_id} · ${n.node_name}`, font: "700 12px sans-serif", fillColor: Cesium.Color.YELLOW, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE, pixelOffset: new Cesium.Cartesian2(0, -24), heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+      }));
+    }
+  }
+
+  // --- 3. INTERACTIVE ABSTRACT GRAPH VIEW (HIGH-DPI HTML5 CANVAS) ---
+  const canvas = document.getElementById("graphCanvas");
+  const ctx = canvas.getContext("2d");
+  const tooltip = document.getElementById("graphTooltip");
+
+  let activeLayout = (cfg.initialLayout === "spring") ? "spring" : "geographic";
+  document.getElementById("layoutSel").value = activeLayout;
+  let activeCompFilter = 0;
+  let neighborsOnly = false;
+  let selectedNodeId = cfg.selectedNodeId || null;
+  let selectedEdgeId = cfg.selectedEdgeId || null;
+  let hoveredItem = null;
+
+  // Camera transform for Graph Canvas
+  let gScale = 1.0, gOffX = 0, gOffY = 0;
+  let isDragging = false, dragStartX = 0, dragStartY = 0, dragMoved = false;
+
+  // Precompute parallel edge curve offsets so multi-edges between same (u, v) never overlap!
+  const pairGroups = {};
+  for (const e of edges) {
+    const k = e.source_node_id < e.target_node_id
+      ? `${e.source_node_id}|${e.target_node_id}`
+      : `${e.target_node_id}|${e.source_node_id}`;
+    (pairGroups[k] = pairGroups[k] || []).push(e.edge_id);
+  }
+  const edgeCurveOffset = {};
+  for (const [k, list] of Object.entries(pairGroups)) {
+    const m = list.length;
+    for (let i = 0; i < m; i++) {
+      edgeCurveOffset[list[i]] = m === 1 ? 0 : (i - (m - 1) / 2) * 34;
+    }
+  }
+
+  function resizeCanvas() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.max(100, Math.floor(rect.width * dpr));
+    canvas.height = Math.max(100, Math.floor(rect.height * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawGraph();
+  }
+  window.addEventListener("resize", resizeCanvas);
+
+  function getNodeScreenPos(nid) {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const lay = layouts[activeLayout] || layouts.layered_seasonal || {};
+    const pt = lay[nid] || [0.5, 0.5];
+    const padX = 30, padY = 34;
+    const baseX = padX + pt[0] * Math.max(rect.width - padX * 2, 40);
+    const baseY = padY + pt[1] * Math.max(rect.height - padY * 2, 40);
+    return [baseX * gScale + gOffX, baseY * gScale + gOffY];
+  }
+
+  function getEdgeControlPoint(e, x1, y1, x2, y2) {
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    const dx = x2 - x1, dy = y2 - y1;
+    const len = Math.hypot(dx, dy) || 1;
+    const off = (edgeCurveOffset[e.edge_id] || 0) * Math.min(1.4, gScale);
+    const sign = e.source_node_id < e.target_node_id ? 1 : -1;
+    return [mx - (dy / len) * off * sign, my + (dx / len) * off * sign];
+  }
+
+  function getNeighborSet(nid) {
+    const set = new Set([nid]);
+    const n = nodeById[nid];
+    if (!n) return set;
+    for (const x of n.in_neighbors || []) set.add(x);
+    for (const x of n.out_neighbors || []) set.add(x);
+    return set;
+  }
+
+  function drawGraph() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const W = rect.width, H = rect.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Subtle column guides in Seasonal Layered mode
+    if (activeLayout === "layered_seasonal") {
+      const cols = [
+        [0.08, "Settlement"], [0.23, "Winter"], [0.39, "Spring"],
+        [0.54, "Pass / Rest"], [0.70, "Summer"], [0.84, "Autumn"], [0.94, "Water"],
+      ];
+      ctx.save();
+      ctx.font = "600 10px sans-serif";
+      ctx.textAlign = "center";
+      for (const [fx, lbl] of cols) {
+        const sx = (30 + fx * Math.max(W - 60, 40)) * gScale + gOffX;
+        ctx.strokeStyle = "rgba(148,163,184,0.09)";
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(sx, 22); ctx.lineTo(sx, H - 10); ctx.stroke();
+        ctx.fillStyle = "rgba(148,163,184,0.72)";
+        ctx.fillText(lbl, sx, 16);
+      }
+      ctx.restore();
+    }
+
+    const neighborSet = selectedNodeId ? getNeighborSet(selectedNodeId) : null;
+    const selectedNodeComp = selectedNodeId && nodeById[selectedNodeId] ? nodeById[selectedNodeId].component_id : 0;
+
+    // 1. Draw edges (non-highlighted first, then highlighted on top!)
+    const drawSingleEdge = (e, isHi) => {
+      const [x1, y1] = getNodeScreenPos(e.source_node_id);
+      const [x2, y2] = getNodeScreenPos(e.target_node_id);
+      const [cx, cy] = getEdgeControlPoint(e, x1, y1, x2, y2);
+      const info = edgeMeta[e.edge_type] || { color: "#e879f9", dash: "solid" };
+      const colHex = e.network_layer === "physical_geographical" ? "#f59e0b" : info.color;
+
+      let alpha = 0.62;
+      if (activeCompFilter > 0) {
+        const sn = nodeById[e.source_node_id];
+        if (!sn || sn.component_id !== activeCompFilter) alpha = 0.08;
+      }
+      if (selectedEdgeId) {
+        alpha = isHi ? 1.0 : 0.12;
+      } else if (selectedNodeId) {
+        const incident = e.source_node_id === selectedNodeId || e.target_node_id === selectedNodeId;
+        if (incident) alpha = 0.96;
+        else alpha = neighborsOnly ? 0.05 : 0.14;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = isHi ? "#facc15" : colHex;
+      ctx.lineWidth = isHi ? 3.8 : (selectedNodeId && (e.source_node_id === selectedNodeId || e.target_node_id === selectedNodeId) ? 2.6 : 1.45);
+      if (!isHi && info.dash === "dashed") ctx.setLineDash([6, 4]);
+      else if (!isHi && info.dash === "dotted") ctx.setLineDash([2.5, 3.5]);
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.quadraticCurveTo(cx, cy, x2, y2);
+      ctx.stroke();
+
+      // Arrowhead near target node
+      const t = 0.84;
+      const ax = (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * cx + t * t * x2;
+      const ay = (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * cy + t * t * y2;
+      const tx = 2 * (1 - t) * (cx - x1) + 2 * t * (x2 - cx);
+      const ty = 2 * (1 - t) * (cy - y1) + 2 * t * (y2 - cy);
+      const ang = Math.atan2(ty, tx);
+      const aLen = isHi ? 9 : 6.5;
+      ctx.setLineDash([]);
+      ctx.fillStyle = isHi ? "#facc15" : colHex;
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(ax - aLen * Math.cos(ang - 0.42), ay - aLen * Math.sin(ang - 0.42));
+      ctx.lineTo(ax - aLen * Math.cos(ang + 0.42), ay - aLen * Math.sin(ang + 0.42));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    };
+
+    for (const e of edges) {
+      if (e.edge_id !== selectedEdgeId) drawSingleEdge(e, false);
+    }
+    if (selectedEdgeId && edgeById[selectedEdgeId]) {
+      drawSingleEdge(edgeById[selectedEdgeId], true);
+    }
+
+    // 2. Draw nodes
+    for (const n of nodes) {
+      const [x, y] = getNodeScreenPos(n.node_id);
+      const info = nodeMeta[n.node_type] || { color: "#e2e8f0", shape: "circle" };
+      const isSelNode = selectedNodeId === n.node_id;
+      const isEdgeEnd = selectedEdgeId && edgeById[selectedEdgeId] &&
+        (edgeById[selectedEdgeId].source_node_id === n.node_id || edgeById[selectedEdgeId].target_node_id === n.node_id);
+      const isNeigh = neighborSet && neighborSet.has(n.node_id);
+      const isHov = hoveredItem && hoveredItem.kind === "node" && hoveredItem.id === n.node_id;
+
+      let alpha = 1.0;
+      if (activeCompFilter > 0 && n.component_id !== activeCompFilter) alpha = 0.14;
+      if (selectedEdgeId && !isEdgeEnd) alpha = 0.22;
+      else if (selectedNodeId && !isNeigh) alpha = neighborsOnly ? 0.08 : 0.22;
+
+      const baseR = n.node_type === "resting_point" ? 5.2 : 7.0;
+      const r = (isSelNode || isEdgeEnd) ? baseR + 3.0 : (isHov ? baseR + 1.8 : baseR);
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+
+      // Component accent halo if selected or component filter active
+      if (activeCompFilter > 0 && n.component_id === activeCompFilter) {
+        const compCol = COMP_PALETTE[(n.component_id - 1) % COMP_PALETTE.length];
+        ctx.beginPath(); ctx.arc(x, y, r + 4.5, 0, Math.PI * 2);
+        ctx.strokeStyle = compCol; ctx.lineWidth = 1.6; ctx.stroke();
+      }
+      if (isSelNode || isEdgeEnd) {
+        ctx.beginPath(); ctx.arc(x, y, r + 5, 0, Math.PI * 2);
+        ctx.strokeStyle = "#facc15"; ctx.lineWidth = 2.6; ctx.stroke();
+      }
+
+      drawShapeOnCtx(ctx, info.shape, x, y, r);
+      ctx.fillStyle = info.color;
+      ctx.fill();
+      ctx.lineWidth = n.is_synthetic ? 1.5 : 2.1;
+      ctx.strokeStyle = n.is_synthetic ? "#0f172a" : "#ffffff";
+      ctx.stroke();
+
+      // Labels for selected, neighbor, hovered, or zoomed-in nodes
+      if (isSelNode || isEdgeEnd || isHov || (isNeigh && selectedNodeId) || gScale >= 1.45) {
+        const shortTxt = n.node_id.replace("DER-PAS-", "P").replace("SYN-PAS-", "P").replace("PUB-SET-OSM-", "OSM-");
+        ctx.font = (isSelNode || isEdgeEnd) ? "700 10.5px sans-serif" : "500 9.5px sans-serif";
+        ctx.fillStyle = (isSelNode || isEdgeEnd) ? "#fef08a" : "#e2e8f0";
+        ctx.textAlign = "center";
+        ctx.fillText(shortTxt, x, y - r - 4);
+      }
+      ctx.restore();
+    }
+  }
+
+  // Hit-testing for Graph Canvas (nodes prioritized over curved edges)
+  function hitTestGraph(mx, my) {
+    // 1. Check nodes
+    let bestNode = null, bestND = 14;
+    for (const n of nodes) {
+      const [x, y] = getNodeScreenPos(n.node_id);
+      const d = Math.hypot(mx - x, my - y);
+      if (d < bestND) { bestND = d; bestNode = n.node_id; }
+    }
+    if (bestNode) return { kind: "node", id: bestNode };
+
+    // 2. Check curved edges (sample 16 points along quadratic Bezier)
+    let bestEdge = null, bestED = 9;
+    for (const e of edges) {
+      const [x1, y1] = getNodeScreenPos(e.source_node_id);
+      const [x2, y2] = getNodeScreenPos(e.target_node_id);
+      const [cx, cy] = getEdgeControlPoint(e, x1, y1, x2, y2);
+      for (let i = 1; i < 16; i++) {
+        const t = i / 16;
+        const bx = (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * cx + t * t * x2;
+        const by = (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * cy + t * t * y2;
+        const d = Math.hypot(mx - bx, my - by);
+        if (d < bestED) { bestED = d; bestEdge = e.edge_id; }
+      }
+    }
+    if (bestEdge) return { kind: "edge", id: bestEdge };
+    return null;
+  }
+
+  canvas.addEventListener("mousedown", (ev) => {
+    isDragging = true; dragMoved = false;
+    dragStartX = ev.clientX; dragStartY = ev.clientY;
+  });
+  window.addEventListener("mouseup", () => { isDragging = false; });
+  canvas.addEventListener("mousemove", (ev) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = ev.clientX - rect.left, my = ev.clientY - rect.top;
+    if (isDragging) {
+      const dx = ev.clientX - dragStartX, dy = ev.clientY - dragStartY;
+      if (Math.hypot(dx, dy) > 3) dragMoved = true;
+      gOffX += dx; gOffY += dy;
+      dragStartX = ev.clientX; dragStartY = ev.clientY;
+      drawGraph();
+      return;
+    }
+    const hit = hitTestGraph(mx, my);
+    hoveredItem = hit;
+    canvas.style.cursor = hit ? "pointer" : "grab";
+    if (hit) {
+      if (hit.kind === "node") {
+        const n = nodeById[hit.id];
+        tooltip.innerHTML = `<b>${escapeHtml(n.node_id)}</b> · ${escapeHtml(n.node_name)}<br/><span style="color:#94a3b8;">${escapeHtml(n.node_type)} · Comp #${n.component_id} · ${n.elevation_m !== null ? n.elevation_m + " m" : "Elev N/A"}</span>`;
+      } else {
+        const e = edgeById[hit.id];
+        tooltip.innerHTML = `<b>${escapeHtml(e.edge_id)}</b> (${escapeHtml(e.edge_type)})<br/><span style="color:#94a3b8;">${escapeHtml(e.source_node_id)} → ${escapeHtml(e.target_node_id)} · ${e.distance_km} km · ${e.utilisation.herd_count} herds</span>`;
+      }
+      tooltip.style.left = Math.min(rect.width - 230, mx + 12) + "px";
+      tooltip.style.top = Math.max(8, my - 34) + "px";
+      tooltip.style.display = "block";
+    } else {
+      tooltip.style.display = "none";
+    }
+    drawGraph();
+  });
+  canvas.addEventListener("mouseleave", () => { hoveredItem = null; tooltip.style.display = "none"; drawGraph(); });
+  canvas.addEventListener("click", (ev) => {
+    if (dragMoved) return;
+    const rect = canvas.getBoundingClientRect();
+    const hit = hitTestGraph(ev.clientX - rect.left, ev.clientY - rect.top);
+    if (!hit) return;
+    if (hit.kind === "node") selectNode(hit.id, "graph");
+    else selectEdge(hit.id, "graph");
+  });
+  canvas.addEventListener("wheel", (ev) => {
+    ev.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const mx = ev.clientX - rect.left, my = ev.clientY - rect.top;
+    const factor = ev.deltaY < 0 ? 1.14 : 0.88;
+    const newScale = Math.max(0.45, Math.min(5.0, gScale * factor));
+    const ratio = newScale / gScale;
+    gOffX = mx - (mx - gOffX) * ratio;
+    gOffY = my - (my - gOffY) * ratio;
+    gScale = newScale;
+    drawGraph();
+  }, { passive: false });
+
+  // --- 4. SYNCHRONISED INSPECTOR & BIDIRECTIONAL SELECTION ---
+  const inspTitle = document.getElementById("inspTitle");
+  const inspBadge = document.getElementById("inspBadge");
+  const inspContent = document.getElementById("inspContent");
+  const syncBanner = document.getElementById("syncBanner");
+
+  function badgeClassFor(evStatus, isSyn) {
+    if (!isSyn || evStatus === "verified_public") return ["pill pill-pub", "VERIFIED PUBLIC"];
+    if (evStatus === "derived_environmental") return ["pill pill-der", "DERIVED (SYNTHETIC)"];
+    return ["pill pill-syn", "SYNTHETIC DEMO"];
+  }
+
+  function renderNodeInspector(n) {
+    inspTitle.textContent = `${n.node_id} · ${n.node_name}`;
+    const [bCls, bTxt] = badgeClassFor(n.evidence_status, n.is_synthetic);
+    inspBadge.className = bCls;
+    inspBadge.textContent = bTxt;
+
+    const elevStr = n.elevation_m !== null ? `${n.elevation_m} m` : `Unavailable (${n.elevation_status})`;
+    const slopeStr = n.slope_degrees !== null ? `${n.slope_degrees}°` : "N/A";
+    const lcStr = n.landcover_code !== null && n.landcover_code !== undefined
+      ? `${n.landcover_class} (${n.landcover_code})`
+      : n.landcover_class;
+
+    const routeRowsHtml = (n.connected_routes || []).length
+      ? n.connected_routes.map((r) => `
+          <div class="route-row" data-edge="${escapeHtml(r.edge_id)}">
+            <span><b>${r.relation === "outgoing" ? "→" : "←"} ${escapeHtml(r.edge_id)}</b> · ${escapeHtml(r.peer_node_id)} (${escapeHtml(r.edge_type)})</span>
+            <span style="color:#94a3b8;">${r.distance_km} km · ${escapeHtml(r.season)} · ${r.herd_count} herds</span>
+          </div>`).join("")
+      : `<div style="color:#94a3b8;">No visible connected edges under current filters.</div>`;
+
+    const neighborChips = [...new Set([...(n.in_neighbors || []), ...(n.out_neighbors || [])])];
+    const neighHtml = neighborChips.length
+      ? neighborChips.map((nid) => `<span class="chip" data-node="${escapeHtml(nid)}">${escapeHtml(nid)}</span>`).join("")
+      : `<span style="color:#94a3b8;">Isolated node under current filters</span>`;
+
+    const herdsHtml = (n.connected_herds || []).length
+      ? n.connected_herds.slice(0, 24).map((h) =>
+          `<span class="chip chip-static">${escapeHtml(h.herd_id)} · ${escapeHtml(h.livestock_type)} (${h.animal_count})</span>`
+        ).join("") + (n.connected_herds.length > 24 ? `<span class="chip chip-static">+${n.connected_herds.length - 24} more</span>` : "")
+      : `<span style="color:#94a3b8;">No simulated herds linked (or hidden in Public-Only mode)</span>`;
+
+    const extLink = n.external_uri
+      ? `<a href="${escapeHtml(n.external_uri)}" target="_blank" style="color:#38bdf8;">${escapeHtml(n.external_id || n.external_uri)}</a>`
+      : "—";
+
+    inspContent.innerHTML = `
+      <div class="kv-grid">
+        <div class="kv"><span class="k">Node ID</span><span class="v">${escapeHtml(n.node_id)}</span></div>
+        <div class="kv"><span class="k">Category</span><span class="v">${escapeHtml(n.node_type)}</span></div>
+        <div class="kv"><span class="k">Network Layer</span><span class="v">${escapeHtml(n.network_layer)}</span></div>
+        <div class="kv"><span class="k">Component</span><span class="v">#${n.component_id} (${n.degree_total} edges)</span></div>
+        <div class="kv"><span class="k">Coordinates</span><span class="v">${n.latitude.toFixed(5)}°N, ${n.longitude.toFixed(5)}°E</span></div>
+        <div class="kv"><span class="k">Elevation / Slope</span><span class="v">${escapeHtml(elevStr)} · ${escapeHtml(slopeStr)}</span></div>
+        <div class="kv"><span class="k">Land Cover</span><span class="v">${escapeHtml(lcStr)}</span></div>
+        <div class="kv"><span class="k">DEM Source</span><span class="v">${escapeHtml(n.elevation_source || "—")}</span></div>
+        <div class="kv"><span class="k">Source</span><span class="v">${escapeHtml(n.source)}</span></div>
+        <div class="kv"><span class="k">Provenance / Ref</span><span class="v">${escapeHtml(n.provenance)} · ${extLink}</span></div>
+      </div>
+      <div class="sec-title">1-Hop Neighbours (${neighborChips.length})</div>
+      <div class="chip-list">${neighHtml}</div>
+      <div class="sec-title">Connected Routes (${(n.connected_routes || []).length}) — Click to highlight</div>
+      <div>${routeRowsHtml}</div>
+      <div class="sec-title">Connected Herds (${n.connected_herd_count || 0})</div>
+      <div class="chip-list">${herdsHtml}</div>
+    `;
+
+    inspContent.querySelectorAll("[data-edge]").forEach((el) => {
+      el.onclick = () => selectEdge(el.getAttribute("data-edge"), "inspector");
+    });
+    inspContent.querySelectorAll("[data-node]").forEach((el) => {
+      el.onclick = () => selectNode(el.getAttribute("data-node"), "inspector");
+    });
+  }
+
+  function renderEdgeInspector(e) {
+    inspTitle.textContent = `${e.edge_id} · ${e.edge_type}`;
+    const [bCls, bTxt] = badgeClassFor(e.evidence_status, e.is_synthetic);
+    inspBadge.className = bCls;
+    inspBadge.textContent = bTxt;
+
+    const u = e.utilisation || {};
+    const slopeStr = (e.average_slope !== null && e.maximum_slope !== null)
+      ? `avg ${e.average_slope}° / max ${e.maximum_slope}°`
+      : "Unavailable (no local DEM)";
+    const gainStr = (e.elevation_gain_m !== null && e.elevation_loss_m !== null)
+      ? `+${e.elevation_gain_m} m / -${e.elevation_loss_m} m`
+      : "Unavailable";
+
+    inspContent.innerHTML = `
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+        <span class="chip" data-node="${escapeHtml(e.source_node_id)}">Origin: <b>${escapeHtml(e.source_node_id)}</b> (${escapeHtml(e.source_node_name)})</span>
+        <span style="color:#facc15;font-weight:700;">→</span>
+        <span class="chip" data-node="${escapeHtml(e.target_node_id)}">Dest: <b>${escapeHtml(e.target_node_id)}</b> (${escapeHtml(e.target_node_name)})</span>
+      </div>
+      <div class="kv-grid">
+        <div class="kv"><span class="k">Distance</span><span class="v">${e.distance_km} km (${Math.round(e.distance_m).toLocaleString()} m)</span></div>
+        <div class="kv"><span class="k">Est. Travel Days</span><span class="v">${e.estimated_travel_days ?? "—"} days</span></div>
+        <div class="kv"><span class="k">Slope (Avg / Max)</span><span class="v">${escapeHtml(slopeStr)}</span></div>
+        <div class="kv"><span class="k">Elevation Gain/Loss</span><span class="v">${escapeHtml(gainStr)}</span></div>
+        <div class="kv"><span class="k">Season / Direction</span><span class="v">${escapeHtml(e.season)} · ${escapeHtml(e.direction)}</span></div>
+        <div class="kv"><span class="k">Route Method</span><span class="v">${escapeHtml(e.route_generation_method)}</span></div>
+        <div class="kv"><span class="k">Livestock Compat.</span><span class="v">${escapeHtml(e.livestock_compatibility)}</span></div>
+        <div class="kv"><span class="k">Network Layer</span><span class="v">${escapeHtml(e.network_layer)}</span></div>
+        <div class="kv"><span class="k">Source</span><span class="v">${escapeHtml(e.source)}</span></div>
+        <div class="kv"><span class="k">Provenance</span><span class="v">${escapeHtml(e.provenance)}</span></div>
+      </div>
+      ${renderElevationSvg(e.elevation_profile)}
+      <div class="sec-title">Derived Seasonal Activity &amp; Utilisation (from Stage 1 Movements)</div>
+      <div class="kv-grid">
+        <div class="kv"><span class="k">Herds Using Edge</span><span class="v">${u.herd_count || 0}</span></div>
+        <div class="kv"><span class="k">Simulated Animals</span><span class="v">${(u.animal_count || 0).toLocaleString()}</span></div>
+        <div class="kv"><span class="k">Movement Events</span><span class="v">${u.movement_event_count || 0}</span></div>
+        <div class="kv"><span class="k">Alt. Route Usage</span><span class="v">${u.alternative_route_usage || 0}</span></div>
+      </div>
+      <div class="season-pills">
+        <span class="pill pill-muted">Winter: ${u.winter_usage || 0}</span>
+        <span class="pill pill-muted">Spring: ${u.spring_usage || 0}</span>
+        <span class="pill pill-muted">Summer: ${u.summer_usage || 0}</span>
+        <span class="pill pill-muted">Autumn: ${u.autumn_usage || 0}</span>
+      </div>
+    `;
+    inspContent.querySelectorAll("[data-node]").forEach((el) => {
+      el.onclick = () => selectNode(el.getAttribute("data-node"), "inspector");
+    });
+  }
+
+  function selectNode(nid, originView) {
+    if (!nodeById[nid]) return;
+    selectedNodeId = nid;
+    selectedEdgeId = null;
+    const n = nodeById[nid];
+    syncBanner.textContent = `Synced (${originView}): Node ${nid}`;
+    updateGeoHighlights();
+    drawGraph();
+    renderNodeInspector(n);
+    if (originView !== "map") {
+      flyTop(n.longitude, n.latitude, 125000, 0.9);
+    }
+  }
+
+  function selectEdge(eid, originView) {
+    if (!edgeById[eid]) return;
+    selectedEdgeId = eid;
+    selectedNodeId = null;
+    const e = edgeById[eid];
+    syncBanner.textContent = `Synced (${originView}): Edge ${eid}`;
+    updateGeoHighlights();
+    drawGraph();
+    renderEdgeInspector(e);
+    if (originView !== "map" && e.coordinates && e.coordinates.length >= 2) {
+      let minLon = 180, maxLon = -180, minLat = 90, maxLat = -90;
+      for (const c of e.coordinates) {
+        if (c[0] < minLon) minLon = c[0]; if (c[0] > maxLon) maxLon = c[0];
+        if (c[1] < minLat) minLat = c[1]; if (c[1] > maxLat) maxLat = c[1];
+      }
+      const midLon = (minLon + maxLon) / 2, midLat = (minLat + maxLat) / 2;
+      const spanM = Math.max(25000, e.distance_m * 3.2);
+      flyTop(midLon, midLat, Math.min(480000, spanM), 0.9);
+    }
+  }
+
+  function clearSelection() {
+    selectedNodeId = null;
+    selectedEdgeId = null;
+    syncBanner.textContent = "Synced: Click node or edge in either view";
+    clearGeoHighlights();
+    drawGraph();
+    inspTitle.textContent = "Feature Inspector — Click a node or edge";
+    inspBadge.className = "pill pill-muted";
+    inspBadge.textContent = "No selection";
+    inspContent.innerHTML = `<p style="color:#94a3b8;">Selection cleared. Click any node or edge in either view to inspect and synchronise.</p>`;
+  }
+
+  // CesiumJS click handler -> synchronises Graph + Inspector
+  const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+  handler.setInputAction((click) => {
+    const picked = viewer.scene.pick(click.position);
+    if (Cesium.defined(picked) && picked.id && picked.id._netKind) {
+      if (picked.id._netKind === "node") { selectNode(picked.id._netId, "map"); return; }
+      if (picked.id._netKind === "edge") { selectEdge(picked.id._netId, "map"); return; }
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+  // Graph toolbar handlers
+  document.getElementById("layoutSel").onchange = (e) => {
+    activeLayout = e.target.value;
+    gScale = 1.0; gOffX = 0; gOffY = 0;
+    drawGraph();
+  };
+  compSel.onchange = (e) => {
+    activeCompFilter = Number(e.target.value);
+    drawGraph();
+  };
+
+  document.getElementById("btnFitGraph").onclick = () => {
+    gScale = 1.0; gOffX = 0; gOffY = 0;
+    drawGraph();
+  };
+  document.getElementById("btnClearSel").onclick = clearSelection;
+
+  // Initial sizing, camera, and pre-selected entity if passed from Streamlit dropdown
+  resizeCanvas();
+  flyTop(75.65, 41.38, 470000, 0.8);
+  if (selectedNodeId && nodeById[selectedNodeId]) {
+    setTimeout(() => selectNode(selectedNodeId, "streamlit"), 650);
+  } else if (selectedEdgeId && edgeById[selectedEdgeId]) {
+    setTimeout(() => selectEdge(selectedEdgeId, "streamlit"), 650);
+  }
+})();
+</script>
+</body>
+</html>

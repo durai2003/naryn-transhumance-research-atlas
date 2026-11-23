@@ -1,0 +1,13 @@
+# Complete runtime dependencies for the 3D Mini Transhumance Research Data Atlas
+-r requirements-stage3.txt
+rdflib>=7.0
+pyshacl>=0.25
+streamlit>=1.36
+plotly>=5.20
+Pillow>=10.0
+scipy>=1.11
+PyYAML>=6.0
+pyarrow>=15.0
+python-dotenv>=1.0
+folium>=0.16
+streamlit-folium>=0.20

@@ -1,0 +1,15 @@
+PREFIX ta: <https://example.org/transhumance-atlas/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?herd ?label ?species ?size ?route ?pasture ?isSynthetic ?provenance
+WHERE {
+  ?herd a ta:HerdGroup ;
+        rdfs:label ?label ;
+        ta:livestockSpecies ?species ;
+        ta:groupSize ?size ;
+        ta:isSynthetic ?isSynthetic ;
+        ta:provenanceLabel ?provenance .
+  OPTIONAL { ?herd ta:usesRoute ?route . }
+  OPTIONAL { ?herd ta:usesPasture ?pasture . }
+}
+ORDER BY ?herd ?route
+LIMIT 100

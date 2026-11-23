@@ -1,0 +1,12 @@
+date,asset,status,evidence
+2026-11-21,geoBoundaries API metadata,SUCCESS_WEB_METADATA,API JSON read via research layer; not written as original source file by provider download.
+2026-11-21,geoBoundaries ADM1 GeoJSON,FAILED_CONTENT_NOT_DELIVERED,Raw GitHub URL returned Git LFS pointer (805339-byte object advertised); container download failed.
+2026-11-21,Kyrgyz Data Cube WMS GetCapabilities,FAILED_ENVIRONMENT_ACCESS,Request could not be fetched; shell DNS resolution failed. Provider outage not established.
+2026-11-21,Kyrgyz Data Cube WCS GetCapabilities,FAILED_ENVIRONMENT_ACCESS,Request could not be fetched; shell DNS resolution failed. Provider outage not established.
+2026-11-21,FAO GLW4 sheep/goat rasters,FAILED_ENVIRONMENT_ACCESS,Catalogue metadata visible in search index; catalogue open returned 403 in web retrieval; shell DNS unavailable; no TIF received.
+2026-11-21,ESA WorldCover tile(s),NOT_ATTEMPTED_DOWNLOAD_BLOCKED,Public S3 access and format verified in docs; exact intersecting tile list deferred until boundary geometry is available; shell DNS unavailable.
+2026-11-21,NASA POWER point JSON,FAILED_ENVIRONMENT_ACCESS,Official docs/schema verified; direct API test could not be fetched by web tool; shell DNS unavailable.
+2026-11-21,Geofabrik GPKG ZIP,FAILED_DOWNLOAD_TIMEOUT,Current listing read; click request timed out; container download failed.
+2026-11-21,Geofabrik PBF,FAILED_BINARY_CONTENT_HANDLER,Current listing read; web retrieval rejected application/octet-stream; container download failed.
+2026-11-21,Wikidata entity references,SUCCESS_ENTITY_PAGES,Naryn Region Q486375 and city Q311946 page contents inspected; no SPARQL response.
+2026-11-21,Wikidata SPARQL query,FAILED_ENVIRONMENT_ACCESS,Endpoint URL could not be fetched; no SPARQL result file.

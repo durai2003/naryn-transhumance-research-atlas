@@ -1,0 +1,277 @@
+@prefix ta: <https://example.org/transhumance-atlas/ontology#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<https://example.org/transhumance-atlas/ontology> a owl:Ontology ;
+    rdfs:label "Mini Transhumance Research Data Atlas ontology"@en ;
+    rdfs:comment "Application ontology for an educational, provenance-aware geospatial and research-data prototype. The example.org namespace is a placeholder and is not a registered persistent identifier."@en ;
+    owl:versionInfo "1.0.0" ;
+    dcterms:created "2026-11-21"^^xsd:date .
+
+# Core domain classes
+ta:Location a owl:Class ;
+    rdfs:label "Location"@en ;
+    rdfs:comment "A named geographic place or spatial feature, not necessarily a settlement or field-observation site."@en ;
+    rdfs:subClassOf geo:Feature .
+
+ta:Pasture a owl:Class ;
+    rdfs:label "Pasture"@en ;
+    rdfs:comment "A pasture entity supported by an explicit source or a separately labelled synthetic demonstration record. Land-cover class alone is not evidence of a pasture parcel."@en ;
+    rdfs:subClassOf geo:Feature .
+
+ta:Route a owl:Class ;
+    rdfs:label "Seasonal migration route"@en ;
+    rdfs:comment "A route record. Ordinary mapped roads and paths must not be typed as transhumance routes without independent evidence."@en ;
+    rdfs:subClassOf geo:Feature .
+
+ta:ClimateObservation a owl:Class ;
+    rdfs:label "Climate observation"@en ;
+    rdfs:comment "A source-derived climate record with an observation date, location, parameter values, units and provenance."@en .
+
+ta:LivestockObservation a owl:Class ;
+    rdfs:label "Livestock observation"@en ;
+    rdfs:comment "A livestock-related observation, including modelled density where the product semantics and units are retained. Modelled density is not a migration route or an individual animal count."@en .
+
+ta:ResearchRecord a owl:Class ;
+    rdfs:label "Research record"@en ;
+    rdfs:comment "A generic research metadata record associated with a location."@en .
+
+ta:InterviewRecord a owl:Class ;
+    rdfs:label "Interview metadata record"@en ;
+    rdfs:subClassOf ta:ResearchRecord .
+
+ta:MultimediaAsset a owl:Class ;
+    rdfs:label "Multimedia metadata record"@en ;
+    rdfs:subClassOf ta:ResearchRecord .
+
+ta:Dataset a owl:Class ;
+    rdfs:label "Dataset"@en ;
+    rdfs:subClassOf dcat:Dataset .
+
+ta:ProcessingActivity a owl:Class ;
+    rdfs:label "Processing activity"@en ;
+    rdfs:subClassOf prov:Activity .
+
+# Object properties
+ta:atLocation a owl:ObjectProperty ;
+    rdfs:label "at location"@en ;
+    rdfs:domain [ a owl:Class ; owl:unionOf (ta:ClimateObservation ta:LivestockObservation) ] ;
+    rdfs:range ta:Location .
+
+ta:locatedIn a owl:ObjectProperty ;
+    rdfs:label "located in"@en ;
+    rdfs:domain [ a owl:Class ; owl:unionOf (ta:Pasture ta:Route ta:Location) ] ;
+    rdfs:range ta:Location .
+
+ta:connectsPasture a owl:ObjectProperty ;
+    rdfs:label "connects pasture"@en ;
+    rdfs:domain ta:Route ;
+    rdfs:range ta:Pasture .
+
+ta:aboutLocation a owl:ObjectProperty ;
+    rdfs:label "about location"@en ;
+    rdfs:domain ta:ResearchRecord ;
+    rdfs:range ta:Location .
+
+ta:hasObservation a owl:ObjectProperty ;
+    rdfs:label "has observation"@en ;
+    rdfs:domain ta:Location ;
+    rdfs:range [ a owl:Class ; owl:unionOf (ta:ClimateObservation ta:LivestockObservation) ] .
+
+ta:hasGeometry a owl:ObjectProperty ;
+    rdfs:subPropertyOf geo:hasGeometry ;
+    rdfs:label "has geometry"@en ;
+    rdfs:range geo:Geometry .
+
+ta:usesConcept a owl:ObjectProperty ;
+    rdfs:label "uses controlled concept"@en ;
+    rdfs:range skos:Concept .
+
+ta:catalogueDataset a owl:ObjectProperty ;
+    rdfs:label "catalogue dataset"@en ;
+    rdfs:range ta:Dataset .
+
+# Datatype properties
+ta:observedAt a owl:DatatypeProperty ;
+    rdfs:label "observed at"@en ;
+    rdfs:range xsd:date .
+ta:temperatureC a owl:DatatypeProperty ;
+    rdfs:label "temperature in degrees Celsius"@en ;
+    rdfs:range xsd:decimal .
+ta:precipitationMmDay a owl:DatatypeProperty ;
+    rdfs:label "precipitation in millimetres per day"@en ;
+    rdfs:range xsd:decimal .
+ta:temperatureMeanC a owl:DatatypeProperty ;
+    rdfs:label "mean temperature in degrees Celsius"@en ;
+    rdfs:range xsd:decimal .
+ta:precipitationSumMm a owl:DatatypeProperty ;
+    rdfs:label "precipitation sum in millimetres"@en ;
+    rdfs:range xsd:decimal .
+ta:livestockSpecies a owl:DatatypeProperty ;
+    rdfs:label "livestock species"@en ;
+    rdfs:range xsd:string .
+ta:observationValue a owl:DatatypeProperty ;
+    rdfs:label "observation value"@en ;
+    rdfs:range xsd:decimal .
+ta:unit a owl:DatatypeProperty ;
+    rdfs:label "measurement unit"@en ;
+    rdfs:range xsd:string .
+ta:temporalResolution a owl:DatatypeProperty ;
+    rdfs:label "temporal resolution"@en ;
+    rdfs:range xsd:string .
+ta:isSynthetic a owl:DatatypeProperty ;
+    rdfs:label "is synthetic"@en ;
+    rdfs:range xsd:boolean .
+ta:provenanceLabel a owl:DatatypeProperty ;
+    rdfs:label "provenance label"@en ;
+    rdfs:range xsd:string .
+ta:syntheticDisclaimer a owl:DatatypeProperty ;
+    rdfs:label "synthetic data disclaimer"@en ;
+    rdfs:range xsd:string .
+ta:localAvailability a owl:DatatypeProperty ;
+    rdfs:label "local asset availability"@en ;
+    rdfs:range xsd:string .
+ta:localAssetPath a owl:DatatypeProperty ;
+    rdfs:label "local asset path"@en ;
+    rdfs:range xsd:string .
+ta:licenceStatement a owl:DatatypeProperty ;
+    rdfs:label "licence statement as recorded in source register"@en ;
+    rdfs:range xsd:string .
+ta:sourceURL a owl:DatatypeProperty ;
+    rdfs:label "source URL"@en ;
+    rdfs:range xsd:anyURI .
+ta:featureCount a owl:DatatypeProperty ;
+    rdfs:label "feature count"@en ;
+    rdfs:range xsd:integer .
+ta:rasterResolution a owl:DatatypeProperty ;
+    rdfs:label "raster resolution"@en ;
+    rdfs:range xsd:string .
+
+ta:observationPeriod a owl:DatatypeProperty ;
+    rdfs:label "observation period"@en ;
+    rdfs:comment "A labelled aggregation period such as YYYY-MM or YYYY-season."@en ;
+    rdfs:range xsd:string .
+ta:periodStart a owl:DatatypeProperty ; rdfs:label "period start"@en ; rdfs:range xsd:date .
+ta:periodEnd a owl:DatatypeProperty ; rdfs:label "period end"@en ; rdfs:range xsd:date .
+ta:season a owl:DatatypeProperty ; rdfs:label "season"@en ; rdfs:range xsd:string .
+ta:LandCoverObservation a owl:Class ;
+    rdfs:label "Land-cover observation"@en ;
+    rdfs:comment "An observation or sampled class from a named land-cover product. Land-cover classes must not be interpreted as legal pasture parcels."@en .
+ta:worldCoverClassCode a owl:DatatypeProperty ;
+    rdfs:label "WorldCover class code"@en ;
+    rdfs:range xsd:integer .
+
+ta:coverageStatement a owl:DatatypeProperty ;
+    rdfs:label "coverage statement"@en ;
+    rdfs:range xsd:string .
+ta:crsResolutionStatement a owl:DatatypeProperty ;
+    rdfs:label "CRS and resolution statement"@en ;
+    rdfs:range xsd:string .
+ta:schemaStatus a owl:DatatypeProperty ;
+    rdfs:label "schema inspection status"@en ;
+    rdfs:range xsd:string .
+ta:sourceRegisterStatus a owl:DatatypeProperty ;
+    rdfs:label "status recorded in the source register"@en ;
+    rdfs:range xsd:string .
+
+ta:retrievedAt a owl:DatatypeProperty ;
+    rdfs:label "retrieved at"@en ;
+    rdfs:range xsd:dateTime .
+
+ta:year a owl:DatatypeProperty ; rdfs:label "calendar year"@en ; rdfs:range xsd:integer .
+ta:month a owl:DatatypeProperty ; rdfs:label "calendar month"@en ; rdfs:range xsd:integer .
+ta:coordinateReferenceSystem a owl:DatatypeProperty ;
+    rdfs:label "coordinate reference system"@en ;
+    rdfs:range xsd:string .
+
+# --- 3D Spatiotemporal Simulation & Scenario Extensions (v2.0.0) ---
+ta:HerdGroup a owl:Class ;
+    rdfs:label "Synthetic herd group"@en ;
+    rdfs:comment "A modelled livestock group used for spatiotemporal transhumance demonstration."@en .
+
+ta:MovementEvent a owl:Class ;
+    rdfs:label "Seasonal movement event"@en ;
+    rdfs:comment "A discrete timestamped departure, transition, or arrival event."@en .
+
+ta:SimulationScenario a owl:Class ;
+    rdfs:label "Climate simulation scenario"@en ;
+    rdfs:comment "A baseline or hypothetical climate perturbation scenario configuration."@en .
+
+ta:PastureSuitabilityAssessment a owl:Class ;
+    rdfs:label "Pasture suitability assessment"@en ;
+    rdfs:comment "Rule-based illustrative suitability evaluation under a documented scenario."@en .
+
+ta:usesRoute a owl:ObjectProperty ;
+    rdfs:label "uses route"@en ;
+    rdfs:domain ta:HerdGroup ;
+    rdfs:range ta:Route .
+
+ta:involvesHerd a owl:ObjectProperty ;
+    rdfs:label "involves herd"@en ;
+    rdfs:domain ta:MovementEvent ;
+    rdfs:range ta:HerdGroup .
+
+ta:underScenario a owl:ObjectProperty ;
+    rdfs:label "under scenario"@en ;
+    rdfs:range ta:SimulationScenario .
+
+ta:hasSuitabilityAssessment a owl:ObjectProperty ;
+    rdfs:label "has suitability assessment"@en ;
+    rdfs:domain ta:Pasture ;
+    rdfs:range ta:PastureSuitabilityAssessment .
+
+ta:occurredAt a owl:DatatypeProperty ;
+    rdfs:label "occurred at"@en ;
+    rdfs:range xsd:dateTime .
+
+ta:groupSize a owl:DatatypeProperty ;
+    rdfs:label "herd group size"@en ;
+    rdfs:range xsd:integer .
+
+ta:suitabilityScore a owl:DatatypeProperty ;
+    rdfs:label "suitability score"@en ;
+    rdfs:range xsd:decimal .
+
+ta:originClass a owl:DatatypeProperty ;
+    rdfs:label "data origin classification"@en ;
+    rdfs:range xsd:string .
+
+ta:randomSeed a owl:DatatypeProperty ;
+    rdfs:label "simulation random seed"@en ;
+    rdfs:range xsd:integer .
+
+ta:usesPasture a owl:ObjectProperty ;
+    rdfs:label "uses pasture"@en ;
+    rdfs:domain ta:HerdGroup ;
+    rdfs:range ta:Pasture .
+
+ta:elevationM a owl:DatatypeProperty ;
+    rdfs:label "elevation in metres"@en ;
+    rdfs:range xsd:decimal .
+
+ta:slopeDegrees a owl:DatatypeProperty ;
+    rdfs:label "terrain slope in degrees"@en ;
+    rdfs:range xsd:decimal .
+
+ta:distanceKm a owl:DatatypeProperty ;
+    rdfs:label "corridor distance in kilometres"@en ;
+    rdfs:range xsd:decimal .
+
+ta:elevationGainM a owl:DatatypeProperty ;
+    rdfs:label "cumulative elevation gain in metres"@en ;
+    rdfs:range xsd:decimal .
+
+ta:eventType a owl:DatatypeProperty ;
+    rdfs:label "movement event type"@en ;
+    rdfs:range xsd:string .
+
+ta:legName a owl:DatatypeProperty ;
+    rdfs:label "seasonal migration leg name"@en ;
+    rdfs:range xsd:string .

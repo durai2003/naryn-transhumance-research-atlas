@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Mini Transhumance Research Data Atlas — CesiumJS v3.2</title>
+  <script>
+    window.CESIUM_BASE_URL = "/cesium/";
+  </script>
+  <link href="/cesium/Widgets/widgets.css" rel="stylesheet" />
+  <script src="/cesium/Cesium.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #ffffff; color: #0f172a; }
+
+    #atlasLayout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 292px;
+      width: 100%;
+      height: 100%;
+      gap: 12px;
+      background: #ffffff;
+    }
+
+    #globeWrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #070d19;
+      border-radius: 6px;
+      overflow: hidden;
+      color: #e2e8f0;
+    }
+    #cesiumContainer { width: 100%; height: 100%; }
+
+    /* Right-hand Selected Herd & State Panel — synchronised directly with the authoritative timeline */
+    #sidePanel {
+      height: 100%;
+      overflow-y: auto;
+      padding: 6px 8px 10px 4px;
+      background: #ffffff;
+      color: #1e293b;
+      font-size: 13.5px;
+      line-height: 1.55;
+      border-left: 1px solid #e2e8f0;
+      padding-left: 14px;
+    }
+    #sidePanel h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 10px;
+      line-height: 1.25;
+    }
+    .herd-title-line {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .code-tag {
+      display: inline-block;
+      background: #f1f5f9;
+      color: #0f766e;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .muted-note {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 10px;
+    }
+    .herd-list {
+      list-style: disc;
+      padding-left: 18px;
+      margin-bottom: 12px;
+    }
+    .herd-list li {
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+    .herd-list strong { color: #0f172a; }
+    .side-divider {
+      border: 0;
+      border-top: 1px solid #e2e8f0;
+      margin: 12px 0;
+    }
+    .snapshot-box {
+      font-size: 12.5px;
+      color: #475569;
+      line-height: 1.5;
+    }
+    .snapshot-box b { color: #1e293b; }
+
+    #topHud {
+      position: absolute; top: 10px; left: 10px; right: 10px; z-index: 20;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px;
+      pointer-events: none;
+    }
+    .hud-group {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 6px; pointer-events: auto;
+      background: rgba(15, 23, 42, 0.86); backdrop-filter: blur(8px);
+      border: 1px solid rgba(148, 163, 184, 0.28); border-radius: 8px; padding: 5px 9px;
+      font-size: 11.5px;
+    }
+    .hud-btn {
+      background: rgba(30, 41, 59, 0.92); color: #e2e8f0; border: 1px solid rgba(148,163,184,0.32);
+      border-radius: 5px; padding: 4px 8px; font-size: 11px; cursor: pointer; transition: 0.15s;
+    }
+    .hud-btn:hover, .hud-btn.active { background: #2563eb; border-color: #60a5fa; color: #fff; }
+    .hud-select {
+      background: #1e293b; color: #f8fafc; border: 1px solid rgba(148,163,184,0.35);
+      border-radius: 5px; padding: 3px 6px; font-size: 11px;
+    }
+    .status-pill { padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .pill-ok { background: rgba(16, 185, 129, 0.22); color: #6ee7b7; border: 1px solid #10b981; }
+    .pill-warn { background: rgba(245, 158, 11, 0.24); color: #fcd34d; border: 1px solid #f59e0b; }
+    .pill-err { background: rgba(239, 68, 68, 0.26); color: #fca5a5; border: 1px solid #ef4444; }
+    .pill-syn { background: rgba(192, 38, 211, 0.24); color: #f0abfc; border: 1px solid #c026d3; }
+
+    #inspector {
+      position: absolute; top: 96px; right: 12px; width: 270px; max-height: 52%;
+      overflow-y: auto; z-index: 20; display: none;
+      background: rgba(15, 23, 42, 0.93); backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.32); border-radius: 10px; padding: 11px;
+      font-size: 11.5px; line-height: 1.48;
+    }
+    #inspector h4 { font-size: 12.5px; color: #f8fafc; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    #inspector .close-x { cursor: pointer; color: #94a3b8; font-weight: 700; padding: 0 4px; }
+    .kv { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px solid rgba(148,163,184,0.14); padding: 3px 0; }
+    .kv span:first-child { color: #94a3b8; }
+    .kv span:last-child { color: #f1f5f9; font-weight: 500; text-align: right; }
+
+    #legend {
+      position: absolute; bottom: 88px; left: 12px; z-index: 18;
+      background: rgba(15, 23, 42, 0.86); backdrop-filter: blur(8px);
+      border: 1px solid rgba(148, 163, 184, 0.26); border-radius: 8px; padding: 7px 10px;
+      font-size: 10.5px; line-height: 1.55;
+    }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+    .line-sw { display: inline-block; width: 15px; height: 3px; vertical-align: middle; margin-right: 5px; }
+
+    #elevReadout {
+      position: absolute; bottom: 88px; right: 12px; z-index: 18;
+      background: rgba(15, 23, 42, 0.86); border: 1px solid rgba(148,163,184,0.26);
+      border-radius: 8px; padding: 5px 9px; font-size: 11px; color: #cbd5e1;
+    }
+
+    #timelineDock {
+      position: absolute; bottom: 10px; left: 12px; right: 12px; z-index: 25;
+      background: rgba(15, 23, 42, 0.90); backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.30); border-radius: 10px; padding: 8px 14px;
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .tl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .tl-controls { display: flex; align-items: center; gap: 5px; }
+    #dateSlider { width: 100%; accent-color: #38bdf8; cursor: pointer; }
+    .season-bar {
+      display: grid; grid-template-columns: 16.4% 25.1% 25.1% 24.9% 8.5%;
+      height: 5px; border-radius: 3px; overflow: hidden; opacity: 0.9;
+    }
+    .sb-win { background: #38bdf8; } .sb-spr { background: #4ade80; }
+    .sb-sum { background: #facc15; } .sb-aut { background: #fb923c; }
+    .clim-hud { display: flex; gap: 10px; font-size: 11.5px; color: #cbd5e1; flex-wrap: wrap; }
+    .clim-hud b { color: #f8fafc; }
+    .cesium-viewer-bottom { display: none !important; }
+  </style>
+</head>
+<body>
+<div id="atlasLayout">
+  <div id="globeWrap">
+    <div id="cesiumContainer"></div>
+
+    <div id="topHud">
+      <div class="hud-group">
+        <span style="font-weight:700;color:#f8fafc;">3D Naryn Atlas v3.2</span>
+        <span id="terrainBadge" class="status-pill pill-warn">Loading 3D Earth…</span>
+        <span class="status-pill pill-syn">Herds &amp; Corridors: SYNTHETIC</span>
+      </div>
+      <div class="hud-group">
+        <button class="hud-btn" id="btnGlobal" title="Complete 3D Earth Globe (Top View)">🌍 World</button>
+        <button class="hud-btn" id="btnAsia" title="Central Asia & Kyrgyzstan (Top View)">🗺️ Central Asia</button>
+        <button class="hud-btn active" id="btnNaryn3D" title="Naryn Region Top-Down 3D View">🏔️ Naryn 3D</button>
+        <button class="hud-btn" id="btnSonKul" title="Son-Kul High Alpine Plateau (Top View)">⛰️ Son-Kul</button>
+        <button class="hud-btn" id="btnAtBashi" title="At-Bashi Valley & Range (Top View)">🏞️ At-Bashi</button>
+        <button class="hud-btn" id="btnUnfollow" title="Release tracking & snap straight top-down">🎯 Free Cam</button>
+        <button class="hud-btn" id="btnTiltToggle" title="Toggle between Top-Down (-90°) and Oblique 3D (-32°)">📐 3D Tilt</button>
+        <select class="hud-select" id="basemapSelect" title="Switch Global Basemap">
+          <option value="esri_satellite">Satellite + Relief (Esri Imagery)</option>
+          <option value="esri_topo">Topographic (Esri World Topo)</option>
+          <option value="opentopo">Physical Relief (OpenTopoMap)</option>
+          <option value="osm">OpenStreetMap</option>
+        </select>
+        <label style="font-size:11px;display:flex;align-items:center;gap:4px;">
+          Relief <input id="exagSlider" type="range" min="1.0" max="3.0" step="0.1" value="1.6" style="width:60px;" />
+          <span id="exagVal">1.60×</span>
+        </label>
+      </div>
+    </div>
+
+    <div id="inspector">
+      <h4><span id="inspTitle">Feature Inspector</span><span class="close-x" id="inspClose">✕</span></h4>
+      <div id="inspBody"></div>
+    </div>
+
+    <div id="legend">
+      <div style="font-weight:700;margin-bottom:2px;color:#f8fafc;">Provenance &amp; Layers</div>
+      <div><span class="line-sw" style="background:#38bdf8;"></span><b>PUBLIC</b> Naryn ADM1 Boundary</div>
+      <div><span class="line-sw" style="background:#f59e0b;"></span><b>PUBLIC</b> OSM Roads / Tracks (context)</div>
+      <div><span class="line-sw" style="background:#0ea5e9;"></span><b>PUBLIC</b> OSM Rivers &amp; Lakes</div>
+      <div><span class="line-sw" style="background:#e879f9;border-top:2px dashed #f0abfc;"></span><b>SYNTHETIC</b> Least-Cost Corridors</div>
+      <div><span class="dot" style="background:#22c55e;border:1.5px solid #fff;"></span><b>SYNTHETIC</b> Candidate Pastures</div>
+      <div>
+        <span class="dot" style="background:#ffffff;"></span>Sheep
+        <span class="dot" style="background:#f97316;margin-left:5px;"></span>Goat
+        <span class="dot" style="background:#ef4444;margin-left:5px;"></span>Cattle
+        <span class="dot" style="background:#38bdf8;margin-left:5px;"></span>Horse
+        <span class="dot" style="background:#c084fc;margin-left:5px;"></span>Mixed
+      </div>
+      <div style="font-size:9.5px;color:#94a3b8;margin-top:2px;">Imagery: Esri/Maxar/OSM · 3D Elevation: AWS Terrarium + Copernicus DEM</div>
+    </div>
+
+    <div id="elevReadout">Click terrain to inspect coordinates &amp; elevation</div>
+
+    <div id="timelineDock">
+      <div class="tl-row">
+        <div class="tl-controls">
+          <button class="hud-btn" id="btnPlay">▶ Play</button>
+          <button class="hud-btn" id="btnPause">⏸ Pause</button>
+          <button class="hud-btn" id="btnPrev">⏮ -1d</button>
+          <button class="hud-btn" id="btnNext">+1d ⏭</button>
+          <button class="hud-btn" id="btnReset">↺ Reset</button>
+          <select class="hud-select" id="speedSelect">
+            <option value="2">2 days/s</option>
+            <option value="6" selected>6 days/s</option>
+            <option value="15">15 days/s</option>
+            <option value="30">30 days/s</option>
+          </select>
+        </div>
+        <div class="clim-hud">
+          <span>Date: <b id="hudDate">—</b> (<span id="hudSeason">—</span>)</span>
+          <span>Scenario: <b id="hudScenario">—</b></span>
+          <span>T2M (Naryn grid): <b id="hudTemp">—</b></span>
+          <span>Precip: <b id="hudPrecip">—</b></span>
+          <span>Moving: <b id="hudMoving">0</b></span>
+        </div>
+      </div>
+      <input id="dateSlider" type="range" min="0" max="365" value="180" />
+      <div class="season-bar" title="Winter · Spring · Summer · Autumn · Winter">
+        <div class="sb-win"></div><div class="sb-spr"></div><div class="sb-sum"></div><div class="sb-aut"></div><div class="sb-win"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Synchronized Right-Hand Selected Herd & State Panel (driven by the SAME authoritative timeline date) -->
+  <aside id="sidePanel">
+    <h3>Selected Herd &amp; State</h3>
+    <div id="sidePanelBody">
+      <div class="muted-note">Loading herd state…</div>
+    </div>
+  </aside>
+</div>
+
+<script>
+const _INLINE_TEMPLATE_FALLBACK = /*__ATLAS_PAYLOAD_JSON__*/ {};
+const MOVING_STATES = new Set(["departing", "moving", "seasonal_transition", "returning"]);
+
+// High-visibility double-bordered circular marker icon so pasture pins NEVER disappear beneath polylines or terrain!
+const PASTURE_ICON_CACHE = {};
+function makePastureBadgeIcon(fillHex) {
+  if (PASTURE_ICON_CACHE[fillHex]) return PASTURE_ICON_CACHE[fillHex];
+  const sz = 36;
+  const c = document.createElement("canvas");
+  c.width = sz; c.height = sz;
+  const ctx = c.getContext("2d");
+  const cx = sz / 2, cy = sz / 2;
+  // Soft drop halo
+  ctx.beginPath();
+  ctx.arc(cx, cy, 13.5, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(15, 23, 42, 0.72)";
+  ctx.fill();
+  // Crisp white outer ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, 10.8, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+  // Inner vibrant suitability fill
+  ctx.beginPath();
+  ctx.arc(cx, cy, 8.2, 0, Math.PI * 2);
+  ctx.fillStyle = fillHex;
+  ctx.fill();
+  // Center white highlight dot
+  ctx.beginPath();
+  ctx.arc(cx, cy, 2.3, 0, Math.PI * 2);
+  ctx.fillStyle = "#0f172a";
+  ctx.fill();
+  const url = c.toDataURL();
+  PASTURE_ICON_CACHE[fillHex] = url;
+  return url;
+}
+
+function decodeLocalDemGrid(raw) {
+  if (!raw || !raw.data_b64_u16) return null;
+  try {
+    const bin = atob(raw.data_b64_u16);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const values = new Uint16Array(bytes.buffer);
+    return {
+      source: raw.source,
+      resolution: raw.resolution,
+      width: raw.width,
+      height: raw.height,
+      west: raw.bounds[0],
+      south: raw.bounds[1],
+      east: raw.bounds[2],
+      north: raw.bounds[3],
+      offset: raw.offset_m,
+      scale: raw.scale_m,
+      values,
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+function sampleLocalDem(grid, lonDeg, latDeg) {
+  if (!grid) return null;
+  if (lonDeg < grid.west || lonDeg > grid.east || latDeg < grid.south || latDeg > grid.north) return null;
+  const u = ((lonDeg - grid.west) / (grid.east - grid.west)) * (grid.width - 1);
+  const v = ((grid.north - latDeg) / (grid.north - grid.south)) * (grid.height - 1);
+  const c0 = Math.max(0, Math.min(grid.width - 2, Math.floor(u)));
+  const r0 = Math.max(0, Math.min(grid.height - 2, Math.floor(v)));
+  const fu = u - c0, fv = v - r0;
+  const idx = (r, c) => grid.values[r * grid.width + c];
+  const v00 = idx(r0, c0), v10 = idx(r0, c0 + 1), v01 = idx(r0 + 1, c0), v11 = idx(r0 + 1, c0 + 1);
+  if (v00 === 0 || v10 === 0 || v01 === 0 || v11 === 0) return null;
+  const rawVal = (v00 * (1 - fu) + v10 * fu) * (1 - fv) + (v01 * (1 - fu) + v11 * fu) * fv;
+  const elev = rawVal * grid.scale + grid.offset;
+  const dxEdge = Math.min(lonDeg - grid.west, grid.east - lonDeg);
+  const dyEdge = Math.min(latDeg - grid.south, grid.north - latDeg);
+  const feather = Math.max(0, Math.min(1, Math.min(dxEdge, dyEdge) / 0.12));
+  return { elev, feather };
+}
+
+class TerrariumTerrainProvider {
+  constructor(localDem, onStatus) {
+    this.tilingScheme = new Cesium.WebMercatorTilingScheme();
+    this.errorEvent = new Cesium.Event();
+    this.credit = new Cesium.Credit(
+      localDem ? `AWS Open Data Terrarium + ${localDem.source}` : "AWS Open Data Terrarium"
+    );
+    this.hasWaterMask = false;
+    this.hasVertexNormals = false;
+    this.availability = undefined;
+    this.ready = true;
+    this._localDem = localDem;
+    this._onStatus = onStatus;
+    this._tileWidth = 49;
+    this._maxLevel = 13;
+    this._activeRequests = 0;
+    this._maxConcurrent = 8;
+    this._okCount = 0;
+    this._failCount = 0;
+    this._canvas = document.createElement("canvas");
+    this._canvas.width = this._tileWidth;
+    this._canvas.height = this._tileWidth;
+    this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
+    this._levelZeroError = Cesium.TerrainProvider.getEstimatedLevelZeroGeometricErrorForAHeightmap(
+      this.tilingScheme.ellipsoid,
+      this._tileWidth,
+      this.tilingScheme.getNumberOfXTilesAtLevel(0)
+    );
+  }
+  getLevelMaximumGeometricError(level) { return this._levelZeroError / (1 << level); }
+  getTileDataAvailable(x, y, level) { return level <= this._maxLevel; }
+  loadTileDataAvailability() { return undefined; }
+  requestTileGeometry(x, y, level) {
+    if (level > this._maxLevel || this._activeRequests >= this._maxConcurrent) return undefined;
+    this._activeRequests++;
+    const dim = this._tileWidth;
+    const rect = this.tilingScheme.tileXYToRectangle(x, y, level);
+    const westDeg = Cesium.Math.toDegrees(rect.west);
+    const eastDeg = Cesium.Math.toDegrees(rect.east);
+    const southDeg = Cesium.Math.toDegrees(rect.south);
+    const northDeg = Cesium.Math.toDegrees(rect.north);
+    const url = `/proxy/terrarium/${level}/${x}/${y}.png`;
+
+    return fetch(url)
+      .then(async (resp) => {
+        const heights = new Float32Array(dim * dim);
+        let gotRemote = false;
+        if (resp.ok) {
+          const blob = await resp.blob();
+          const bmp = await createImageBitmap(blob);
+          this._ctx.clearRect(0, 0, dim, dim);
+          this._ctx.drawImage(bmp, 0, 0, dim, dim);
+          bmp.close();
+          const img = this._ctx.getImageData(0, 0, dim, dim).data;
+          for (let i = 0, p = 0; i < heights.length; i++, p += 4) {
+            const h = (img[p] * 256.0 + img[p + 1] + img[p + 2] / 256.0) - 32768.0;
+            heights[i] = Number.isFinite(h) ? Math.max(-500.0, Math.min(9000.0, h)) : 0.0;
+          }
+          gotRemote = true;
+          this._okCount++;
+        } else {
+          this._failCount++;
+        }
+        const ld = this._localDem;
+        if (ld && !gotRemote && eastDeg >= ld.west && westDeg <= ld.east && northDeg >= ld.south && southDeg <= ld.north) {
+          for (let row = 0; row < dim; row++) {
+            const latDeg = northDeg - (row / (dim - 1)) * (northDeg - southDeg);
+            for (let col = 0; col < dim; col++) {
+              const lonDeg = westDeg + (col / (dim - 1)) * (eastDeg - westDeg);
+              const s = sampleLocalDem(ld, lonDeg, latDeg);
+              if (s) heights[row * dim + col] = s.elev;
+            }
+          }
+        }
+        if (this._onStatus) this._onStatus(this._okCount, this._failCount);
+        return new Cesium.HeightmapTerrainData({
+          buffer: heights, width: dim, height: dim, childTileMask: level < this._maxLevel ? 15 : 0,
+        });
+      })
+      .catch(() => {
+        this._failCount++;
+        const heights = new Float32Array(dim * dim);
+        const ld = this._localDem;
+        if (ld && eastDeg >= ld.west && westDeg <= ld.east && northDeg >= ld.south && southDeg <= ld.north) {
+          for (let row = 0; row < dim; row++) {
+            const latDeg = northDeg - (row / (dim - 1)) * (northDeg - southDeg);
+            for (let col = 0; col < dim; col++) {
+              const lonDeg = westDeg + (col / (dim - 1)) * (eastDeg - westDeg);
+              const s = sampleLocalDem(ld, lonDeg, latDeg);
+              if (s) heights[row * dim + col] = s.elev;
+            }
+          }
+        }
+        if (this._onStatus) this._onStatus(this._okCount, this._failCount);
+        return new Cesium.HeightmapTerrainData({
+          buffer: heights, width: dim, height: dim, childTileMask: level < this._maxLevel ? 15 : 0,
+        });
+      })
+      .finally(() => {
+        this._activeRequests = Math.max(0, this._activeRequests - 1);
+      });
+  }
+}
+
+(async function initAtlas() {
+  const terrainBadge = document.getElementById("terrainBadge");
+  if (typeof Cesium === "undefined") {
+    terrainBadge.className = "status-pill pill-err";
+    terrainBadge.textContent = "ERROR: CesiumJS failed to load";
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const stateId = params.get("state") || "empty";
+  let ATLAS_DATA = {};
+  try {
+    const res = await fetch(`/payload.json?state=${encodeURIComponent(stateId)}`);
+    ATLAS_DATA = await res.json();
+  } catch (e) {
+    terrainBadge.className = "status-pill pill-err";
+    terrainBadge.textContent = "ERROR: Could not fetch atlas payload";
+    return;
+  }
+
+  const cfg = ATLAS_DATA.config || {};
+  const localDem = decodeLocalDemGrid(ATLAS_DATA.localDemGrid);
+  if (cfg.cesiumIonToken) Cesium.Ion.defaultAccessToken = cfg.cesiumIonToken;
+
+  const viewer = new Cesium.Viewer("cesiumContainer", {
+    animation: false, timeline: false, baseLayerPicker: false, geocoder: false,
+    homeButton: false, sceneModePicker: false, navigationHelpButton: false,
+    fullscreenButton: true, infoBox: false, selectionIndicator: true,
+    shouldAnimate: false, skyAtmosphere: new Cesium.SkyAtmosphere(), baseLayer: false,
+  });
+
+  viewer.scene.globe.show = true;
+  viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#16324f");
+  viewer.scene.globe.enableLighting = false;
+  viewer.scene.globe.depthTestAgainstTerrain = false; // prevents terrain from slicing pasture/herd markers in half
+  viewer.scene.globe.tileCacheSize = 250;
+  viewer.scene.highDynamicRange = false;
+
+  const initExag = Math.max(1.0, cfg.verticalExaggeration || 1.35);
+  viewer.scene.verticalExaggeration = initExag;
+  document.getElementById("exagSlider").value = initExag;
+  document.getElementById("exagVal").textContent = initExag.toFixed(2) + "×";
+
+  // --- 1. IMAGERY ---
+  let activeLayers = [];
+  function clearImagery() {
+    for (const lyr of activeLayers) viewer.imageryLayers.remove(lyr, true);
+    activeLayers = [];
+  }
+  function setBasemap(key) {
+    clearImagery();
+    if (key === "esri_topo") {
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_topo/{z}/{y}/{x}", maximumLevel: 18 })));
+    } else if (key === "opentopo") {
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/opentopo/{z}/{y}/{x}", maximumLevel: 16 })));
+    } else if (key === "osm") {
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/osm/{z}/{y}/{x}", maximumLevel: 19 })));
+    } else {
+      const sat = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_satellite/{z}/{y}/{x}", maximumLevel: 18 }));
+      sat.contrast = 1.08; sat.saturation = 1.12; activeLayers.push(sat);
+      const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_hillshade/{z}/{y}/{x}", maximumLevel: 16 }));
+      hs.alpha = 0.28; hs.contrast = 1.28; activeLayers.push(hs);
+      const lbl = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_labels/{z}/{y}/{x}", maximumLevel: 15 }));
+      lbl.alpha = 0.86; activeLayers.push(lbl);
+    }
+  }
+  const basemapSel = document.getElementById("basemapSelect");
+  basemapSel.value = cfg.basemap || "esri_satellite";
+  setBasemap(basemapSel.value);
+  basemapSel.addEventListener("change", (e) => setBasemap(e.target.value));
+
+  // --- 2. TERRAIN ---
+  async function initTerrain() {
+    if (cfg.cesiumIonToken) {
+      try {
+        viewer.terrainProvider = await Cesium.createWorldTerrainAsync({ requestVertexNormals: true, requestWaterMask: true });
+        terrainBadge.className = "status-pill pill-ok";
+        terrainBadge.textContent = "3D Terrain: Cesium World Terrain";
+        return;
+      } catch (e) {}
+    }
+    viewer.terrainProvider = new TerrariumTerrainProvider(localDem, (okCount, failCount) => {
+      if (okCount === 1 || okCount === 10 || okCount === 30) {
+        terrainBadge.className = "status-pill pill-ok";
+        terrainBadge.textContent = localDem
+          ? `3D Terrain: AWS Global (${okCount} tiles) + ${localDem.source}`
+          : `3D Terrain: AWS Global 3D (${okCount} tiles)`;
+      } else if (okCount === 0 && failCount >= 4) {
+        terrainBadge.className = localDem ? "status-pill pill-warn" : "status-pill pill-err";
+        terrainBadge.textContent = localDem ? `3D Terrain: Local ${localDem.source}` : "3D Terrain unreachable";
+      }
+    });
+    terrainBadge.className = "status-pill pill-ok";
+    terrainBadge.textContent = localDem ? `3D Terrain: AWS Global + ${localDem.source}` : "3D Terrain: AWS Global Elevation";
+  }
+  await initTerrain();
+
+  if (cfg.layers && cfg.layers.google_3d_tiles && (cfg.googleMapsApiKey || cfg.cesiumIonToken)) {
+    try {
+      if (cfg.googleMapsApiKey) Cesium.GoogleMaps.defaultApiKey = cfg.googleMapsApiKey;
+      viewer.scene.primitives.add(await Cesium.createGooglePhotorealistic3DTileset());
+    } catch (e) {}
+  }
+
+  // --- 3. CAMERA PRESETS (TOP-DOWN -90° DEFAULT + 3D TILT TOGGLE) ---
+  const presetBtnMap = {
+    global: "btnGlobal", central_asia: "btnAsia", regional_3d: "btnNaryn3D",
+    son_kul: "btnSonKul", at_bashi: "btnAtBashi", free_cam: "btnUnfollow",
+  };
+  let isObliqueTilt = false;
+  function setActivePresetButton(key) {
+    Object.values(presetBtnMap).forEach((id) => { const el = document.getElementById(id); if (el) el.classList.remove("active"); });
+    const activeEl = document.getElementById(presetBtnMap[key]);
+    if (activeEl) activeEl.classList.add("active");
+  }
+  function updateTiltButtonState(tilted) {
+    isObliqueTilt = tilted;
+    const btn = document.getElementById("btnTiltToggle");
+    if (!btn) return;
+    btn.classList.toggle("active", tilted);
+    btn.textContent = tilted ? "⬇️ Top View" : "📐 3D Tilt";
+  }
+  function getScreenCenterTarget() {
+    const canvas = viewer.scene.canvas;
+    const centerPx = new Cesium.Cartesian2(canvas.clientWidth / 2, canvas.clientHeight / 2);
+    const ray = viewer.camera.getPickRay(centerPx);
+    let pos = ray ? viewer.scene.globe.pick(ray, viewer.scene) : undefined;
+    if (!Cesium.defined(pos)) pos = viewer.camera.pickEllipsoid(centerPx, viewer.scene.globe.ellipsoid);
+    if (Cesium.defined(pos)) {
+      const c = Cesium.Cartographic.fromCartesian(pos);
+      const dist = Cesium.Cartesian3.distance(viewer.camera.positionWC, pos);
+      return { lon: Cesium.Math.toDegrees(c.longitude), lat: Cesium.Math.toDegrees(c.latitude), height: Math.max(12000, Math.min(13000000, dist)) };
+    }
+    const camC = viewer.camera.positionCartographic;
+    return { lon: Cesium.Math.toDegrees(camC.longitude), lat: Cesium.Math.toDegrees(camC.latitude), height: Math.max(25000, camC.height) };
+  }
+  function flyToPreset(preset) {
+    viewer.trackedEntity = undefined;
+    updateTiltButtonState(false);
+    setActivePresetButton(preset);
+    const topDown = { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 };
+    if (preset === "global") viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(75.5, 41.3, 13000000), orientation: topDown, duration: 1.3 });
+    else if (preset === "central_asia") viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(74.8, 41.2, 2400000), orientation: topDown, duration: 1.3 });
+    else if (preset === "son_kul") viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(75.16, 41.83, 88000), orientation: topDown, duration: 1.3 });
+    else if (preset === "at_bashi") viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(75.72, 41.06, 118000), orientation: topDown, duration: 1.3 });
+    else viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(75.65, 41.38, 460000), orientation: topDown, duration: 1.1 });
+  }
+  function snapFreeCamTopDown() {
+    viewer.trackedEntity = undefined;
+    updateTiltButtonState(false);
+    setActivePresetButton("free_cam");
+    const target = getScreenCenterTarget();
+    viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(target.lon, target.lat, target.height), orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 }, duration: 0.9 });
+  }
+  function toggleObliqueTilt() {
+    viewer.trackedEntity = undefined;
+    const target = getScreenCenterTarget();
+    if (!isObliqueTilt) {
+      updateTiltButtonState(true);
+      const range = Math.max(20000, Math.min(450000, target.height));
+      const latOffsetDeg = (range * Math.cos(Cesium.Math.toRadians(32))) / 111320.0;
+      const altM = range * Math.sin(Cesium.Math.toRadians(32)) + 3000;
+      viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(target.lon, target.lat - latOffsetDeg, altM), orientation: { heading: 0, pitch: Cesium.Math.toRadians(-32), roll: 0 }, duration: 1.0 });
+    } else {
+      updateTiltButtonState(false);
+      viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(target.lon, target.lat, target.height), orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 }, duration: 1.0 });
+    }
+  }
+  document.getElementById("btnGlobal").onclick = () => flyToPreset("global");
+  document.getElementById("btnAsia").onclick = () => flyToPreset("central_asia");
+  document.getElementById("btnNaryn3D").onclick = () => flyToPreset("regional_3d");
+  document.getElementById("btnSonKul").onclick = () => flyToPreset("son_kul");
+  document.getElementById("btnAtBashi").onclick = () => flyToPreset("at_bashi");
+  document.getElementById("btnUnfollow").onclick = () => snapFreeCamTopDown();
+  document.getElementById("btnTiltToggle").onclick = () => toggleObliqueTilt();
+
+  function addDrapedPolyline(coords, material, width, meta) {
+    if (!coords || coords.length < 2) return;
+    const flat = [];
+    for (const c of coords) if (Number.isFinite(c[0]) && Number.isFinite(c[1])) flat.push(c[0], c[1]);
+    if (flat.length < 4) return;
+    const ent = viewer.entities.add({
+      polyline: { positions: Cesium.Cartesian3.fromDegreesArray(flat), width, material, clampToGround: true },
+    });
+    if (meta) ent._atlasMeta = meta;
+    return ent;
+  }
+  function drawFeatureCollectionLines(fc, styleFn) {
+    if (!fc || !fc.features) return;
+    for (const f of fc.features) {
+      const g = f.geometry; if (!g) continue;
+      const st = styleFn(f.properties || {});
+      if (g.type === "LineString") addDrapedPolyline(g.coordinates, st.material, st.width, st.meta);
+      else if (g.type === "MultiLineString") for (const part of g.coordinates) addDrapedPolyline(part, st.material, st.width, st.meta);
+      else if (g.type === "Polygon" && g.coordinates[0]) addDrapedPolyline(g.coordinates[0], st.material, st.width, st.meta);
+      else if (g.type === "MultiPolygon") for (const poly of g.coordinates) if (poly[0]) addDrapedPolyline(poly[0], st.material, st.width, st.meta);
+    }
+  }
+
+  // --- 4. DRAPED PUBLIC GEOGRAPHICAL LAYERS (drawn FIRST so markers sit cleanly ABOVE them) ---
+  const layers = cfg.layers || {};
+
+  if (layers.boundary !== false && ATLAS_DATA.boundary) {
+    drawFeatureCollectionLines(ATLAS_DATA.boundary, (props) => ({
+      material: Cesium.Color.fromCssColorString("#38bdf8").withAlpha(0.92),
+      width: 3.2,
+      meta: { title: props.shapeName || "Naryn Region (ADM1)", type: "PUBLIC Administrative Boundary", iso: props.shapeISO || "KG-N", source: "geoBoundaries KGZ ADM1" },
+    }));
+  }
+  if (layers.osm_roads && ATLAS_DATA.osm && ATLAS_DATA.osm.roads) {
+    const roadFeats = (ATLAS_DATA.osm.roads.features || []).slice(0, 1200);
+    drawFeatureCollectionLines({ features: roadFeats }, (props) => {
+      const fc = String(props.fclass || "").toLowerCase();
+      const isMajor = ["trunk", "primary", "secondary"].includes(fc);
+      const isTrack = ["track", "track_grade1", "track_grade2", "track_grade3", "path", "bridleway", "footway"].includes(fc);
+      return {
+        width: isMajor ? 2.2 : isTrack ? 1.0 : 1.4,
+        material: isMajor
+          ? Cesium.Color.fromCssColorString("#f59e0b").withAlpha(0.84)
+          : isTrack ? Cesium.Color.fromCssColorString("#e2e8f0").withAlpha(0.45)
+          : Cesium.Color.fromCssColorString("#fbbf24").withAlpha(0.66),
+        meta: { title: props.name || `OSM ${fc || "road"}`, type: "PUBLIC OSM Road/Track (context)", fclass: fc || "unclassified", source: "OpenStreetMap / Geofabrik" },
+      };
+    });
+  }
+  if (layers.osm_water && ATLAS_DATA.osm && ATLAS_DATA.osm.waterways) {
+    const waterFeats = (ATLAS_DATA.osm.waterways.features || []).slice(0, 900);
+    drawFeatureCollectionLines({ features: waterFeats }, (props) => ({
+      width: String(props.fclass || "").toLowerCase() === "river" ? 2.0 : 1.1,
+      material: Cesium.Color.fromCssColorString("#0ea5e9").withAlpha(0.80),
+      meta: { title: props.name || `OSM ${props.fclass || "waterway"}`, type: "PUBLIC Hydrological Context", source: "OpenStreetMap / Geofabrik" },
+    }));
+  }
+  if (layers.corridors !== false && ATLAS_DATA.corridors) {
+    drawFeatureCollectionLines(ATLAS_DATA.corridors, (pr) => ({
+      width: 2.5,
+      material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString("#e879f9").withAlpha(0.84), dashLength: 14 }),
+      meta: {
+        title: `${pr.route_id} · ${pr.name}`, type: "SYNTHETIC Least-Cost Migration Corridor",
+        distance: `${pr.distance_km} km`, elevation_gain: `+${pr.elevation_gain_m} m / -${pr.elevation_loss_m} m`,
+        avg_slope: `${pr.avg_slope_deg}°`, travel_days: `${pr.estimated_travel_days} days`, method: pr.route_generation_method,
+      },
+    }));
+  }
+
+  if (layers.osm_settlements && ATLAS_DATA.osm && ATLAS_DATA.osm.settlements) {
+    for (const f of (ATLAS_DATA.osm.settlements.features || []).slice(0, 220)) {
+      if (!f.geometry || f.geometry.type !== "Point") continue;
+      const [lon, lat] = f.geometry.coordinates;
+      const nm = f.properties.name || "";
+      const fc = String(f.properties.fclass || "settlement").toLowerCase();
+      if (!nm) continue;
+      const isTown = ["city", "town"].includes(fc);
+      const ent = viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+        point: {
+          pixelSize: isTown ? 7 : 3.5,
+          color: Cesium.Color.fromCssColorString(isTown ? "#fde047" : "#f1f5f9"),
+          outlineColor: Cesium.Color.BLACK, outlineWidth: 1.5,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+        label: isTown ? {
+          text: nm, font: "600 11.5px sans-serif", fillColor: Cesium.Color.WHITE,
+          outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          pixelOffset: new Cesium.Cartesian2(0, -14), heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 480000),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        } : undefined,
+      });
+      ent._atlasMeta = { title: nm, type: `PUBLIC OSM Settlement (${fc})`, coords: `${lat.toFixed(4)}, ${lon.toFixed(4)}`, source: "OpenStreetMap / Geofabrik" };
+    }
+  }
+
+  for (const loc of ATLAS_DATA.locations || []) {
+    const ent = viewer.entities.add({
+      position: Cesium.Cartesian3.fromDegrees(loc.lon, loc.lat),
+      point: {
+        pixelSize: 9, color: Cesium.Color.fromCssColorString("#14b8a6"),
+        outlineColor: Cesium.Color.WHITE, outlineWidth: 2,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+      label: {
+        text: `${loc.name} (${loc.qid})`, font: "700 12px sans-serif", fillColor: Cesium.Color.fromCssColorString("#5eead4"),
+        outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        pixelOffset: new Cesium.Cartesian2(0, -18), heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    });
+    ent._atlasMeta = { title: `${loc.name} (${loc.qid})`, type: "PUBLIC Verified Entity Reference", coords: `${loc.lat.toFixed(5)}, ${loc.lon.toFixed(5)}`, source: loc.provenance };
+  }
+
+  // --- 5. SYNTHETIC CANDIDATE PASTURES (LIFTED CLEANLY ABOVE ALL EDGES & TERRAIN!) ---
+  const PASTURE_EYE_OFFSET = new Cesium.Cartesian3(0, 0, -4500);
+  if (layers.pastures !== false && ATLAS_DATA.pastures && ATLAS_DATA.pastures.features) {
+    for (const f of ATLAS_DATA.pastures.features) {
+      const p = f.properties;
+      const [lon, lat] = f.geometry.coordinates;
+      const suit = Number(p.current_suitability ?? 0.5);
+      const col = suit >= 0.7 ? "#22c55e" : suit >= 0.48 ? "#facc15" : "#f97316";
+      const shortCode = String(p.pasture_id || "").replace("DEMO-PASTURE-", "P");
+      const ent = viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+        billboard: {
+          image: makePastureBadgeIcon(col),
+          width: 22,
+          height: 22,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          eyeOffset: PASTURE_EYE_OFFSET,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+        label: {
+          text: `${shortCode} · ${Math.round(p.elevation_m)}m`,
+          font: "600 10.5px sans-serif",
+          fillColor: Cesium.Color.fromCssColorString("#f8fafc"),
+          outlineColor: Cesium.Color.BLACK, outlineWidth: 3,
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          pixelOffset: new Cesium.Cartesian2(0, -18),
+          eyeOffset: PASTURE_EYE_OFFSET,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 190000),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+      });
+      ent._atlasMeta = {
+        title: `${p.pasture_id} · ${p.pasture_name}`,
+        type: "SYNTHETIC Candidate Grazing Location (not an official pasture parcel)",
+        elevation: `${p.elevation_m} m (${p.elevation_band})`,
+        slope: `${p.slope_degrees}°`,
+        suitability: `${(suit * 100).toFixed(1)}% (${cfg.scenarioId})`,
+        landcover: p.landcover_class,
+        water_access: p.water_access_indicator,
+        source: `synthetic_demo · ${p.elevation_source}`,
+      };
+    }
+  }
+
+  // --- 6. ANIMATED SYNTHETIC HERD ENTITIES ---
+  const SPECIES_COLORS = {
+    sheep: "#ffffff", goat: "#f97316", cattle: "#ef4444", horse: "#38bdf8", mixed: "#c084fc",
+  };
+  const herdEntities = [];
+  const startJulian = Cesium.JulianDate.fromIso8601(cfg.startTime || "2024-01-01T00:00:00Z");
+  const endJulian = Cesium.JulianDate.fromIso8601(cfg.endTime || "2024-12-31T23:59:59Z");
+  const currentJulian = Cesium.JulianDate.fromIso8601(cfg.currentTime || "2024-07-02T12:00:00Z");
+
+  viewer.clock.startTime = startJulian.clone();
+  viewer.clock.stopTime = endJulian.clone();
+  viewer.clock.currentTime = currentJulian.clone();
+  viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
+  viewer.clock.multiplier = 86400 * (cfg.playbackSpeed || 6);
+
+  const HERD_EYE_OFFSET = new Cesium.Cartesian3(0, 0, -6000);
+  for (const herd of ATLAS_DATA.herds || []) {
+    if (!herd.samples || !herd.samples.length) continue;
+    const posProp = new Cesium.SampledPositionProperty();
+    posProp.setInterpolationOptions({ interpolationDegree: 1, interpolationAlgorithm: Cesium.LinearApproximation });
+    for (const s of herd.samples) {
+      const jt = Cesium.JulianDate.fromIso8601(s[0]);
+      posProp.addSample(jt, Cesium.Cartesian3.fromDegrees(s[1], s[2], (s[3] || 2200) * initExag + 220));
+    }
+    const colHex = SPECIES_COLORS[herd.species] || "#ffffff";
+    const isSelected = cfg.selectedHerdId && cfg.selectedHerdId === herd.herd_id;
+    const ent = viewer.entities.add({
+      id: herd.herd_id,
+      name: herd.herd_name,
+      availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({ start: startJulian, stop: endJulian })]),
+      position: posProp,
+      point: {
+        pixelSize: isSelected ? 13 : 8.5,
+        color: Cesium.Color.fromCssColorString(colHex),
+        outlineColor: isSelected ? Cesium.Color.YELLOW : Cesium.Color.fromCssColorString("#0f172a"),
+        outlineWidth: isSelected ? 3 : 1.8,
+        eyeOffset: HERD_EYE_OFFSET,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+      label: isSelected ? {
+        text: `${herd.herd_id} (${herd.species}, n=${herd.group_size})`,
+        font: "700 12px sans-serif", fillColor: Cesium.Color.YELLOW,
+        outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        pixelOffset: new Cesium.Cartesian2(0, -18), eyeOffset: HERD_EYE_OFFSET,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      } : undefined,
+      path: layers.trails !== false ? {
+        resolution: 86400, leadTime: 0, trailTime: 86400 * 35,
+        width: isSelected ? 4.0 : 2.0,
+        material: Cesium.Color.fromCssColorString(colHex).withAlpha(isSelected ? 0.95 : 0.65),
+      } : undefined,
+    });
+    ent._herdData = herd;
+    herdEntities.push(ent);
+    if (isSelected) viewer.trackedEntity = ent;
+  }
+
+  // --- 7. SINGLE AUTHORITATIVE TIMELINE & SYNCHRONIZED SIDE PANEL + BACKEND SYNC ---
+  const climateArr = ATLAS_DATA.climate || [];
+  const climByDate = Object.fromEntries(climateArr.map((c) => [c.date, c]));
+  const totalDays = Math.max(1, Math.round(Cesium.JulianDate.daysDifference(endJulian, startJulian)));
+  const slider = document.getElementById("dateSlider");
+  slider.max = String(totalDays);
+  const sidePanelBody = document.getElementById("sidePanelBody");
+
+  // Authoritative focus herd (null = auto-select first active moving herd on current date, else first herd)
+  let explicitHerdId = cfg.selectedHerdId || null;
+  let lastRenderedKey = "";
+  let lastSyncedKey = "";
+  let syncTimer = null;
+
+  function findSampleForDate(samples, dateStr) {
+    let best = samples[0];
+    for (const s of samples) {
+      const sDate = s[0].slice(0, 10);
+      if (sDate <= dateStr) best = s;
+      else break;
+    }
+    return best;
+  }
+
+  function pushUiStateToServer(dateStr, featuredHerdId, movingCount, totalCount, immediate = false) {
+    const syncKey = `${dateStr}|${featuredHerdId || ""}|${cfg.scenarioId || ""}`;
+    if (syncKey === lastSyncedKey && !immediate) return;
+    const doPost = () => {
+      lastSyncedKey = syncKey;
+      fetch("/api/ui_state", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: dateStr,
+          herd_id: featuredHerdId,
+          scenario_id: cfg.scenarioId || "SCENARIO_BASELINE",
+          moving_count: movingCount,
+          total_herds: totalCount,
+          source: "cesium",
+        }),
+      }).catch(() => {});
+    };
+    if (syncTimer) { clearTimeout(syncTimer); syncTimer = null; }
+    if (immediate) doPost();
+    else syncTimer = setTimeout(doPost, 350);
+  }
+
+  function renderSidePanel(dStr, c, featuredEnt, featuredSample, movingCount, totalCount) {
+    if (!featuredEnt || !featuredSample) {
+      sidePanelBody.innerHTML = `<div class="muted-note">No herds available for the active filter on <b>${dStr}</b>.</div>`;
+      return;
+    }
+    const h = featuredEnt._herdData;
+    const state = featuredSample[4];
+    const isMoving = MOVING_STATES.has(state);
+    const curPasture = featuredSample[5];
+    const nxtPasture = featuredSample[6];
+    const suitPct = (Number(featuredSample[7]) * 100).toFixed(1);
+    const speedStr = Number(featuredSample[8]).toFixed(2);
+    const routeId = featuredSample[9] || "—";
+    const tStr = c && c.t2m_c !== null ? `${c.t2m_c.toFixed(1)} °C` : "N/A";
+    const pStr = c && c.precip_mm !== null ? `${c.precip_mm.toFixed(2)} mm` : "N/A";
+    const pastureLabel = isMoving ? "Origin / Previous Pasture" : "Current Pasture";
+    const destLabel = isMoving ? "Next Destination" : "Next Planned Destination";
+    const corridorLabel = isMoving ? "Active Corridor" : "Planned Next Corridor";
+    const localDemSrc = (cfg.terrainMeta && cfg.terrainMeta.local_dem_source) ? cfg.terrainMeta.local_dem_source : "None";
+    const stationaryCount = Math.max(0, totalCount - movingCount);
+
+    sidePanelBody.innerHTML = `
+      <div class="herd-title-line">${h.herd_id} · <span class="code-tag">${h.species.toUpperCase()}</span> (n = ${h.group_size})</div>
+      <div class="muted-note">Date: <span class="code-tag">${dStr}</span> (${c ? c.season : "—"}) · Origin: <span class="code-tag">${h.origin_class}</span></div>
+      <ul class="herd-list">
+        <li><strong>State:</strong> <span class="code-tag">${state}</span> (${speedStr} km/day)</li>
+        <li><strong>Position:</strong> <span class="code-tag">${Number(featuredSample[2]).toFixed(4)}°N, ${Number(featuredSample[1]).toFixed(4)}°E</span></li>
+        <li><strong>Elevation:</strong> <span class="code-tag">${featuredSample[3]} m</span></li>
+        <li><strong>${pastureLabel}:</strong> <span class="code-tag">${curPasture}</span></li>
+        <li><strong>${destLabel}:</strong> <span class="code-tag">${nxtPasture}</span></li>
+        <li><strong>${corridorLabel}:</strong> <span class="code-tag">${routeId}</span></li>
+        <li><strong>Suitability Score:</strong> <span class="code-tag">${suitPct}%</span></li>
+        <li><strong>Climate Context:</strong> <span class="code-tag">${tStr}</span> · <span class="code-tag">${pStr}</span></li>
+      </ul>
+      <hr class="side-divider" />
+      <div class="snapshot-box">
+        <div><b>Active date snapshot (${dStr}):</b> ${movingCount} moving / ${stationaryCount} grazing or resting across ${totalCount} synthetic herds.</div>
+        <div style="margin-top:8px;"><b>Local DEM:</b> ${localDemSrc}</div>
+      </div>
+    `;
+  }
+
+  function syncAuthoritativeState(julian, immediateServerSync = false) {
+    const iso = Cesium.JulianDate.toIso8601(julian);
+    const dStr = iso.slice(0, 10);
+    const dayIdx = Math.max(0, Math.min(totalDays, Math.round(Cesium.JulianDate.daysDifference(julian, startJulian))));
+    slider.value = String(dayIdx);
+
+    const c = climByDate[dStr] || null;
+    document.getElementById("hudDate").textContent = dStr;
+    document.getElementById("hudScenario").textContent = cfg.scenarioId || "SCENARIO_BASELINE";
+    document.getElementById("hudSeason").textContent = c ? c.season : "—";
+    document.getElementById("hudTemp").textContent = c && c.t2m_c !== null ? `${c.t2m_c.toFixed(1)} °C` : "N/A";
+    document.getElementById("hudPrecip").textContent = c && c.precip_mm !== null ? `${c.precip_mm.toFixed(2)} mm` : "N/A";
+
+    let movingCount = 0;
+    let firstMovingEnt = null;
+    let firstMovingSample = null;
+    let explicitEnt = null;
+    let explicitSample = null;
+
+    for (const ent of herdEntities) {
+      const s = findSampleForDate(ent._herdData.samples, dStr);
+      if (MOVING_STATES.has(s[4])) {
+        movingCount++;
+        if (!firstMovingEnt) { firstMovingEnt = ent; firstMovingSample = s; }
+      }
+      if (explicitHerdId && ent._herdData.herd_id === explicitHerdId) {
+        explicitEnt = ent;
+        explicitSample = s;
+      }
+    }
+
+    const totalCount = herdEntities.length;
+    document.getElementById("hudMoving").textContent = `${movingCount} / ${totalCount}`;
+
+    const featuredEnt = explicitEnt || firstMovingEnt || herdEntities[0] || null;
+    const featuredSample = explicitSample || firstMovingSample || (featuredEnt ? findSampleForDate(featuredEnt._herdData.samples, dStr) : null);
+    const featuredHerdId = featuredEnt ? featuredEnt._herdData.herd_id : null;
+
+    const renderKey = `${dStr}|${featuredHerdId || ""}|${movingCount}`;
+    if (renderKey !== lastRenderedKey) {
+      lastRenderedKey = renderKey;
+      renderSidePanel(dStr, c, featuredEnt, featuredSample, movingCount, totalCount);
+    }
+    pushUiStateToServer(dStr, explicitHerdId || featuredHerdId, movingCount, totalCount, immediateServerSync);
+  }
+
+  viewer.clock.onTick.addEventListener((clock) => syncAuthoritativeState(clock.currentTime, false));
+  syncAuthoritativeState(currentJulian, true);
+
+  document.getElementById("btnPlay").onclick = () => { viewer.clock.shouldAnimate = true; };
+  document.getElementById("btnPause").onclick = () => {
+    viewer.clock.shouldAnimate = false;
+    syncAuthoritativeState(viewer.clock.currentTime, true);
+  };
+  document.getElementById("btnReset").onclick = () => {
+    viewer.clock.shouldAnimate = false;
+    viewer.clock.currentTime = startJulian.clone();
+    syncAuthoritativeState(viewer.clock.currentTime, true);
+  };
+  document.getElementById("btnPrev").onclick = () => {
+    viewer.clock.shouldAnimate = false;
+    viewer.clock.currentTime = Cesium.JulianDate.addDays(viewer.clock.currentTime, -1, new Cesium.JulianDate());
+    syncAuthoritativeState(viewer.clock.currentTime, true);
+  };
+  document.getElementById("btnNext").onclick = () => {
+    viewer.clock.shouldAnimate = false;
+    viewer.clock.currentTime = Cesium.JulianDate.addDays(viewer.clock.currentTime, 1, new Cesium.JulianDate());
+    syncAuthoritativeState(viewer.clock.currentTime, true);
+  };
+  document.getElementById("speedSelect").onchange = (e) => {
+    viewer.clock.multiplier = 86400 * Number(e.target.value);
+  };
+  slider.oninput = (e) => {
+    viewer.clock.shouldAnimate = false;
+    viewer.clock.currentTime = Cesium.JulianDate.addDays(startJulian, Number(e.target.value), new Cesium.JulianDate());
+    syncAuthoritativeState(viewer.clock.currentTime, false);
+  };
+  slider.onchange = (e) => {
+    viewer.clock.shouldAnimate = false;
+    viewer.clock.currentTime = Cesium.JulianDate.addDays(startJulian, Number(e.target.value), new Cesium.JulianDate());
+    syncAuthoritativeState(viewer.clock.currentTime, true);
+  };
+  document.getElementById("exagSlider").oninput = (e) => {
+    const v = Number(e.target.value);
+    viewer.scene.verticalExaggeration = v;
+    document.getElementById("exagVal").textContent = v.toFixed(2) + "×";
+  };
+
+  // --- 8. CLICK-TO-INSPECT TERRAIN & SYNCHRONISE CLICKED HERD ---
+  const insp = document.getElementById("inspector");
+  const inspTitle = document.getElementById("inspTitle");
+  const inspBody = document.getElementById("inspBody");
+  document.getElementById("inspClose").onclick = () => { insp.style.display = "none"; };
+
+  function showInspector(title, pairs) {
+    inspTitle.textContent = title;
+    inspBody.innerHTML = pairs.map(([k, v]) => `<div class="kv"><span>${k}</span><span>${v}</span></div>`).join("");
+    insp.style.display = "block";
+  }
+
+  const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+  handler.setInputAction((click) => {
+    const picked = viewer.scene.pick(click.position);
+    if (Cesium.defined(picked) && picked.id) {
+      const ent = picked.id;
+      if (ent._herdData) {
+        const h = ent._herdData;
+        explicitHerdId = h.herd_id;
+        viewer.trackedEntity = ent;
+        syncAuthoritativeState(viewer.clock.currentTime, true);
+        const dStr = Cesium.JulianDate.toIso8601(viewer.clock.currentTime).slice(0, 10);
+        const s = findSampleForDate(h.samples, dStr);
+        const isMov = MOVING_STATES.has(s[4]);
+        showInspector(`${h.herd_id} · ${h.herd_name}`, [
+          ["Date", dStr],
+          ["Species / Size", `${h.species} (${h.group_size} head)`],
+          ["State", `${s[4]} (${Number(s[8]).toFixed(2)} km/day)`],
+          ["Coordinates", `${Number(s[2]).toFixed(4)}°N, ${Number(s[1]).toFixed(4)}°E`],
+          ["Elevation", `${s[3]} m`],
+          [isMov ? "Origin Pasture" : "Current Pasture", s[5]],
+          [isMov ? "Next Destination" : "Next Planned Dest.", s[6]],
+          ["Corridor", s[9] || "—"],
+          ["Suitability", `${(Number(s[7]) * 100).toFixed(1)}%`],
+        ]);
+        return;
+      }
+      if (ent._atlasMeta) {
+        const m = ent._atlasMeta;
+        showInspector(m.title, Object.entries(m).filter(([k]) => k !== "title"));
+        return;
+      }
+    }
+    const ray = viewer.camera.getPickRay(click.position);
+    const pos = viewer.scene.globe.pick(ray, viewer.scene);
+    if (Cesium.defined(pos)) {
+      const carto = Cesium.Cartographic.fromCartesian(pos);
+      const lat = Cesium.Math.toDegrees(carto.latitude);
+      const lon = Cesium.Math.toDegrees(carto.longitude);
+      const localSample = sampleLocalDem(localDem, lon, lat);
+      const elev = localSample ? Math.round(localSample.elev) : Math.round(carto.height);
+      const srcNote = localSample ? localDem.source : "Global 3D Terrain";
+      document.getElementById("elevReadout").textContent =
+        `Terrain: ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E · Elev ≈ ${elev} m (${srcNote})`;
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+  flyToPreset(cfg.cameraMode || "regional_3d");
+})();
+</script>
+</body>
+</html>

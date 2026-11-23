@@ -1,0 +1,353 @@
+{
+  "generated_utc": "2026-11-21T12:08:07.934241+00:00",
+  "stage": "Stage 3 — data engineering pipeline",
+  "raw_primary_assets_present": {
+    "naryn_boundary": true,
+    "nasa_power_daily_json": true,
+    "fao_glw4_rasters": false,
+    "worldcover_rasters": true,
+    "osm_geopackage": true,
+    "osm_geopackage_archive": true
+  },
+  "register_validation": {
+    "rows": 7,
+    "required_columns": [
+      "dataset_id",
+      "dataset_title",
+      "provider",
+      "source_url",
+      "expected_format",
+      "licence",
+      "acquisition_status"
+    ],
+    "missing_columns": [],
+    "duplicate_id_rows": 0,
+    "null_counts": {
+      "dataset_id": 0,
+      "dataset_title": 0,
+      "provider": 0,
+      "source_url": 0,
+      "expected_format": 0,
+      "licence": 0,
+      "acquisition_status": 0
+    },
+    "status": "PASS",
+    "issues": []
+  },
+  "checks": [
+    {
+      "check": "dataset_register",
+      "rows": 7,
+      "required_columns": [
+        "dataset_id",
+        "dataset_title",
+        "provider",
+        "source_url",
+        "expected_format",
+        "licence",
+        "acquisition_status"
+      ],
+      "missing_columns": [],
+      "duplicate_id_rows": 0,
+      "null_counts": {
+        "dataset_id": 0,
+        "dataset_title": 0,
+        "provider": 0,
+        "source_url": 0,
+        "expected_format": 0,
+        "licence": 0,
+        "acquisition_status": 0
+      },
+      "status": "PASS",
+      "issues": []
+    },
+    {
+      "check": "locations_table",
+      "dataset": "locations",
+      "rows": 1,
+      "columns": [
+        "location_id",
+        "location_name",
+        "latitude",
+        "longitude",
+        "external_identifier",
+        "external_uri",
+        "coordinate_provenance",
+        "coordinate_precision_note",
+        "is_synthetic",
+        "provenance",
+        "source_url"
+      ],
+      "missing_required_columns": [],
+      "null_counts": {
+        "location_id": 0,
+        "location_name": 0,
+        "latitude": 0,
+        "longitude": 0,
+        "external_identifier": 0,
+        "source_url": 0
+      },
+      "duplicate_primary_key_rows": 0,
+      "invalid_coordinate_rows": 0,
+      "synthetic_provenance_issues": 0,
+      "status": "PASS",
+      "issues": []
+    },
+    {
+      "check": "naryn_boundary",
+      "dataset": "Naryn ADM1 boundary",
+      "features": 1,
+      "crs": "EPSG:4326",
+      "missing_crs": false,
+      "null_geometries": 0,
+      "empty_geometries": 0,
+      "invalid_geometries": 0,
+      "duplicate_id_rows": 0,
+      "status": "PASS",
+      "issues": []
+    },
+    {
+      "check": "nasa_power_daily",
+      "dataset": "NASA POWER daily",
+      "rows": 4018,
+      "columns": [
+        "observation_id",
+        "dataset_id",
+        "location_id",
+        "location_name",
+        "observation_date",
+        "latitude",
+        "longitude",
+        "t2m_c",
+        "precipitation_mm_day",
+        "is_synthetic",
+        "provenance",
+        "synthetic_disclaimer",
+        "source_url",
+        "retrieved_at",
+        "processed_at"
+      ],
+      "missing_required_columns": [],
+      "null_counts": {
+        "observation_id": 0,
+        "location_id": 0,
+        "observation_date": 0,
+        "latitude": 0,
+        "longitude": 0,
+        "is_synthetic": 0,
+        "provenance": 0
+      },
+      "duplicate_primary_key_rows": 0,
+      "invalid_coordinate_rows": 0,
+      "synthetic_provenance_issues": 0,
+      "status": "PASS",
+      "issues": []
+    },
+    {
+      "check": "location_context",
+      "dataset": "integrated location context",
+      "rows": 132,
+      "columns": [
+        "location_id",
+        "location_name",
+        "latitude",
+        "longitude",
+        "external_identifier",
+        "external_uri",
+        "coordinate_provenance",
+        "coordinate_precision_note",
+        "is_synthetic",
+        "provenance",
+        "source_url",
+        "year",
+        "month",
+        "t2m_mean_c",
+        "precipitation_sum_mm",
+        "daily_records",
+        "t2m_valid_days",
+        "precipitation_valid_days",
+        "year_month",
+        "sheep_density_heads_km2",
+        "goat_density_heads_km2",
+        "worldcover_class_code"
+      ],
+      "missing_required_columns": [],
+      "null_counts": {
+        "location_id": 0,
+        "location_name": 0,
+        "latitude": 0,
+        "longitude": 0,
+        "is_synthetic": 0,
+        "provenance": 0
+      },
+      "duplicate_primary_key_rows": 0,
+      "invalid_coordinate_rows": 0,
+      "synthetic_provenance_issues": 0,
+      "status": "PASS",
+      "issues": []
+    }
+  ],
+  "raster_inspections": [
+    {
+      "dataset": "ESA WorldCover:ESA_WorldCover_10m_2021_v200_N39E072_Map",
+      "path": "/Users/duraisrs/Desktop/transhumance_atlas/transhumance-atlas/data/processed/rasters/worldcover/ESA_WorldCover_10m_2021_v200_N39E072_Map_naryn_clip.tif",
+      "driver": "GTiff",
+      "width": 19367,
+      "height": 20643,
+      "bands": 1,
+      "dtype": [
+        "uint8"
+      ],
+      "crs": "EPSG:4326",
+      "transform": [
+        8.333333333333333e-05,
+        0.0,
+        73.38608333333333,
+        0.0,
+        -8.333333333333333e-05,
+        42.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "resolution": [
+        8.333333333333333e-05,
+        8.333333333333333e-05
+      ],
+      "nodata": 0.0,
+      "bounds": [
+        73.38608333333333,
+        40.27975,
+        75.0,
+        42.0
+      ],
+      "status": "PASS"
+    },
+    {
+      "dataset": "ESA WorldCover:ESA_WorldCover_10m_2021_v200_N39E075_Map",
+      "path": "/Users/duraisrs/Desktop/transhumance_atlas/transhumance-atlas/data/processed/rasters/worldcover/ESA_WorldCover_10m_2021_v200_N39E075_Map_naryn_clip.tif",
+      "driver": "GTiff",
+      "width": 34883,
+      "height": 20643,
+      "bands": 1,
+      "dtype": [
+        "uint8"
+      ],
+      "crs": "EPSG:4326",
+      "transform": [
+        8.333333333333333e-05,
+        0.0,
+        75.0,
+        0.0,
+        -8.333333333333333e-05,
+        42.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "resolution": [
+        8.333333333333333e-05,
+        8.333333333333333e-05
+      ],
+      "nodata": 0.0,
+      "bounds": [
+        75.0,
+        40.27975,
+        77.90691666666666,
+        42.0
+      ],
+      "status": "PASS"
+    },
+    {
+      "dataset": "ESA WorldCover:ESA_WorldCover_10m_2021_v200_N42E072_Map",
+      "path": "/Users/duraisrs/Desktop/transhumance_atlas/transhumance-atlas/data/processed/rasters/worldcover/ESA_WorldCover_10m_2021_v200_N42E072_Map_naryn_clip.tif",
+      "driver": "GTiff",
+      "width": 19367,
+      "height": 5455,
+      "bands": 1,
+      "dtype": [
+        "uint8"
+      ],
+      "crs": "EPSG:4326",
+      "transform": [
+        8.333333333333333e-05,
+        0.0,
+        73.38608333333333,
+        0.0,
+        -8.333333333333333e-05,
+        42.45458333333333,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "resolution": [
+        8.333333333333333e-05,
+        8.333333333333333e-05
+      ],
+      "nodata": 0.0,
+      "bounds": [
+        73.38608333333333,
+        42.0,
+        75.0,
+        42.45458333333333
+      ],
+      "status": "PASS"
+    },
+    {
+      "dataset": "ESA WorldCover:ESA_WorldCover_10m_2021_v200_N42E075_Map",
+      "path": "/Users/duraisrs/Desktop/transhumance_atlas/transhumance-atlas/data/processed/rasters/worldcover/ESA_WorldCover_10m_2021_v200_N42E075_Map_naryn_clip.tif",
+      "driver": "GTiff",
+      "width": 34883,
+      "height": 5455,
+      "bands": 1,
+      "dtype": [
+        "uint8"
+      ],
+      "crs": "EPSG:4326",
+      "transform": [
+        8.333333333333333e-05,
+        0.0,
+        75.0,
+        0.0,
+        -8.333333333333333e-05,
+        42.45458333333333,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "resolution": [
+        8.333333333333333e-05,
+        8.333333333333333e-05
+      ],
+      "nodata": 0.0,
+      "bounds": [
+        75.0,
+        42.0,
+        77.90691666666666,
+        42.45458333333333
+      ],
+      "status": "PASS"
+    }
+  ],
+  "blocked_steps": [
+    {
+      "input": "data/raw/glw4",
+      "reason": "No local FAO GLW4 primary raster; no processed raster can be generated"
+    },
+    {
+      "input": "/Users/duraisrs/Desktop/transhumance_atlas/transhumance-atlas/data/raw/osm/kyrgyzstan-latest-free.gpkg",
+      "reason": "Rejected invalid GeoPackage candidate: candidate path is not a regular file"
+    }
+  ],
+  "warnings": [],
+  "summary": {
+    "locations_from_verified_entity_pages": 1,
+    "daily_climate_records": 4018,
+    "monthly_climate_records": 132,
+    "seasonal_climate_records": 44,
+    "processed_rasters": 4,
+    "all_table_checks_pass": true,
+    "spatial_processing_completed": true,
+    "source_data_fabricated": false
+  }
+}

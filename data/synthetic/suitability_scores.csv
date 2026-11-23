@@ -1,0 +1,217 @@
+scenario_id,season,pasture_id,pasture_name,elevation_m,elevation_band,estimated_pasture_temp_c,climate_score,vegetation_score,water_access_score,season_score,terrain_penalty,route_cost_penalty,suitability_score,origin_class,is_synthetic,provenance
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-001,Naryn Valley West Candidate,2057.8,valley_winter,0.89,0.486,0.856,0.914,0.72,0.031,0.35,0.6661,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-002,Naryn Valley Central Candidate,2320.0,valley_winter,-0.81,0.432,0.867,0.967,0.72,0.091,0.35,0.6512,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-003,Kochkor Basin Candidate,1962.1,valley_winter,1.51,0.507,0.819,0.804,0.72,0.014,0.35,0.6475,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-004,Jumgal Valley Candidate,1992.9,valley_winter,1.31,0.5,0.835,0.862,0.72,0.058,0.35,0.6531,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-005,Ak-Talaa Valley Candidate,1828.2,valley_winter,2.38,0.536,0.771,0.829,0.72,0.012,0.35,0.6515,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-006,At-Bashi Valley Candidate,2320.0,valley_winter,-0.81,0.432,0.767,0.837,0.72,0.039,0.35,0.613,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-007,Kyzyl-Oi Foothill Candidate,2820.0,foothill_transition,-4.06,0.342,0.85,0.803,0.88,0.075,0.199,0.6463,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-008,Kulanak Foothill Candidate,2380.0,foothill_transition,-1.2,0.421,0.821,0.838,0.88,0.081,0.117,0.6802,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-009,Kara-Kujur Transition Candidate,2820.0,foothill_transition,-4.06,0.342,0.835,0.821,0.88,0.019,0.417,0.6323,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-010,On-Archa Foothill Candidate,2781.1,foothill_transition,-3.81,0.349,0.865,0.825,0.88,0.058,0.135,0.6645,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-011,Bash-Kaindy Transition Candidate,2820.0,foothill_transition,-4.06,0.342,0.845,0.766,0.88,0.035,0.137,0.6505,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-012,Kazarman Approach Foothill Candidate,2380.0,foothill_transition,-1.2,0.421,0.833,0.721,0.88,0.038,0.268,0.6529,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-013,Son-Kul North Alpine Candidate,3024.5,high_alpine,-5.39,0.311,0.834,0.905,0.52,0.011,0.537,0.5321,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-014,Son-Kul South Alpine Candidate,3121.8,high_alpine,-6.03,0.297,0.796,0.942,0.52,0.011,0.542,0.5253,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-015,Eki-Naryn Alpine Candidate,2920.0,high_alpine,-4.71,0.327,0.755,0.922,0.52,0.027,0.537,0.5208,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-016,Solton-Sary High Plateau Candidate,3273.0,high_alpine,-7.01,0.278,0.816,0.792,0.52,0.027,0.433,0.5049,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-017,Aksai High Valley Candidate,3540.0,high_alpine,-8.74,0.25,0.782,0.732,0.52,0.044,0.981,0.4197,public,True,synthetic_demo
+SCENARIO_BASELINE,autumn,DEMO-PASTURE-018,At-Bashi High Ridge Candidate,3540.0,high_alpine,-8.74,0.25,0.811,0.813,0.52,0.065,0.383,0.4975,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-001,Naryn Valley West Candidate,2057.8,valley_winter,-0.72,0.731,0.856,0.914,0.65,0.031,0.35,0.7311,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-002,Naryn Valley Central Candidate,2320.0,valley_winter,-2.43,0.676,0.867,0.967,0.65,0.091,0.35,0.7159,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-003,Kochkor Basin Candidate,1962.1,valley_winter,-0.1,0.752,0.819,0.804,0.65,0.014,0.35,0.7125,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-004,Jumgal Valley Candidate,1992.9,valley_winter,-0.3,0.745,0.835,0.862,0.65,0.058,0.35,0.718,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-005,Ak-Talaa Valley Candidate,1828.2,valley_winter,0.77,0.781,0.771,0.829,0.65,0.012,0.35,0.7166,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-006,At-Bashi Valley Candidate,2320.0,valley_winter,-2.43,0.676,0.767,0.837,0.65,0.039,0.35,0.6778,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-007,Kyzyl-Oi Foothill Candidate,2820.0,foothill_transition,-5.68,0.584,0.85,0.803,0.9,0.075,0.199,0.7337,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-008,Kulanak Foothill Candidate,2380.0,foothill_transition,-2.82,0.664,0.821,0.838,0.9,0.081,0.117,0.7682,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-009,Kara-Kujur Transition Candidate,2820.0,foothill_transition,-5.68,0.584,0.835,0.821,0.9,0.019,0.417,0.7197,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-010,On-Archa Foothill Candidate,2781.1,foothill_transition,-5.42,0.591,0.865,0.825,0.9,0.058,0.135,0.7519,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-011,Bash-Kaindy Transition Candidate,2820.0,foothill_transition,-5.68,0.584,0.845,0.766,0.9,0.035,0.137,0.7379,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-012,Kazarman Approach Foothill Candidate,2380.0,foothill_transition,-2.82,0.664,0.833,0.721,0.9,0.038,0.268,0.7408,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-013,Son-Kul North Alpine Candidate,3024.5,high_alpine,-7.01,0.553,0.834,0.905,0.42,0.011,0.537,0.5885,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-014,Son-Kul South Alpine Candidate,3121.8,high_alpine,-7.64,0.54,0.796,0.942,0.42,0.011,0.542,0.5818,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-015,Eki-Naryn Alpine Candidate,2920.0,high_alpine,-6.33,0.569,0.755,0.922,0.42,0.027,0.537,0.5771,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-016,Solton-Sary High Plateau Candidate,3273.0,high_alpine,-8.62,0.521,0.816,0.792,0.42,0.027,0.433,0.5615,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-017,Aksai High Valley Candidate,3540.0,high_alpine,-10.36,0.493,0.782,0.732,0.42,0.044,0.981,0.4765,public,True,synthetic_demo
+SCENARIO_BASELINE,spring,DEMO-PASTURE-018,At-Bashi High Ridge Candidate,3540.0,high_alpine,-10.36,0.493,0.811,0.813,0.42,0.065,0.383,0.5543,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-001,Naryn Valley West Candidate,2057.8,valley_winter,11.51,0.765,0.856,0.914,0.38,0.031,0.35,0.6725,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-002,Naryn Valley Central Candidate,2320.0,valley_winter,9.81,0.766,0.867,0.967,0.38,0.091,0.35,0.6763,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-003,Kochkor Basin Candidate,1962.1,valley_winter,12.13,0.763,0.819,0.804,0.38,0.014,0.35,0.646,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-004,Jumgal Valley Candidate,1992.9,valley_winter,11.93,0.764,0.835,0.862,0.38,0.058,0.35,0.6542,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-005,Ak-Talaa Valley Candidate,1828.2,valley_winter,13.0,0.755,0.771,0.829,0.38,0.012,0.35,0.6378,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-006,At-Bashi Valley Candidate,2320.0,valley_winter,9.81,0.766,0.767,0.837,0.38,0.039,0.35,0.6382,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-007,Kyzyl-Oi Foothill Candidate,2820.0,foothill_transition,6.56,0.737,0.85,0.803,0.68,0.075,0.199,0.7284,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-008,Kulanak Foothill Candidate,2380.0,foothill_transition,9.42,0.765,0.821,0.838,0.68,0.081,0.117,0.7454,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-009,Kara-Kujur Transition Candidate,2820.0,foothill_transition,6.56,0.737,0.835,0.821,0.68,0.019,0.417,0.7144,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-010,On-Archa Foothill Candidate,2781.1,foothill_transition,6.81,0.741,0.865,0.825,0.68,0.058,0.135,0.7458,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-011,Bash-Kaindy Transition Candidate,2820.0,foothill_transition,6.56,0.737,0.845,0.766,0.68,0.035,0.137,0.7326,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-012,Kazarman Approach Foothill Candidate,2380.0,foothill_transition,9.42,0.765,0.833,0.721,0.68,0.038,0.268,0.718,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-013,Son-Kul North Alpine Candidate,3024.5,high_alpine,5.23,0.712,0.834,0.905,0.95,0.011,0.537,0.7803,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-014,Son-Kul South Alpine Candidate,3121.8,high_alpine,4.59,0.698,0.796,0.942,0.95,0.011,0.542,0.7734,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-015,Eki-Naryn Alpine Candidate,2920.0,high_alpine,5.91,0.726,0.755,0.922,0.95,0.027,0.537,0.7682,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-016,Solton-Sary High Plateau Candidate,3273.0,high_alpine,3.61,0.675,0.816,0.792,0.95,0.027,0.433,0.7515,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-017,Aksai High Valley Candidate,3540.0,high_alpine,1.88,0.628,0.782,0.732,0.95,0.044,0.981,0.6602,public,True,synthetic_demo
+SCENARIO_BASELINE,summer,DEMO-PASTURE-018,At-Bashi High Ridge Candidate,3540.0,high_alpine,1.88,0.628,0.811,0.813,0.95,0.065,0.383,0.738,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-001,Naryn Valley West Candidate,2057.8,valley_winter,-11.27,0.261,0.856,0.914,0.92,0.031,0.35,0.6415,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-002,Naryn Valley Central Candidate,2320.0,valley_winter,-12.98,0.247,0.867,0.967,0.92,0.091,0.35,0.6402,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-003,Kochkor Basin Candidate,1962.1,valley_winter,-10.65,0.269,0.819,0.804,0.92,0.014,0.35,0.6186,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-004,Jumgal Valley Candidate,1992.9,valley_winter,-10.85,0.267,0.835,0.862,0.92,0.058,0.35,0.6255,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-005,Ak-Talaa Valley Candidate,1828.2,valley_winter,-9.78,0.282,0.771,0.829,0.92,0.012,0.35,0.6171,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-006,At-Bashi Valley Candidate,2320.0,valley_winter,-12.98,0.247,0.767,0.837,0.92,0.039,0.35,0.6021,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-007,Kyzyl-Oi Foothill Candidate,2820.0,foothill_transition,-16.23,0.242,0.85,0.803,0.45,0.075,0.199,0.5005,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-008,Kulanak Foothill Candidate,2380.0,foothill_transition,-13.37,0.246,0.821,0.838,0.45,0.081,0.117,0.509,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-009,Kara-Kujur Transition Candidate,2820.0,foothill_transition,-16.23,0.242,0.835,0.821,0.45,0.019,0.417,0.4865,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-010,On-Archa Foothill Candidate,2781.1,foothill_transition,-15.97,0.242,0.865,0.825,0.45,0.058,0.135,0.5165,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-011,Bash-Kaindy Transition Candidate,2820.0,foothill_transition,-16.23,0.242,0.845,0.766,0.45,0.035,0.137,0.5047,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-012,Kazarman Approach Foothill Candidate,2380.0,foothill_transition,-13.37,0.246,0.833,0.721,0.45,0.038,0.268,0.4816,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-013,Son-Kul North Alpine Candidate,3024.5,high_alpine,-17.56,0.244,0.834,0.905,0.1,0.011,0.537,0.4001,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-014,Son-Kul South Alpine Candidate,3121.8,high_alpine,-18.19,0.245,0.796,0.942,0.1,0.011,0.542,0.3984,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-015,Eki-Naryn Alpine Candidate,2920.0,high_alpine,-16.88,0.243,0.755,0.922,0.1,0.027,0.537,0.3832,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-016,Solton-Sary High Plateau Candidate,3273.0,high_alpine,-19.17,0.248,0.816,0.792,0.1,0.027,0.433,0.3854,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-017,Aksai High Valley Candidate,3540.0,high_alpine,-20.91,0.254,0.782,0.732,0.1,0.044,0.981,0.3119,public,True,synthetic_demo
+SCENARIO_BASELINE,winter,DEMO-PASTURE-018,At-Bashi High Ridge Candidate,3540.0,high_alpine,-20.91,0.254,0.811,0.813,0.1,0.065,0.383,0.3897,public,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-001,Naryn Valley West Candidate,2057.8,valley_winter,-2.91,0.434,0.856,0.914,0.72,0.031,0.35,0.6484,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-002,Naryn Valley Central Candidate,2320.0,valley_winter,-4.61,0.389,0.867,0.967,0.72,0.091,0.35,0.6365,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-003,Kochkor Basin Candidate,1962.1,valley_winter,-2.29,0.453,0.819,0.804,0.72,0.014,0.35,0.6293,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-004,Jumgal Valley Candidate,1992.9,valley_winter,-2.49,0.447,0.835,0.862,0.72,0.058,0.35,0.635,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-005,Ak-Talaa Valley Candidate,1828.2,valley_winter,-1.42,0.481,0.771,0.829,0.72,0.012,0.35,0.633,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-006,At-Bashi Valley Candidate,2320.0,valley_winter,-4.61,0.389,0.767,0.837,0.72,0.039,0.35,0.5984,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-007,Kyzyl-Oi Foothill Candidate,2820.0,foothill_transition,-7.86,0.33,0.85,0.803,0.88,0.075,0.199,0.6421,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-008,Kulanak Foothill Candidate,2380.0,foothill_transition,-5.0,0.381,0.821,0.838,0.88,0.081,0.117,0.6667,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-009,Kara-Kujur Transition Candidate,2820.0,foothill_transition,-7.86,0.33,0.835,0.821,0.88,0.019,0.417,0.6281,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-010,On-Archa Foothill Candidate,2781.1,foothill_transition,-7.61,0.334,0.865,0.825,0.88,0.058,0.135,0.6594,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-011,Bash-Kaindy Transition Candidate,2820.0,foothill_transition,-7.86,0.33,0.845,0.766,0.88,0.035,0.137,0.6463,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-012,Kazarman Approach Foothill Candidate,2380.0,foothill_transition,-5.0,0.381,0.833,0.721,0.88,0.038,0.268,0.6393,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-013,Son-Kul North Alpine Candidate,3024.5,high_alpine,-9.19,0.0,0.834,0.905,0.351,0.011,0.537,0.3825,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-014,Son-Kul South Alpine Candidate,3121.8,high_alpine,-9.83,0.0,0.796,0.942,0.351,0.011,0.542,0.3803,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-015,Eki-Naryn Alpine Candidate,2920.0,high_alpine,-8.51,0.0,0.755,0.922,0.351,0.027,0.537,0.3658,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-016,Solton-Sary High Plateau Candidate,3273.0,high_alpine,-10.81,0.0,0.816,0.792,0.351,0.027,0.433,0.3664,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-017,Aksai High Valley Candidate,3540.0,high_alpine,-12.54,0.0,0.782,0.732,0.351,0.044,0.981,0.2908,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,autumn,DEMO-PASTURE-018,At-Bashi High Ridge Candidate,3540.0,high_alpine,-12.54,0.0,0.811,0.813,0.351,0.065,0.383,0.3687,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-001,Naryn Valley West Candidate,2057.8,valley_winter,-4.52,0.614,0.856,0.914,0.65,0.031,0.35,0.6914,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-002,Naryn Valley Central Candidate,2320.0,valley_winter,-6.23,0.571,0.867,0.967,0.65,0.091,0.35,0.6802,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-003,Kochkor Basin Candidate,1962.1,valley_winter,-3.9,0.632,0.819,0.804,0.65,0.014,0.35,0.6717,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-004,Jumgal Valley Candidate,1992.9,valley_winter,-4.1,0.626,0.835,0.862,0.65,0.058,0.35,0.6776,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-005,Ak-Talaa Valley Candidate,1828.2,valley_winter,-3.03,0.658,0.771,0.829,0.65,0.012,0.35,0.6747,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-006,At-Bashi Valley Candidate,2320.0,valley_winter,-6.23,0.571,0.767,0.837,0.65,0.039,0.35,0.642,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-007,Kyzyl-Oi Foothill Candidate,2820.0,foothill_transition,-9.48,0.507,0.85,0.803,0.9,0.075,0.199,0.7073,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-008,Kulanak Foothill Candidate,2380.0,foothill_transition,-6.62,0.562,0.821,0.838,0.9,0.081,0.117,0.7335,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-009,Kara-Kujur Transition Candidate,2820.0,foothill_transition,-9.48,0.507,0.835,0.821,0.9,0.019,0.417,0.6933,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-010,On-Archa Foothill Candidate,2781.1,foothill_transition,-9.22,0.511,0.865,0.825,0.9,0.058,0.135,0.7248,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-011,Bash-Kaindy Transition Candidate,2820.0,foothill_transition,-9.48,0.507,0.845,0.766,0.9,0.035,0.137,0.7115,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-012,Kazarman Approach Foothill Candidate,2380.0,foothill_transition,-6.62,0.562,0.833,0.721,0.9,0.038,0.268,0.7061,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-013,Son-Kul North Alpine Candidate,3024.5,high_alpine,-10.81,0.487,0.834,0.905,0.42,0.011,0.537,0.566,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-014,Son-Kul South Alpine Candidate,3121.8,high_alpine,-11.44,0.479,0.796,0.942,0.42,0.011,0.542,0.5611,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-015,Eki-Naryn Alpine Candidate,2920.0,high_alpine,-10.13,0.497,0.755,0.922,0.42,0.027,0.537,0.5526,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-016,Solton-Sary High Plateau Candidate,3273.0,high_alpine,-12.42,0.468,0.816,0.792,0.42,0.027,0.433,0.5435,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-017,Aksai High Valley Candidate,3540.0,high_alpine,-14.16,0.453,0.782,0.732,0.42,0.044,0.981,0.4627,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,spring,DEMO-PASTURE-018,At-Bashi High Ridge Candidate,3540.0,high_alpine,-14.16,0.453,0.811,0.813,0.42,0.065,0.383,0.5405,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-001,Naryn Valley West Candidate,2057.8,valley_winter,10.21,0.782,0.856,0.914,0.38,0.031,0.35,0.6783,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-002,Naryn Valley Central Candidate,2320.0,valley_winter,8.51,0.772,0.867,0.967,0.38,0.091,0.35,0.6784,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-003,Kochkor Basin Candidate,1962.1,valley_winter,10.84,0.784,0.819,0.804,0.38,0.014,0.35,0.6532,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-004,Jumgal Valley Candidate,1992.9,valley_winter,10.64,0.784,0.835,0.862,0.38,0.058,0.35,0.661,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-005,Ak-Talaa Valley Candidate,1828.2,valley_winter,11.71,0.783,0.771,0.829,0.38,0.012,0.35,0.6471,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-006,At-Bashi Valley Candidate,2320.0,valley_winter,8.51,0.772,0.767,0.837,0.38,0.039,0.35,0.6403,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-007,Kyzyl-Oi Foothill Candidate,2820.0,foothill_transition,5.26,0.726,0.85,0.803,0.68,0.075,0.199,0.7248,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-008,Kulanak Foothill Candidate,2380.0,foothill_transition,8.12,0.769,0.821,0.838,0.68,0.081,0.117,0.7467,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-009,Kara-Kujur Transition Candidate,2820.0,foothill_transition,5.26,0.726,0.835,0.821,0.68,0.019,0.417,0.7108,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-010,On-Archa Foothill Candidate,2781.1,foothill_transition,5.51,0.731,0.865,0.825,0.68,0.058,0.135,0.7426,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-011,Bash-Kaindy Transition Candidate,2820.0,foothill_transition,5.26,0.726,0.845,0.766,0.68,0.035,0.137,0.729,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-012,Kazarman Approach Foothill Candidate,2380.0,foothill_transition,8.12,0.769,0.833,0.721,0.68,0.038,0.268,0.7194,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-013,Son-Kul North Alpine Candidate,3024.5,high_alpine,3.93,0.697,0.834,0.905,0.95,0.011,0.537,0.775,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-014,Son-Kul South Alpine Candidate,3121.8,high_alpine,3.3,0.681,0.796,0.942,0.95,0.011,0.542,0.7675,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-015,Eki-Naryn Alpine Candidate,2920.0,high_alpine,4.61,0.712,0.755,0.922,0.95,0.027,0.537,0.7638,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-016,Solton-Sary High Plateau Candidate,3273.0,high_alpine,2.32,0.655,0.816,0.792,0.95,0.027,0.433,0.7449,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-017,Aksai High Valley Candidate,3540.0,high_alpine,0.58,0.608,0.782,0.732,0.95,0.044,0.981,0.6531,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,summer,DEMO-PASTURE-018,At-Bashi High Ridge Candidate,3540.0,high_alpine,0.58,0.608,0.811,0.813,0.95,0.065,0.383,0.731,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-001,Naryn Valley West Candidate,2057.8,valley_winter,-13.89,0.284,0.856,0.914,0.92,0.031,0.35,0.6494,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-002,Naryn Valley Central Candidate,2320.0,valley_winter,-15.59,0.278,0.867,0.967,0.92,0.091,0.35,0.6509,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-003,Kochkor Basin Candidate,1962.1,valley_winter,-13.26,0.29,0.819,0.804,0.92,0.014,0.35,0.6256,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-004,Jumgal Valley Candidate,1992.9,valley_winter,-13.46,0.288,0.835,0.862,0.92,0.058,0.35,0.6328,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-005,Ak-Talaa Valley Candidate,1828.2,valley_winter,-12.39,0.298,0.771,0.829,0.92,0.012,0.35,0.6226,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-006,At-Bashi Valley Candidate,2320.0,valley_winter,-15.59,0.278,0.767,0.837,0.92,0.039,0.35,0.6128,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-007,Kyzyl-Oi Foothill Candidate,2820.0,foothill_transition,-18.84,0.288,0.85,0.803,0.45,0.075,0.199,0.5159,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-008,Kulanak Foothill Candidate,2380.0,foothill_transition,-15.98,0.279,0.821,0.838,0.45,0.081,0.117,0.5202,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-009,Kara-Kujur Transition Candidate,2820.0,foothill_transition,-18.84,0.288,0.835,0.821,0.45,0.019,0.417,0.5018,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-010,On-Archa Foothill Candidate,2781.1,foothill_transition,-18.59,0.287,0.865,0.825,0.45,0.058,0.135,0.5315,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-011,Bash-Kaindy Transition Candidate,2820.0,foothill_transition,-18.84,0.288,0.845,0.766,0.45,0.035,0.137,0.52,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-012,Kazarman Approach Foothill Candidate,2380.0,foothill_transition,-15.98,0.279,0.833,0.721,0.45,0.038,0.268,0.4929,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-013,Son-Kul North Alpine Candidate,3024.5,high_alpine,-20.17,0.294,0.834,0.905,0.1,0.011,0.537,0.417,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-014,Son-Kul South Alpine Candidate,3121.8,high_alpine,-20.8,0.297,0.796,0.942,0.1,0.011,0.542,0.4159,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-015,Eki-Naryn Alpine Candidate,2920.0,high_alpine,-19.49,0.29,0.755,0.922,0.1,0.027,0.537,0.3993,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-016,Solton-Sary High Plateau Candidate,3273.0,high_alpine,-21.79,0.302,0.816,0.792,0.1,0.027,0.433,0.4038,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-017,Aksai High Valley Candidate,3540.0,high_alpine,-23.52,0.312,0.782,0.732,0.1,0.044,0.981,0.3317,simulated_scenario,True,synthetic_demo
+SCENARIO_EARLY_SNOW,winter,DEMO-PASTURE-018,At-Bashi High Ridge Candidate,3540.0,high_alpine,-23.52,0.312,0.811,0.813,0.1,0.065,0.383,0.4095,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-001,Naryn Valley West Candidate,2057.8,valley_winter,2.39,0.499,0.856,0.914,0.72,0.031,0.35,0.6703,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-002,Naryn Valley Central Candidate,2320.0,valley_winter,0.69,0.444,0.867,0.967,0.72,0.091,0.35,0.6552,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-003,Kochkor Basin Candidate,1962.1,valley_winter,3.01,0.519,0.819,0.804,0.72,0.014,0.35,0.6514,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-004,Jumgal Valley Candidate,1992.9,valley_winter,2.81,0.512,0.835,0.862,0.72,0.058,0.35,0.6571,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-005,Ak-Talaa Valley Candidate,1828.2,valley_winter,3.88,0.545,0.771,0.829,0.72,0.012,0.35,0.6547,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-006,At-Bashi Valley Candidate,2320.0,valley_winter,0.69,0.444,0.767,0.837,0.72,0.039,0.35,0.6171,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-007,Kyzyl-Oi Foothill Candidate,2820.0,foothill_transition,-2.56,0.345,0.85,0.803,0.88,0.075,0.199,0.6473,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-008,Kulanak Foothill Candidate,2380.0,foothill_transition,0.3,0.432,0.821,0.838,0.88,0.081,0.117,0.6841,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-009,Kara-Kujur Transition Candidate,2820.0,foothill_transition,-2.56,0.345,0.835,0.821,0.88,0.019,0.417,0.6333,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-010,On-Archa Foothill Candidate,2781.1,foothill_transition,-2.31,0.353,0.865,0.825,0.88,0.058,0.135,0.6658,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-011,Bash-Kaindy Transition Candidate,2820.0,foothill_transition,-2.56,0.345,0.845,0.766,0.88,0.035,0.137,0.6515,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-012,Kazarman Approach Foothill Candidate,2380.0,foothill_transition,0.3,0.432,0.833,0.721,0.88,0.038,0.268,0.6567,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-013,Son-Kul North Alpine Candidate,3024.5,high_alpine,-3.89,0.309,0.834,0.905,0.52,0.011,0.537,0.5314,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-014,Son-Kul South Alpine Candidate,3121.8,high_alpine,-4.53,0.293,0.796,0.942,0.52,0.011,0.542,0.5237,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-015,Eki-Naryn Alpine Candidate,2920.0,high_alpine,-3.21,0.327,0.755,0.922,0.52,0.027,0.537,0.521,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-016,Solton-Sary High Plateau Candidate,3273.0,high_alpine,-5.51,0.269,0.816,0.792,0.52,0.027,0.433,0.5018,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-017,Aksai High Valley Candidate,3540.0,high_alpine,-7.24,0.233,0.782,0.732,0.52,0.044,0.981,0.4139,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,autumn,DEMO-PASTURE-018,At-Bashi High Ridge Candidate,3540.0,high_alpine,-7.24,0.233,0.811,0.813,0.52,0.065,0.383,0.4917,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-001,Naryn Valley West Candidate,2057.8,valley_winter,0.78,0.781,0.856,0.914,0.65,0.031,0.35,0.7481,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-002,Naryn Valley Central Candidate,2320.0,valley_winter,-0.93,0.724,0.867,0.967,0.65,0.091,0.35,0.7323,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-003,Kochkor Basin Candidate,1962.1,valley_winter,1.4,0.802,0.819,0.804,0.65,0.014,0.35,0.7295,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-004,Jumgal Valley Candidate,1992.9,valley_winter,1.2,0.795,0.835,0.862,0.65,0.058,0.35,0.7351,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-005,Ak-Talaa Valley Candidate,1828.2,valley_winter,2.27,0.83,0.771,0.829,0.65,0.012,0.35,0.7335,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-006,At-Bashi Valley Candidate,2320.0,valley_winter,-0.93,0.724,0.767,0.837,0.65,0.039,0.35,0.6942,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-007,Kyzyl-Oi Foothill Candidate,2820.0,foothill_transition,-4.18,0.624,0.85,0.803,0.9,0.075,0.199,0.7473,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-008,Kulanak Foothill Candidate,2380.0,foothill_transition,-1.32,0.711,0.821,0.838,0.9,0.081,0.117,0.7843,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-009,Kara-Kujur Transition Candidate,2820.0,foothill_transition,-4.18,0.624,0.835,0.821,0.9,0.019,0.417,0.7332,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-010,On-Archa Foothill Candidate,2781.1,foothill_transition,-3.92,0.631,0.865,0.825,0.9,0.058,0.135,0.7657,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-011,Bash-Kaindy Transition Candidate,2820.0,foothill_transition,-4.18,0.624,0.845,0.766,0.9,0.035,0.137,0.7514,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-012,Kazarman Approach Foothill Candidate,2380.0,foothill_transition,-1.32,0.711,0.833,0.721,0.9,0.038,0.268,0.7569,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-013,Son-Kul North Alpine Candidate,3024.5,high_alpine,-5.51,0.589,0.834,0.905,0.42,0.011,0.537,0.6005,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-014,Son-Kul South Alpine Candidate,3121.8,high_alpine,-6.14,0.573,0.796,0.942,0.42,0.011,0.542,0.593,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-015,Eki-Naryn Alpine Candidate,2920.0,high_alpine,-4.83,0.606,0.755,0.922,0.42,0.027,0.537,0.5899,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-016,Solton-Sary High Plateau Candidate,3273.0,high_alpine,-7.12,0.551,0.816,0.792,0.42,0.027,0.433,0.5716,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-017,Aksai High Valley Candidate,3540.0,high_alpine,-8.86,0.517,0.782,0.732,0.42,0.044,0.981,0.4845,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,spring,DEMO-PASTURE-018,At-Bashi High Ridge Candidate,3540.0,high_alpine,-8.86,0.517,0.811,0.813,0.42,0.065,0.383,0.5623,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-001,Naryn Valley West Candidate,2057.8,valley_winter,14.31,0.555,0.856,0.914,0.38,0.031,0.35,0.6011,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-002,Naryn Valley Central Candidate,2320.0,valley_winter,12.61,0.585,0.867,0.967,0.38,0.091,0.35,0.6148,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-003,Kochkor Basin Candidate,1962.1,valley_winter,14.93,0.532,0.819,0.804,0.38,0.014,0.35,0.5676,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-004,Jumgal Valley Candidate,1992.9,valley_winter,14.73,0.542,0.835,0.862,0.38,0.058,0.35,0.5789,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-005,Ak-Talaa Valley Candidate,1828.2,valley_winter,15.8,0.517,0.771,0.829,0.38,0.012,0.35,0.5565,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-006,At-Bashi Valley Candidate,2320.0,valley_winter,12.61,0.571,0.767,0.837,0.38,0.039,0.35,0.5718,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-007,Kyzyl-Oi Foothill Candidate,2820.0,foothill_transition,9.36,0.578,0.85,0.803,0.68,0.075,0.199,0.6744,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-008,Kulanak Foothill Candidate,2380.0,foothill_transition,12.22,0.575,0.821,0.838,0.68,0.081,0.117,0.6808,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-009,Kara-Kujur Transition Candidate,2820.0,foothill_transition,9.36,0.58,0.835,0.821,0.68,0.019,0.417,0.661,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-010,On-Archa Foothill Candidate,2781.1,foothill_transition,9.61,0.581,0.865,0.825,0.68,0.058,0.135,0.6916,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-011,Bash-Kaindy Transition Candidate,2820.0,foothill_transition,9.36,0.574,0.845,0.766,0.68,0.035,0.137,0.6772,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-012,Kazarman Approach Foothill Candidate,2380.0,foothill_transition,12.22,0.562,0.833,0.721,0.68,0.038,0.268,0.649,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-013,Son-Kul North Alpine Candidate,3024.5,high_alpine,8.03,0.578,0.834,0.905,0.95,0.011,0.537,0.7346,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-014,Son-Kul South Alpine Candidate,3121.8,high_alpine,7.39,0.69,0.796,0.942,0.95,0.011,0.542,0.7706,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-015,Eki-Naryn Alpine Candidate,2920.0,high_alpine,8.71,0.587,0.755,0.922,0.95,0.027,0.537,0.721,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-016,Solton-Sary High Plateau Candidate,3273.0,high_alpine,6.41,0.674,0.816,0.792,0.95,0.027,0.433,0.7512,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-017,Aksai High Valley Candidate,3540.0,high_alpine,4.68,0.636,0.782,0.732,0.95,0.044,0.981,0.6629,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,summer,DEMO-PASTURE-018,At-Bashi High Ridge Candidate,3540.0,high_alpine,4.68,0.636,0.811,0.813,0.95,0.065,0.383,0.7407,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-001,Naryn Valley West Candidate,2057.8,valley_winter,-10.27,0.255,0.856,0.914,0.92,0.031,0.35,0.6393,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-002,Naryn Valley Central Candidate,2320.0,valley_winter,-11.98,0.237,0.867,0.967,0.92,0.091,0.35,0.6368,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-003,Kochkor Basin Candidate,1962.1,valley_winter,-9.65,0.264,0.819,0.804,0.92,0.014,0.35,0.6169,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-004,Jumgal Valley Candidate,1992.9,valley_winter,-9.85,0.261,0.835,0.862,0.92,0.058,0.35,0.6237,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-005,Ak-Talaa Valley Candidate,1828.2,valley_winter,-8.78,0.279,0.771,0.829,0.92,0.012,0.35,0.616,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-006,At-Bashi Valley Candidate,2320.0,valley_winter,-11.98,0.237,0.767,0.837,0.92,0.039,0.35,0.5987,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-007,Kyzyl-Oi Foothill Candidate,2820.0,foothill_transition,-15.23,0.226,0.85,0.803,0.45,0.075,0.199,0.4949,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-008,Kulanak Foothill Candidate,2380.0,foothill_transition,-12.37,0.235,0.821,0.838,0.45,0.081,0.117,0.5052,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-009,Kara-Kujur Transition Candidate,2820.0,foothill_transition,-15.23,0.226,0.835,0.821,0.45,0.019,0.417,0.4809,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-010,On-Archa Foothill Candidate,2781.1,foothill_transition,-14.97,0.226,0.865,0.825,0.45,0.058,0.135,0.511,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-011,Bash-Kaindy Transition Candidate,2820.0,foothill_transition,-15.23,0.226,0.845,0.766,0.45,0.035,0.137,0.4991,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-012,Kazarman Approach Foothill Candidate,2380.0,foothill_transition,-12.37,0.235,0.833,0.721,0.45,0.038,0.268,0.4779,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-013,Son-Kul North Alpine Candidate,3024.5,high_alpine,-16.56,0.225,0.834,0.905,0.1,0.011,0.537,0.3938,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-014,Son-Kul South Alpine Candidate,3121.8,high_alpine,-17.19,0.226,0.796,0.942,0.1,0.011,0.542,0.3918,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-015,Eki-Naryn Alpine Candidate,2920.0,high_alpine,-15.88,0.225,0.755,0.922,0.1,0.027,0.537,0.3772,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-016,Solton-Sary High Plateau Candidate,3273.0,high_alpine,-18.17,0.227,0.816,0.792,0.1,0.027,0.433,0.3784,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-017,Aksai High Valley Candidate,3540.0,high_alpine,-19.91,0.231,0.782,0.732,0.1,0.044,0.981,0.3042,simulated_scenario,True,synthetic_demo
+SCENARIO_WARMER_DRIER,winter,DEMO-PASTURE-018,At-Bashi High Ridge Candidate,3540.0,high_alpine,-19.91,0.231,0.811,0.813,0.1,0.065,0.383,0.382,simulated_scenario,True,synthetic_demo

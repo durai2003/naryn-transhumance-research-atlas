@@ -1,0 +1,9 @@
+# Human-readable index of executable SPARQL 1.1 SELECT queries.
+# Execute all queries with: python scripts/run_linked_data.py --root .
+# 1. queries/01_pasture_locations.rq
+# 2. queries/02_routes_for_pasture.rq
+# 3. queries/03_climate_observations_for_location.rq
+# 4. queries/04_research_records_for_location.rq
+# 5. queries/05_datasets_and_metadata.rq
+# 6. queries/06_synthetic_herds_and_routes.rq
+# 7. queries/07_scenario_suitability_and_events.rq

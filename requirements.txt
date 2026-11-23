@@ -1,0 +1,2 @@
+# Complete environment for the Mini Transhumance Research Data Atlas
+-r requirements-stage6.txt

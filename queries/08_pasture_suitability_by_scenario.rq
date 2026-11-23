@@ -1,0 +1,16 @@
+PREFIX ta: <https://example.org/transhumance-atlas/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?pasture ?pastureLabel ?season ?scenario ?score ?originClass ?provenance
+WHERE {
+  ?pasture a ta:Pasture ;
+           rdfs:label ?pastureLabel ;
+           ta:hasSuitabilityAssessment ?assessment .
+  ?assessment a ta:PastureSuitabilityAssessment ;
+              ta:season ?season ;
+              ta:underScenario ?scenario ;
+              ta:suitabilityScore ?score ;
+              ta:provenanceLabel ?provenance .
+  OPTIONAL { ?assessment ta:originClass ?originClass . }
+}
+ORDER BY ?scenario ?season DESC(?score)
+LIMIT 100

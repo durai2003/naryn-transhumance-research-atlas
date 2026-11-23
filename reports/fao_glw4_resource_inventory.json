@@ -1,0 +1,52 @@
+{
+  "source_file": "data/raw/source_metadata/fao_glw4_D-DA-1KM_mapset.json",
+  "generated_utc": "2026-11-21T11:41:16.752067+00:00",
+  "resource_records": [
+    {
+      "json_path": "$.response.links[0]",
+      "label": null,
+      "url_fields": {
+        "href": "https://data.apps.fao.org/gismgr/api/v2/catalog/workspaces/GLW4-2020/mapsets"
+      },
+      "keys": [
+        "href",
+        "rel"
+      ]
+    },
+    {
+      "json_path": "$.response.links[1]",
+      "label": null,
+      "url_fields": {
+        "href": "https://data.apps.fao.org/gismgr/api/v2/catalog/workspaces/GLW4-2020/mapsets/D-DA-1KM"
+      },
+      "keys": [
+        "href",
+        "rel"
+      ]
+    },
+    {
+      "json_path": "$.response.links[2]",
+      "label": null,
+      "url_fields": {
+        "href": "https://data.apps.fao.org/gismgr/api/v2/catalog/workspaces/GLW4-2020/mapsets/D-DA-1KM/stats"
+      },
+      "keys": [
+        "href",
+        "rel"
+      ]
+    },
+    {
+      "json_path": "$.response.links[3]",
+      "label": null,
+      "url_fields": {
+        "href": "https://data.apps.fao.org/gismgr/api/v2/catalog/workspaces/GLW4-2020/mapsets/D-DA-1KM/rasters"
+      },
+      "keys": [
+        "href",
+        "rel"
+      ]
+    }
+  ],
+  "manual_species_confirmation_required": true,
+  "instruction": "Select verified Sheep density and Goat density raster resources only. Do not substitute animal-number layers for density layers."
+}
