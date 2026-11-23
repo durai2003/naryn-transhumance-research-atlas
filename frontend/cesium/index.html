@@ -904,6 +904,7 @@ class TerrariumTerrainProvider {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          session_id: cfg.sessionId || "default",
           date: dateStr,
           herd_id: featuredHerdId,
           scenario_id: cfg.scenarioId || "SCENARIO_BASELINE",
