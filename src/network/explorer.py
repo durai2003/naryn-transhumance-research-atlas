@@ -287,7 +287,6 @@ def compute_graph_layouts(
 
     result: dict[str, dict[str, list[float]]] = {}
     wanted = set(requested)
-
     if "geographic" in wanted:
         geo_raw = {
             str(row["node_id"]): (float(row["longitude"]), -float(row["latitude"]))
@@ -434,7 +433,192 @@ def _get_net_explorer_cache(net: Stage1NetworkData) -> dict[str, Any]:
         cached = getattr(net, "_explorer_cache", None)
         if cached is not None:
             return cached
-    
+        boundary_geojson = (
+            json.loads(net.boundary[["shapeName", "shapeISO", "geometry"]].to_json())
+            if not net.boundary.empty and {"shapeName", "shapeISO"}.issubset(net.boundary.columns)
+            else (json.loads(net.boundary.to_json()) if not net.boundary.empty else {"type": "FeatureCollection", "features": []})
+        )
+        cache_obj: dict[str, Any] = {
+            "boundary": boundary_geojson,
+            "node_herds": {},
+            "payloads": {},
+        }
+        setattr(net, "_explorer_cache", cache_obj)
+        return cache_obj
+
+
+def build_network_explorer_payload(
+    net: Stage1NetworkData,
+    filtered: FilteredNetwork,
+    *,
+    basemap: str = "esri_satellite",
+    vertical_exaggeration: float = 1.4,
+    initial_layout: str = "layered_seasonal",
+    selected_node_id: str | None = None,
+    selected_edge_id: str | None = None,
+    layout_names: Sequence[str] | None = None,
+) -> dict[str, Any]:
+    """Build a cacheable explorer payload with separate display configuration."""
+    net_cache = _get_net_explorer_cache(net)
+    node_signature = tuple(sorted(filtered.nodes_gdf["node_id"].astype(str).tolist())) if not filtered.nodes_gdf.empty else ()
+    edge_signature = tuple(sorted(filtered.edges_gdf["edge_id"].astype(str).tolist())) if not filtered.edges_gdf.empty else ()
+    livestock_key = tuple(sorted(str(item).lower() for item in (filtered.active_filters.get("livestock_types") or [])))
+    layout_key = tuple(sorted(set(layout_names))) if layout_names is not None else (
+        "geographic", "kamada_kawai", "layered_seasonal", "spring"
+    )
+    public_only = bool(filtered.active_filters.get("public_only", False))
+    base_key = (node_signature, edge_signature, livestock_key, layout_key, public_only)
+
+    with _EXPLORER_LOCK:
+        cached_base = net_cache["payloads"].get(base_key)
+    if cached_base is not None:
+        return {
+            **cached_base,
+            "config": {
+                "basemap": basemap,
+                "verticalExaggeration": float(vertical_exaggeration),
+                "initialLayout": initial_layout,
+                "selectedNodeId": selected_node_id,
+                "selectedEdgeId": selected_edge_id,
+                "activeFilters": filtered.active_filters,
+            },
+        }
+
+    G = filtered.graph
+    layouts = compute_graph_layouts(filtered, layout_names=layout_names)
+    livestock_filter = set(livestock_key) if livestock_key else None
+    with _EXPLORER_LOCK:
+        node_herds_index = net_cache["node_herds"].get(livestock_key)
+    if node_herds_index is None:
+        node_herds_index = _build_node_herd_index(net, livestock_filter=livestock_filter)
+        with _EXPLORER_LOCK:
+            node_herds_index = net_cache["node_herds"].setdefault(livestock_key, node_herds_index)
+
+    # Pre-index node names for fast edge tooltips/inspectors
+    node_names = {
+        str(r["node_id"]): _safe_str(r.get("node_name", r["node_id"]))
+        for _, r in filtered.nodes_gdf.iterrows()
+    }
+
+    # Build edge records & incident route lists per node
+    incident_routes: dict[str, list[dict[str, Any]]] = {}
+    edge_records: list[dict[str, Any]] = []
+    for _, row in filtered.edges_gdf.iterrows():
+        eid = str(row["edge_id"])
+        src = str(row["source_node_id"])
+        dst = str(row["target_node_id"])
+        etype = _safe_str(row.get("edge_type", "ACCESS_ROUTE"))
+        dist_m = _safe_float(row.get("distance_m")) or 0.0
+        prof_raw = row.get("elevation_profile_json")
+        try:
+            profile = json.loads(prof_raw) if isinstance(prof_raw, str) and prof_raw.strip() else []
+        except Exception:
+            profile = []
+
+        rec = {
+            "edge_id": eid,
+            "source_node_id": src,
+            "source_node_name": node_names.get(src, src),
+            "target_node_id": dst,
+            "target_node_name": node_names.get(dst, dst),
+            "edge_type": etype,
+            "network_layer": _safe_str(row.get("network_layer", "pastoral_mobility")),
+            "distance_m": round(dist_m, 1),
+            "distance_km": round(dist_m / 1000.0, 2),
+            "start_elevation_m": _safe_float(row.get("start_elevation_m")),
+            "end_elevation_m": _safe_float(row.get("end_elevation_m")),
+            "max_elevation_m": _safe_float(row.get("max_elevation_m")),
+            "elevation_gain_m": _safe_float(row.get("elevation_gain_m")),
+            "elevation_loss_m": _safe_float(row.get("elevation_loss_m")),
+            "average_slope": _safe_float(row.get("average_slope")),
+            "maximum_slope": _safe_float(row.get("maximum_slope")),
+            "elevation_status": _safe_str(row.get("elevation_status", "unavailable_no_local_dem")),
+            "elevation_source": _safe_str(row.get("elevation_source", "")),
+            "estimated_travel_days": _safe_float(row.get("estimated_travel_days")),
+            "season": _safe_str(row.get("season", "all_year")),
+            "direction": _safe_str(row.get("direction", "")),
+            "livestock_compatibility": _safe_str(row.get("livestock_compatibility", "")),
+            "route_generation_method": _safe_str(row.get("route_generation_method", "")),
+            "source": _safe_str(row.get("source", "")),
+            "provenance": _safe_str(row.get("provenance", "")),
+            "evidence_status": _safe_str(row.get("evidence_status", "synthetic_demo")),
+            "is_synthetic": bool(row.get("is_synthetic", True)),
+            "utilisation": {
+                "herd_count": _safe_int(row.get("herd_count"), 0),
+                "animal_count": _safe_int(row.get("animal_count"), 0),
+                "movement_event_count": _safe_int(row.get("movement_event_count"), 0),
+                "winter_usage": _safe_int(row.get("winter_usage"), 0),
+                "spring_usage": _safe_int(row.get("spring_usage"), 0),
+                "summer_usage": _safe_int(row.get("summer_usage"), 0),
+                "autumn_usage": _safe_int(row.get("autumn_usage"), 0),
+                "avg_estimated_travel_days": _safe_float(row.get("avg_estimated_travel_days")) or 0.0,
+                "alternative_route_usage": _safe_int(row.get("alternative_route_usage"), 0),
+            },
+            "elevation_profile": profile,
+            "coordinates": _line_coords(row.geometry),
+        }
+        edge_records.append(rec)
+
+        brief_out = {
+            "edge_id": eid,
+            "relation": "outgoing",
+            "peer_node_id": dst,
+            "peer_node_name": node_names.get(dst, dst),
+            "edge_type": etype,
+            "season": rec["season"],
+            "distance_km": rec["distance_km"],
+            "herd_count": rec["utilisation"]["herd_count"],
+        }
+        brief_in = {
+            "edge_id": eid,
+            "relation": "incoming",
+            "peer_node_id": src,
+            "peer_node_name": node_names.get(src, src),
+            "edge_type": etype,
+            "season": rec["season"],
+            "distance_km": rec["distance_km"],
+            "herd_count": rec["utilisation"]["herd_count"],
+        }
+        incident_routes.setdefault(src, []).append(brief_out)
+        incident_routes.setdefault(dst, []).append(brief_in)
+
+    # Build node records with full Stage 2 Inspector attributes
+    node_records: list[dict[str, Any]] = []
+    for _, row in filtered.nodes_gdf.iterrows():
+        nid = str(row["node_id"])
+        in_neighbors = sorted(list(G.predecessors(nid))) if nid in G else []
+        out_neighbors = sorted(list(G.successors(nid))) if nid in G else []
+        herds_for_node = node_herds_index.get(nid, []) if not filtered.active_filters.get("public_only", False) else []
+        node_records.append({
+            "node_id": nid,
+            "node_name": _safe_str(row.get("node_name", nid)),
+            "node_type": _safe_str(row.get("node_type", "")),
+            "network_layer": _safe_str(row.get("network_layer", "")),
+            "subregion_zone": _safe_str(row.get("subregion_zone", "")),
+            "latitude": round(float(row["latitude"]), 5),
+            "longitude": round(float(row["longitude"]), 5),
+            "elevation_m": _safe_float(row.get("elevation_m")),
+            "slope_degrees": _safe_float(row.get("slope_degrees")),
+            "elevation_status": _safe_str(row.get("elevation_status", "unavailable_no_local_dem")),
+            "elevation_source": _safe_str(row.get("elevation_source", "")),
+            "landcover_code": _safe_int(row.get("landcover_code"), -1) if _safe_float(row.get("landcover_code")) is not None else None,
+            "landcover_class": _safe_str(row.get("landcover_class", "unavailable_no_local_worldcover")),
+            "source": _safe_str(row.get("source", "")),
+            "provenance": _safe_str(row.get("provenance", "")),
+            "evidence_status": _safe_str(row.get("evidence_status", "synthetic_demo")),
+            "is_synthetic": bool(row.get("is_synthetic", True)),
+            "external_id": _safe_str(row.get("external_id", "")),
+            "external_uri": _safe_str(row.get("external_uri", "")),
+            "component_id": int(filtered.node_to_component.get(nid, 0)),
+            "in_neighbors": in_neighbors,
+            "out_neighbors": out_neighbors,
+            "degree_total": len(incident_routes.get(nid, [])),
+            "connected_routes": incident_routes.get(nid, []),
+            "connected_herds": herds_for_node,
+            "connected_herd_count": len(herds_for_node),
+        })
+
+
 
     base_payload = {
         "stage": "stage2_network_explorer",
