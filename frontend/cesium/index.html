@@ -366,7 +366,7 @@ class TerrariumTerrainProvider {
     this._tileWidth = 49;
     this._maxLevel = 13;
     this._activeRequests = 0;
-    this._maxConcurrent = 8;
+    this._maxConcurrent = 12;
     this._okCount = 0;
     this._failCount = 0;
     this._canvas = document.createElement("canvas");
@@ -483,6 +483,22 @@ class TerrariumTerrainProvider {
     homeButton: false, sceneModePicker: false, navigationHelpButton: false,
     fullscreenButton: true, infoBox: false, selectionIndicator: true,
     shouldAnimate: false, skyAtmosphere: new Cesium.SkyAtmosphere(), baseLayer: false,
+  });
+
+  // Position the camera before attaching imagery/terrain providers. This prevents
+  // Cesium from requesting tiles for its default world view before flying to Naryn.
+  const initialCameraMode = cfg.cameraMode || "regional_3d";
+  const initialCameraPresets = {
+    global: [75.5, 41.3, 13000000],
+    central_asia: [74.8, 41.2, 2400000],
+    regional_3d: [75.65, 41.38, 460000],
+    son_kul: [75.16, 41.83, 88000],
+    at_bashi: [75.72, 41.06, 118000],
+  };
+  const initialCamera = initialCameraPresets[initialCameraMode] || initialCameraPresets.regional_3d;
+  viewer.camera.setView({
+    destination: Cesium.Cartesian3.fromDegrees(...initialCamera),
+    orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
   });
 
   viewer.scene.globe.show = true;
@@ -1090,7 +1106,8 @@ class TerrariumTerrainProvider {
     }
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-  flyToPreset(cfg.cameraMode || "regional_3d");
+  updateTiltButtonState(false);
+  setActivePresetButton(initialCameraMode);
 })();
 </script>
 </body>
