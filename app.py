@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import uuid
 from pathlib import Path
 
 import pandas as pd
@@ -43,8 +44,9 @@ st.markdown(
 )
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_resource(show_spinner=False)
 def _load_data(root_string: str) -> AtlasData:
+    """Share a read-only AtlasData resource across concurrent visitors."""
     return load_atlas_data(Path(root_string))
 
 
@@ -252,10 +254,11 @@ def _render_synced_charts_body(
     sidebar_date: str,
     species_filter: list[str],
     sidebar_herd_id: str,
+    session_id: str,
 ) -> None:
-    """Render climate cursor and corridor elevation profile locked to the authoritative timeline state."""
+    """Render charts against this visitor's authoritative timeline state."""
     server = get_asset_server(ROOT)
-    ui_state = server.get_ui_state()
+    ui_state = server.get_ui_state(session_id=session_id)
     auth_date = ui_state.get("date") or sidebar_date
     # Honour explicit herd selection from sidebar or clicked herd from CesiumJS
     if sidebar_herd_id != "All herds":
@@ -278,15 +281,16 @@ def _render_synced_charts_body(
 
 
 if hasattr(st, "fragment"):
-    @st.fragment(run_every=1.0)
+    @st.fragment(run_every=4.0)
     def _synced_charts_panel(
         data: AtlasData,
         scenario_id: str,
         sidebar_date: str,
         species_filter: list[str],
         sidebar_herd_id: str,
+        session_id: str,
     ) -> None:
-        _render_synced_charts_body(data, scenario_id, sidebar_date, species_filter, sidebar_herd_id)
+        _render_synced_charts_body(data, scenario_id, sidebar_date, species_filter, sidebar_herd_id, session_id)
 else:
     def _synced_charts_panel(
         data: AtlasData,
@@ -298,8 +302,32 @@ else:
         _render_synced_charts_body(data, scenario_id, sidebar_date, species_filter, sidebar_herd_id)
 
 
+def _select_active_view() -> str:
+    """Lazy top-level navigation: only construct the visitor's active view."""
+    views = [
+        "🌍 3D Spatiotemporal Atlas",
+        "🕸️ Network Analysis",
+        "🔗 Linked Open Data & SPARQL",
+    ]
+    if hasattr(st, "segmented_control"):
+        chosen = st.segmented_control(
+            "Atlas View", options=views, default=views[0],
+            selection_mode="single", label_visibility="collapsed",
+            key="active_atlas_view",
+        )
+        return chosen or views[0]
+    return st.radio(
+        "Atlas View", options=views, index=0, horizontal=True,
+        label_visibility="collapsed", key="active_atlas_view",
+    )
+
+
 def main() -> None:
     data = _load_data(str(ROOT))
+
+    if "_visitor_session_id" not in st.session_state:
+        st.session_state["_visitor_session_id"] = uuid.uuid4().hex[:10]
+    session_id: str = st.session_state["_visitor_session_id"]
 
     with st.sidebar:
         st.header("3D Atlas Controls")
@@ -352,61 +380,65 @@ def main() -> None:
             herd_id=None if selected_herd_id == "All herds" else selected_herd_id,
             scenario_id=scenario_id,
             source="streamlit",
+            session_id=session_id,
         )
 
     st.markdown(
         f"#### Mini Transhumance Research Data Atlas (3D) · Naryn Region, Kyrgyzstan · Scenario: `{scenario_id}`"
     )
 
-    atlas_tab, network_tab, rdf_tab = st.tabs(
-        [
-            "🌍 3D Spatiotemporal Atlas",
-            "🕸️ Network Analysis",
-            "🔗 Linked Open Data & SPARQL",
-        ],
-        on_change="rerun",
-        key="atlas_main_tabs",
-    )
+    active_view = _select_active_view()
 
-    # Streamlit 1.55+ tracks the active tab. Avoid constructing hidden,
-    # expensive explorers until the visitor actually opens them.
-    if atlas_tab.open:
-        with atlas_tab:
-            payload = build_cesium_payload(
-                data,
-                scenario_id=scenario_id,
-                selected_date=selected_date,
-                species_filter=species_filter,
-                selected_herd_id=selected_herd_id,
-                camera_mode=camera_mode,
-                basemap=basemap,
-                vertical_exaggeration=vertical_exaggeration,
-                show_layers=show_layers,
-                playback_speed=playback_speed,
-                cesium_ion_token=os.getenv("CESIUM_ION_ACCESS_TOKEN", ""),
-                google_maps_api_key=os.getenv("GOOGLE_MAPS_API_KEY", ""),
+    if active_view == "🌍 3D Spatiotemporal Atlas":
+        payload = build_cesium_payload(
+            data,
+            scenario_id=scenario_id,
+            selected_date=selected_date,
+            species_filter=species_filter,
+            selected_herd_id=selected_herd_id,
+            camera_mode=camera_mode,
+            basemap=basemap,
+            vertical_exaggeration=vertical_exaggeration,
+            show_layers=show_layers,
+            playback_speed=playback_speed,
+            cesium_ion_token=os.getenv("CESIUM_ION_ACCESS_TOKEN", ""),
+            google_maps_api_key=os.getenv("GOOGLE_MAPS_API_KEY", ""),
+            session_id=session_id,
+        )
+        render_cesium_globe(ROOT, payload, height=690)
+
+        # Avoid continuous background reruns by default; visitors can opt into
+        # periodic chart synchronisation while the globe timeline is playing.
+        left, right, _ = st.columns([1.3, 1.5, 3.2])
+        with left:
+            st.button("🔄 Sync charts to timeline", key="btn_sync_charts_now")
+        with right:
+            auto_sync = st.checkbox("Auto-sync charts (4s)", value=False, key="chk_auto_sync_charts")
+
+        if auto_sync:
+            _synced_charts_panel(
+                data, scenario_id, selected_date, species_filter,
+                selected_herd_id, session_id,
             )
-            # Unified synchronized 3D globe + live right-hand Selected Herd & State panel
-            render_cesium_globe(ROOT, payload, height=690)
-
-            # Synchronized bottom climate cursor + exact corridor elevation profile
-            _synced_charts_panel(data, scenario_id, selected_date, species_filter, selected_herd_id)
-
-            _render_scenario_comparison(data, scenario_id, selected_season)
-
-    if network_tab.open:
-        with network_tab:
-            render_network_analysis_tab(
-                ROOT,
-                basemap=basemap,
-                vertical_exaggeration=vertical_exaggeration,
-                default_scenario=scenario_id,
+        else:
+            _render_synced_charts_body(
+                data, scenario_id, selected_date, species_filter,
+                selected_herd_id, session_id,
             )
 
-    if rdf_tab.open:
-        with rdf_tab:
-            st.subheader("RDF Knowledge Graph & Executable SPARQL 1.1")
-            _render_linked_data_explorer(data)
+        _render_scenario_comparison(data, scenario_id, selected_season)
+
+    elif active_view == "🕸️ Network Analysis":
+        render_network_analysis_tab(
+            ROOT,
+            basemap=basemap,
+            vertical_exaggeration=vertical_exaggeration,
+            default_scenario=scenario_id,
+        )
+
+    else:
+        st.subheader("RDF Knowledge Graph & Executable SPARQL 1.1")
+        _render_linked_data_explorer(data)
 
 
 if __name__ == "__main__":
