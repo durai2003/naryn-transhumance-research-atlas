@@ -1,8 +1,22 @@
 from __future__ import annotations
 
+import time
 from pathlib import Path
 
+import requests
+
 from src.atlas.cesium_server import AtlasAssetServer
+
+
+def _wait_until_ready(server: AtlasAssetServer) -> None:
+    for _ in range(50):
+        try:
+            response = requests.get(f"http://127.0.0.1:{server.port}/health", timeout=1)
+            if response.status_code == 200:
+                return
+        except requests.RequestException:
+            time.sleep(0.02)
+    raise AssertionError("Asset server did not become ready")
 
 
 def test_hosted_asset_server_uses_same_origin_prefixed_iframe_urls(
@@ -14,7 +28,7 @@ def test_hosted_asset_server_uses_same_origin_prefixed_iframe_urls(
 
     server = AtlasAssetServer(tmp_path)
     try:
-        assert server.port > 0
+        _wait_until_ready(server)
         assert server.iframe_url("state123") == "/atlas/?state=state123"
         assert server.network_iframe_url("network123") == "/atlas/network/?state=network123"
     finally:
@@ -30,6 +44,7 @@ def test_local_development_keeps_loopback_iframe_urls(
 
     server = AtlasAssetServer(tmp_path)
     try:
+        _wait_until_ready(server)
         assert server.iframe_url("state123") == f"http://127.0.0.1:{server.port}/?state=state123"
         assert server.network_iframe_url("network123") == (
             f"http://127.0.0.1:{server.port}/network/?state=network123"
