@@ -490,7 +490,7 @@ class TerrariumTerrainProvider {
   viewer.scene.globe.enableLighting = false;
   viewer.scene.globe.depthTestAgainstTerrain = false; // prevents terrain from slicing pasture/herd markers in half
   viewer.scene.globe.tileCacheSize = 250;
-  viewer.scene.globe.maximumScreenSpaceError = 2.5; // Slightly coarser terrain LOD reduces initial tile requests.
+  viewer.scene.globe.maximumScreenSpaceError = 3.5; // Slightly coarser terrain LOD reduces initial tile requests.
   viewer.scene.highDynamicRange = false;
 
   const initExag = Math.max(1.0, cfg.verticalExaggeration || 1.35);
