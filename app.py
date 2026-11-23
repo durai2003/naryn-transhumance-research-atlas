@@ -358,46 +358,55 @@ def main() -> None:
         f"#### Mini Transhumance Research Data Atlas (3D) · Naryn Region, Kyrgyzstan · Scenario: `{scenario_id}`"
     )
 
-    atlas_tab, network_tab, rdf_tab = st.tabs([
-        "🌍 3D Spatiotemporal Atlas",
-        "🕸️ Network Analysis",
-        "🔗 Linked Open Data & SPARQL",
-    ])
+    atlas_tab, network_tab, rdf_tab = st.tabs(
+        [
+            "🌍 3D Spatiotemporal Atlas",
+            "🕸️ Network Analysis",
+            "🔗 Linked Open Data & SPARQL",
+        ],
+        on_change="rerun",
+        key="atlas_main_tabs",
+    )
 
-    with atlas_tab:
-        payload = build_cesium_payload(
-            data,
-            scenario_id=scenario_id,
-            selected_date=selected_date,
-            species_filter=species_filter,
-            selected_herd_id=selected_herd_id,
-            camera_mode=camera_mode,
-            basemap=basemap,
-            vertical_exaggeration=vertical_exaggeration,
-            show_layers=show_layers,
-            playback_speed=playback_speed,
-            cesium_ion_token=os.getenv("CESIUM_ION_ACCESS_TOKEN", ""),
-            google_maps_api_key=os.getenv("GOOGLE_MAPS_API_KEY", ""),
-        )
-        # Unified synchronized 3D globe + live right-hand Selected Herd & State panel
-        render_cesium_globe(ROOT, payload, height=690)
+    # Streamlit 1.55+ tracks the active tab. Avoid constructing hidden,
+    # expensive explorers until the visitor actually opens them.
+    if atlas_tab.open:
+        with atlas_tab:
+            payload = build_cesium_payload(
+                data,
+                scenario_id=scenario_id,
+                selected_date=selected_date,
+                species_filter=species_filter,
+                selected_herd_id=selected_herd_id,
+                camera_mode=camera_mode,
+                basemap=basemap,
+                vertical_exaggeration=vertical_exaggeration,
+                show_layers=show_layers,
+                playback_speed=playback_speed,
+                cesium_ion_token=os.getenv("CESIUM_ION_ACCESS_TOKEN", ""),
+                google_maps_api_key=os.getenv("GOOGLE_MAPS_API_KEY", ""),
+            )
+            # Unified synchronized 3D globe + live right-hand Selected Herd & State panel
+            render_cesium_globe(ROOT, payload, height=690)
 
-        # Synchronized bottom climate cursor + exact corridor elevation profile (polls authoritative Cesium timeline state)
-        _synced_charts_panel(data, scenario_id, selected_date, species_filter, selected_herd_id)
+            # Synchronized bottom climate cursor + exact corridor elevation profile
+            _synced_charts_panel(data, scenario_id, selected_date, species_filter, selected_herd_id)
 
-        _render_scenario_comparison(data, scenario_id, selected_season)
+            _render_scenario_comparison(data, scenario_id, selected_season)
 
-    with network_tab:
-        render_network_analysis_tab(
-            ROOT,
-            basemap=basemap,
-            vertical_exaggeration=vertical_exaggeration,
-            default_scenario=scenario_id,
-        )
+    if network_tab.open:
+        with network_tab:
+            render_network_analysis_tab(
+                ROOT,
+                basemap=basemap,
+                vertical_exaggeration=vertical_exaggeration,
+                default_scenario=scenario_id,
+            )
 
-    with rdf_tab:
-        st.subheader("RDF Knowledge Graph & Executable SPARQL 1.1")
-        _render_linked_data_explorer(data)
+    if rdf_tab.open:
+        with rdf_tab:
+            st.subheader("RDF Knowledge Graph & Executable SPARQL 1.1")
+            _render_linked_data_explorer(data)
 
 
 if __name__ == "__main__":
