@@ -6,9 +6,11 @@
   <title>3D Mini Transhumance Research Data Atlas — CesiumJS v3.2</title>
   <script>
     window.ATLAS_BASE_PATH = window.location.pathname.startsWith("/atlas/") ? "/atlas" : "";
-    window.CESIUM_BASE_URL = window.ATLAS_BASE_PATH + "/cesium/";
-    document.write('<link href="' + window.ATLAS_BASE_PATH + '/cesium/Widgets/widgets.css" rel="stylesheet" />');
-    document.write('<script src="' + window.ATLAS_BASE_PATH + '/cesium/Cesium.js"><\/script>');
+    window.CESIUM_CDN_BASE = "https://cdn.jsdelivr.net/npm/cesium@1.123.0/Build/Cesium/";
+    window.CESIUM_BASE_URL = window.CESIUM_CDN_BASE;
+    document.write('<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />');
+    document.write('<link href="' + window.CESIUM_CDN_BASE + 'Widgets/widgets.css" rel="stylesheet" />');
+    document.write('<script src="' + window.CESIUM_CDN_BASE + 'Cesium.js"><\/script>');
   </script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -190,7 +192,8 @@
         <button class="hud-btn" id="btnUnfollow" title="Release tracking & snap straight top-down">🎯 Free Cam</button>
         <button class="hud-btn" id="btnTiltToggle" title="Toggle between Top-Down (-90°) and Oblique 3D (-32°)">📐 3D Tilt</button>
         <select class="hud-select" id="basemapSelect" title="Switch Global Basemap">
-          <option value="esri_satellite">Satellite + Relief (Esri Imagery)</option>
+          <option value="esri_satellite">Satellite (Fast)</option>
+          <option value="esri_satellite_detailed">Satellite + Relief (Detailed)</option>
           <option value="esri_topo">Topographic (Esri World Topo)</option>
           <option value="opentopo">Physical Relief (OpenTopoMap)</option>
           <option value="osm">OpenStreetMap</option>
@@ -487,6 +490,7 @@ class TerrariumTerrainProvider {
   viewer.scene.globe.enableLighting = false;
   viewer.scene.globe.depthTestAgainstTerrain = false; // prevents terrain from slicing pasture/herd markers in half
   viewer.scene.globe.tileCacheSize = 250;
+  viewer.scene.globe.maximumScreenSpaceError = 2.5; // Slightly coarser terrain LOD reduces initial tile requests.
   viewer.scene.highDynamicRange = false;
 
   const initExag = Math.max(1.0, cfg.verticalExaggeration || 1.35);
@@ -511,10 +515,13 @@ class TerrariumTerrainProvider {
     } else {
       const sat = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_satellite/{z}/{y}/{x}`, maximumLevel: 18 }));
       sat.contrast = 1.08; sat.saturation = 1.12; activeLayers.push(sat);
-      const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_hillshade/{z}/{y}/{x}`, maximumLevel: 16 }));
-      hs.alpha = 0.28; hs.contrast = 1.28; activeLayers.push(hs);
-      const lbl = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_labels/{z}/{y}/{x}`, maximumLevel: 15 }));
-      lbl.alpha = 0.86; activeLayers.push(lbl);
+      // Load hillshade and place labels only when the visitor explicitly selects the detailed option.
+      if (key === "esri_satellite_detailed") {
+        const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_hillshade/{z}/{y}/{x}`, maximumLevel: 16 }));
+        hs.alpha = 0.28; hs.contrast = 1.28; activeLayers.push(hs);
+        const lbl = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_labels/{z}/{y}/{x}`, maximumLevel: 15 }));
+        lbl.alpha = 0.86; activeLayers.push(lbl);
+      }
     }
   }
   const basemapSel = document.getElementById("basemapSelect");
