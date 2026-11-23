@@ -147,7 +147,7 @@ class AtlasAssetServer:
 
                 if path == "/payload.json":
                     state_id = (query.get("state") or [server_ref._latest_state_id])[0]
-                    self._send(server_ref.get_payload(state_id), "application/json; charset=utf-8", 200, cache_sec=3600)
+                    self._send(server_ref.get_payload(state_id), "application/json; charset=utf-8", 200, cache_sec=604800)
                     return
 
                 if path in ("/network", "/network/", "/network/index.html"):
@@ -159,7 +159,7 @@ class AtlasAssetServer:
 
                 if path == "/network/payload.json":
                     state_id = (query.get("state") or [server_ref._latest_network_state_id])[0]
-                    self._send(server_ref.get_network_payload(state_id), "application/json; charset=utf-8", 200, cache_sec=3600)
+                    self._send(server_ref.get_network_payload(state_id), "application/json; charset=utf-8", 200, cache_sec=604800)
                     return
 
                 if path == "/health":
