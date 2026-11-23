@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import mimetypes
+import os
 import threading
 import urllib.parse
 from http import HTTPStatus
@@ -56,6 +57,7 @@ class AtlasAssetServer:
 
     def __init__(self, root: Path) -> None:
         self.root = Path(root).resolve()
+        self.url_prefix = os.environ.get("ATLAS_URL_PREFIX", "").rstrip("/")
         self.template_path = self.root / "frontend/cesium/index.html"
         self.network_template_path = self.root / "frontend/network/explorer.html"
         self.cache_root = self.root / ".cache"
@@ -258,7 +260,9 @@ class AtlasAssetServer:
                 except Exception as exc:
                     self._send(f"Upstream fetch failed: {exc}".encode("utf-8"), "text/plain", HTTPStatus.BAD_GATEWAY)
 
-        self._httpd = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        bind_host = os.environ.get("ATLAS_ASSET_BIND_HOST", "127.0.0.1")
+        bind_port = int(os.environ.get("ATLAS_ASSET_PORT", "0"))
+        self._httpd = ThreadingHTTPServer((bind_host, bind_port), Handler)
         self._httpd.daemon_threads = True
         self.port: int = int(self._httpd.server_address[1])
         self._thread = threading.Thread(target=self._httpd.serve_forever, name="AtlasAssetServer", daemon=True)
@@ -279,6 +283,8 @@ class AtlasAssetServer:
             return self._payloads.get(state_id) or self._payloads.get(self._latest_state_id, b"{}")
 
     def iframe_url(self, state_id: str) -> str:
+        if self.url_prefix:
+            return f"{self.url_prefix}/?state={state_id}"
         return f"http://127.0.0.1:{self.port}/?state={state_id}"
 
     def register_network_payload(self, payload_json: str) -> str:
@@ -296,6 +302,8 @@ class AtlasAssetServer:
             return self._network_payloads.get(state_id) or self._network_payloads.get(self._latest_network_state_id, b"{}")
 
     def network_iframe_url(self, state_id: str) -> str:
+        if self.url_prefix:
+            return f"{self.url_prefix}/network/?state={state_id}"
         return f"http://127.0.0.1:{self.port}/network/?state={state_id}"
 
     def set_ui_state(
