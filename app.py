@@ -191,6 +191,22 @@ def _load_rdf_graph_cached(graph_path_str: str, mtime: float) -> Graph:
     g.parse(gp, format="turtle" if gp.suffix == ".ttl" else "json-ld")
     return g
 
+@st.cache_data(show_spinner=False, max_entries=8)
+def _rdf_class_counts_cached(graph_path_str: str, mtime: float) -> tuple[int, dict[str, int]]:
+    graph = _load_rdf_graph_cached(graph_path_str, mtime)
+    classes = {
+        "Locations": TA.Location,
+        "Climate Obs.": TA.ClimateObservation,
+        "Candidate Pastures": TA.Pasture,
+        "Corridors/Routes": TA.Route,
+        "Herd Groups": TA.HerdGroup,
+        "Movement Events": TA.MovementEvent,
+        "Suitability Assessments": TA.PastureSuitabilityAssessment,
+        "Datasets": TA.Dataset,
+    }
+    counts = {label: sum(1 for _ in graph.subjects(RDF.type, cls)) for label, cls in classes.items()}
+    return len(graph), counts
+
 
 def _rdf_graph_needs_rebuild(root: Path, graph_path: Path | None) -> bool:
     syn_sources = [
@@ -247,20 +263,11 @@ def _render_linked_data_explorer(data: AtlasData) -> None:
         graph = _load_rdf_graph_cached(str(ttl_path), ttl_path.stat().st_mtime)
         graph_path = ttl_path
 
-    classes = {
-        "Locations": TA.Location,
-        "Climate Obs.": TA.ClimateObservation,
-        "Candidate Pastures": TA.Pasture,
-        "Corridors/Routes": TA.Route,
-        "Herd Groups": TA.HerdGroup,
-        "Movement Events": TA.MovementEvent,
-        "Suitability Assessments": TA.PastureSuitabilityAssessment,
-        "Datasets": TA.Dataset,
-    }
+    triple_count, class_counts = _rdf_class_counts_cached(str(graph_path), graph_path.stat().st_mtime)
     cols = st.columns(4)
-    for i, (label, cls) in enumerate(classes.items()):
-        cols[i % 4].metric(label, sum(1 for _ in graph.subjects(RDF.type, cls)))
-    st.caption(f"Graph: `{graph_path.relative_to(data.root)}` · **{len(graph):,}** triples")
+    for i, (label, count) in enumerate(class_counts.items()):
+        cols[i % 4].metric(label, count)
+    st.caption(f"Graph: {graph_path.relative_to(data.root)} · **{triple_count:,}** triples")
 
     q_dir = data.root / "queries"
     rq_files = sorted(q_dir.glob("0*.rq")) if q_dir.exists() else []
