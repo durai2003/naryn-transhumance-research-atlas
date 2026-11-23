@@ -305,7 +305,7 @@ class TerrariumTerrainProvider {
   getTileDataAvailable(x, y, level) { return level <= this._maxLevel; }
   loadTileDataAvailability() { return undefined; }
   requestTileGeometry(x, y, level) {
-    if (level > this._maxLevel || this._active >= 8) return undefined;
+    if (level > this._maxLevel || this._active >= 12) return undefined;
     this._active++;
     const dim = this._tileWidth;
     const rect = this.tilingScheme.tileXYToRectangle(x, y, level);
@@ -523,6 +523,11 @@ function renderElevationSvg(profile) {
     homeButton: false, sceneModePicker: false, navigationHelpButton: false,
     fullscreenButton: false, infoBox: false, selectionIndicator: false,
     shouldAnimate: false, skyAtmosphere: new Cesium.SkyAtmosphere(), baseLayer: false,
+  });
+  // Start over Naryn before starting any terrain or imagery requests.
+  viewer.camera.setView({
+    destination: Cesium.Cartesian3.fromDegrees(75.65, 41.38, 470000),
+    orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
   });
   viewer.scene.globe.show = true;
   viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#16324f");
@@ -1262,7 +1267,7 @@ function renderElevationSvg(profile) {
 
   // Initial sizing, camera, and pre-selected entity if passed from Streamlit dropdown
   resizeCanvas();
-  flyTop(75.65, 41.38, 470000, 0.8);
+  setTiltState(false);
   if (selectedNodeId && nodeById[selectedNodeId]) {
     setTimeout(() => selectNode(selectedNodeId, "streamlit"), 650);
   } else if (selectedEdgeId && edgeById[selectedEdgeId]) {
