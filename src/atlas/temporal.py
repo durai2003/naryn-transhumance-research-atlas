@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import threading
 from typing import Any
 
 import geopandas as gpd
@@ -12,6 +13,7 @@ from src.atlas.data_access import AtlasData
 from src.atlas.terrain import export_local_dem_grid
 
 MOVING_STATES = frozenset({"departing", "moving", "seasonal_transition", "returning"})
+_CACHE_LOCK = threading.Lock()
 
 
 def _gdf_to_compact_geojson(gdf: gpd.GeoDataFrame | None, props: list[str] | None = None) -> dict[str, Any]:
@@ -105,9 +107,72 @@ def _get_reconciled_trajectories(data: AtlasData) -> pd.DataFrame:
     cached = getattr(data, "_reconciled_trajectories", None)
     if cached is not None:
         return cached
-    rec = reconcile_trajectory_pasture_state(data.herd_trajectories, data.movement_events)
-    setattr(data, "_reconciled_trajectories", rec)
-    return rec
+    with _CACHE_LOCK:
+        cached = getattr(data, "_reconciled_trajectories", None)
+        if cached is not None:
+            return cached
+        rec = reconcile_trajectory_pasture_state(data.herd_trajectories, data.movement_events)
+        setattr(data, "_reconciled_trajectories", rec)
+        return rec
+
+
+def _get_static_assets_cache(data: AtlasData) -> dict[str, Any]:
+    """Serialize heavy static GIS layers once on the shared read-only AtlasData resource."""
+    cached = getattr(data, "_static_assets_cache", None)
+    if cached is not None:
+        return cached
+
+    with _CACHE_LOCK:
+        cached = getattr(data, "_static_assets_cache", None)
+        if cached is not None:
+            return cached
+
+        locations_payload: list[dict[str, Any]] = []
+        if not data.locations.empty:
+            for _, row in data.locations.dropna(subset=["latitude", "longitude"]).iterrows():
+                locations_payload.append({
+                    "location_id": str(row.get("location_id", "")),
+                    "name": str(row.get("location_name", "Location")),
+                    "qid": str(row.get("external_identifier", "")),
+                    "lat": float(row["latitude"]),
+                    "lon": float(row["longitude"]),
+                    "provenance": "Wikidata verified entity reference (not a weather station)",
+                })
+
+        empty_fc = {"type": "FeatureCollection", "features": []}
+        static_cache: dict[str, Any] = {
+            "boundary": _gdf_to_compact_geojson(data.boundary, ["shapeName", "shapeISO", "shapeID"]),
+            "corridors": _gdf_to_compact_geojson(
+                data.migration_corridors,
+                ["route_id", "name", "origin_pasture_id", "destination_pasture_id", "season",
+                 "distance_km", "elevation_gain_m", "elevation_loss_m", "avg_slope_deg",
+                 "estimated_travel_days", "route_generation_method", "is_synthetic", "provenance"],
+            ),
+            "osm_roads": _gdf_to_compact_geojson(
+                data.osm_roads.head(1200) if data.osm_roads is not None else None,
+                ["fclass", "name", "ref"],
+            ),
+            "osm_waterways": _gdf_to_compact_geojson(
+                data.osm_waterways.head(900) if data.osm_waterways is not None else None,
+                ["fclass", "name"],
+            ),
+            "osm_waterbodies": _gdf_to_compact_geojson(
+                data.osm_waterbodies.head(600) if data.osm_waterbodies is not None else None,
+                ["fclass", "name"],
+            ),
+            "osm_settlements": _gdf_to_compact_geojson(
+                data.osm_settlements.head(220) if data.osm_settlements is not None else None,
+                ["fclass", "name", "population"],
+            ),
+            "empty_fc": empty_fc,
+            "locations": locations_payload,
+            "climate_by_scenario": {},
+            "pastures_by_scenario_season": {},
+            "herds_by_scenario_species": {},
+            "events_by_scenario_herd": {},
+        }
+        setattr(data, "_static_assets_cache", static_cache)
+        return static_cache
 
 
 def resolve_climate_on_date(
