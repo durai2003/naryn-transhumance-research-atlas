@@ -1,46 +1,74 @@
 # Mini Transhumance Research Data Atlas (3D Spatiotemporal Edition)
 
-An interactive 3D geospatial research-data prototype for exploring mountain transhumance systems in **Naryn Region, Kyrgyzstan**. This upgrade extends the existing Stages 1–6 repository (data acquisition, Stage 3 geospatial/climate pipeline, Stage 4 RDF/JSON-LD/SPARQL knowledge graph, and Streamlit interface) into a full **CesiumJS 3D globe** with animated synthetic herds, terrain-aware least-cost corridors, and climate-responsive pasture suitability scenarios.
+An interactive 3D geospatial research-data prototype for exploring mountain transhumance systems in **Naryn Region, Kyrgyzstan**. The application combines public geographic and climate datasets, reproducible synthetic livestock-movement demonstrations, a spatial-temporal-semantic network explorer, and a provenance-aware RDF/SPARQL knowledge graph.
 
-> **Research Integrity Notice:** Public source datasets (`public`), derived products (`derived`), synthetic demonstration herds/pastures/corridors (`synthetic`), and hypothetical climate perturbations (`simulated_scenario`) are stored and labelled separately. Synthetic records are not real GPS tracks, field interviews, or official pasture-rights parcels.
+> **Research integrity notice:** Public source datasets, derived products, synthetic demonstration herds/pastures/corridors, and hypothetical climate perturbations are kept distinct. Synthetic records are not real GPS tracks, field interviews, observed migration routes, or official pasture-rights parcels. OpenStreetMap roads and tracks are geographic context only.
 
-## Quick Start (macOS / Linux)
+## Main application areas
 
-Run from your existing `transhumance-atlas/` repository root after extracting this upgrade archive:
+- **3D Spatiotemporal Atlas:** CesiumJS globe, terrain and imagery layers, date timeline, synthetic herd movement, climate scenarios, and pasture suitability comparisons.
+- **Network Analysis:** A layered spatial and pastoral mobility network with geographic and abstract graph views, filters, and feature inspection.
+- **Linked Open Data & SPARQL:** RDF/Turtle and JSON-LD knowledge graph, domain ontology, SHACL shapes, and eight packaged SPARQL 1.1 queries.
+
+See `docs/stage7_3d_atlas_architecture.md` for the system design, data provenance, and limitations.
+
+## Run locally
+
+Run these commands from the repository root. The repository already contains processed demonstration inputs and generated simulation/network outputs.
 
 ```bash
-# 1. Create a backup branch & activate your existing Python virtual environment
-git checkout -b feat/3d-cesium-spatiotemporal-atlas
+python3 -m venv .venv
 source .venv/bin/activate
-
-# 2. Install upgraded dependencies
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
-
-# 3. Configure optional tokens (token-free Esri 3D terrain + imagery works out of the box)
-cp .env.example .env
-
-# 4. Download & preprocess Copernicus DEM GLO-30 (30m, automatic GLO-90 fallback)
-python scripts/acquire_dem.py --root .
-
-# 5. Regenerate the reproducible synthetic simulation using your local DEM & WorldCover
-python scripts/generate_herd_simulation.py --root . --seed 42
-
-# 6. Rebuild RDF/JSON-LD graph & execute all 7 SPARQL queries + fixed SHACL validation
-python scripts/run_linked_data.py --root .
-
-# 7. Run the automated test suite
-pytest -q
-
-# 8. Launch the 3D Spatiotemporal Atlas
-python -m streamlit run app.py
+streamlit run app.py
 ```
 
-## Key Upgraded Components
+Optional: acquire and process a local Copernicus DEM (requires network access and additional disk space):
 
-- **3D Globe & Terrain:** `frontend/cesium/index.html`, `src/atlas/cesium_bridge.py`, `src/atlas/terrain.py`, `scripts/acquire_dem.py`
-- **Synthetic Simulation & Scenario Engine:** `config/simulation.yaml`, `config/suitability_weights.yaml`, `src/atlas/simulation/*`, `scripts/generate_herd_simulation.py`
-- **Synchronized Temporal Atlas:** `app.py`, `src/atlas/temporal.py`, `src/atlas/data_access.py`
-- **Extended Linked Open Data & Fixed SHACL:** `ontology/transhumance.ttl`, `queries/shapes/linked_data_shapes.ttl`, `src/linked_data/build_graph.py`, `queries/06_synthetic_herds_and_routes.rq`, `queries/07_scenario_suitability_and_events.rq`
-- **Validation & Tests:** `src/validation/simulation_checks.py`, `src/validation/trajectory_checks.py`, `src/validation/climate_checks.py`, `tests/test_3d_simulation_suite.py`
+```bash
+python scripts/acquire_dem.py --root .
+```
 
-See `docs/stage7_3d_atlas_architecture.md` for full methodology, data provenance, and limitations.
+When a local Copernicus DEM is unavailable, the application explicitly labels its analytical terrain fallback as a synthetic relief proxy. Do not describe that fallback as measured elevation data.
+
+To rebuild the RDF graph and run its packaged SPARQL validation pipeline:
+
+```bash
+python scripts/run_linked_data.py --root .
+```
+
+Run the automated tests with:
+
+```bash
+pytest -q
+```
+
+## Hosted deployment (Render)
+
+The `deploy/render-container` branch contains a Docker-based deployment configuration for Render. A small Nginx reverse proxy exposes both the Streamlit interface and the CesiumJS asset server through the same public HTTPS origin. This is necessary because the local development setup uses a second HTTP server for Cesium assets, network payloads, map tiles, and timeline synchronisation.
+
+To deploy:
+
+1. Connect your GitHub account to Render and grant access to this private repository.
+2. In the Render dashboard, choose **New → Blueprint**.
+3. Select this repository and the `deploy/render-container` branch.
+4. Review the service plan and environment variables from `render.yaml`, then apply the Blueprint.
+5. Wait for the Docker build and health check to complete. The application health endpoint is `/healthz`; the Cesium asset service is routed through `/atlas/`.
+
+The Blueprint defaults to Render's free web-service plan for an initial test. Free services have limited resources, may spin down after inactivity, and use an ephemeral filesystem. Cached Cesium/imagery/terrain assets are therefore treated as disposable cache data. If the service exceeds available memory during startup or interaction, inspect the Render logs and consider a larger instance or reducing the data loaded per session.
+
+Optional API credentials such as `CESIUM_ION_ACCESS_TOKEN` or `GOOGLE_MAPS_API_KEY` should be added through Render's environment-variable settings only when needed. Do not commit secrets to Git.
+
+## Main code locations
+
+- `app.py` — Streamlit entry point.
+- `frontend/cesium/index.html` — 3D atlas interface.
+- `frontend/network/explorer.html` — network explorer interface.
+- `src/atlas/` — atlas data access, Cesium bridge/server, terrain, and temporal state.
+- `src/network/` — network loading, graph modelling, filtering, and explorer payloads.
+- `src/linked_data/` — RDF graph construction and validation.
+- `ontology/`, `queries/`, `vocab/` — semantic model, SHACL shapes, SPARQL queries, and controlled vocabulary.
+- `data/processed/` — processed public/derived geospatial and climate inputs.
+- `data/synthetic/` and `data/network/` — clearly labelled synthetic demonstration outputs and network artifacts.
+- `tests/` — automated validation tests.
