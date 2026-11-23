@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: naryn-transhumance-research-atlas
+    runtime: docker
+    repo: https://github.com/durai2003/naryn-transhumance-research-atlas
+    branch: deploy/render-container
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    autoDeployTrigger: commit
+    envVars:
+      - key: ATLAS_ASSET_BIND_HOST
+        value: 127.0.0.1
+      - key: ATLAS_ASSET_PORT
+        value: "8765"
+      - key: ATLAS_URL_PREFIX
+        value: /atlas
