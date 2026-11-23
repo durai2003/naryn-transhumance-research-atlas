@@ -1,8 +1,4 @@
-"""Mini Transhumance Research Data Atlas — 3D Spatiotemporal CesiumJS + Streamlit Application.
 
-Launch from repository root:
-    python3 -m streamlit run app.py
-"""
 from __future__ import annotations
 
 import os
