@@ -51,3 +51,33 @@ def test_local_development_keeps_loopback_iframe_urls(
         )
     finally:
         server.shutdown()
+
+
+def test_atlas_payloads_are_content_addressable_and_cacheable(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("ATLAS_ASSET_BIND_HOST", "127.0.0.1")
+    monkeypatch.setenv("ATLAS_ASSET_PORT", "0")
+    monkeypatch.setenv("ATLAS_URL_PREFIX", "/atlas")
+
+    server = AtlasAssetServer(tmp_path)
+    try:
+        _wait_until_ready(server)
+        atlas_state = server.register_payload('{"kind":"atlas","value":1}')
+        network_state = server.register_network_payload('{"kind":"network","value":2}')
+
+        atlas_response = requests.get(
+            f"http://127.0.0.1:{server.port}/payload.json?state={atlas_state}",
+            timeout=2,
+        )
+        network_response = requests.get(
+            f"http://127.0.0.1:{server.port}/network/payload.json?state={network_state}",
+            timeout=2,
+        )
+
+        assert atlas_response.json() == {"kind": "atlas", "value": 1}
+        assert network_response.json() == {"kind": "network", "value": 2}
+        assert atlas_response.headers["Cache-Control"] == "public, max-age=604800"
+        assert network_response.headers["Cache-Control"] == "public, max-age=604800"
+    finally:
+        server.shutdown()
