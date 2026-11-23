@@ -6,9 +6,11 @@
   <title>Stage 2 · Synchronised Geographical &amp; Abstract Graph Explorer</title>
   <script>
     window.ATLAS_BASE_PATH = window.location.pathname.startsWith("/atlas/") ? "/atlas" : "";
-    window.CESIUM_BASE_URL = window.ATLAS_BASE_PATH + "/cesium/";
-    document.write('<link href="' + window.ATLAS_BASE_PATH + '/cesium/Widgets/widgets.css" rel="stylesheet" />');
-    document.write('<script src="' + window.ATLAS_BASE_PATH + '/cesium/Cesium.js"><\/script>');
+    window.CESIUM_CDN_BASE = "https://cdn.jsdelivr.net/npm/cesium@1.123.0/Build/Cesium/";
+    window.CESIUM_BASE_URL = window.CESIUM_CDN_BASE;
+    document.write('<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />');
+    document.write('<link href="' + window.CESIUM_CDN_BASE + 'Widgets/widgets.css" rel="stylesheet" />');
+    document.write('<script src="' + window.CESIUM_CDN_BASE + 'Cesium.js"><\/script>');
   </script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -541,10 +543,12 @@ function renderElevationSvg(profile) {
     } else {
       const sat = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_satellite/{z}/{y}/{x}`, maximumLevel: 18 }));
       sat.contrast = 1.06; sat.saturation = 1.08; activeImagery.push(sat);
-      const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_hillshade/{z}/{y}/{x}`, maximumLevel: 16 }));
-      hs.alpha = 0.28; activeImagery.push(hs);
-      const lbl = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_labels/{z}/{y}/{x}`, maximumLevel: 15 }));
-      lbl.alpha = 0.85; activeImagery.push(lbl);
+      if (key === "esri_satellite_detailed") {
+        const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_hillshade/{z}/{y}/{x}`, maximumLevel: 16 }));
+        hs.alpha = 0.28; activeImagery.push(hs);
+        const lbl = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_labels/{z}/{y}/{x}`, maximumLevel: 15 }));
+        lbl.alpha = 0.85; activeImagery.push(lbl);
+      }
     }
   }
   const basemapSel = document.getElementById("basemapSel");
