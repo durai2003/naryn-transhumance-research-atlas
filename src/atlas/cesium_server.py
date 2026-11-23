@@ -70,13 +70,15 @@ class AtlasAssetServer:
         self._latest_state_id: str = "empty"
         self._network_payloads: dict[str, bytes] = {"empty": b"{}"}
         self._latest_network_state_id: str = "empty"
-        self._ui_state: dict[str, Any] = {
-            "date": None,
-            "herd_id": None,
-            "scenario_id": None,
-            "moving_count": None,
-            "total_herds": None,
-            "source": "init",
+        self._ui_states: dict[str, dict[str, Any]] = {
+            "default": {
+                "date": None,
+                "herd_id": None,
+                "scenario_id": None,
+                "moving_count": None,
+                "total_herds": None,
+                "source": "init",
+            }
         }
 
         self._session = requests.Session()
@@ -124,9 +126,11 @@ class AtlasAssetServer:
                     length = int(self.headers.get("Content-Length", "0"))
                     raw = self.rfile.read(min(length, 65536))
                     data = json.loads(raw.decode("utf-8")) if raw else {}
+                    sid = "default"
                     if isinstance(data, dict):
-                        server_ref.update_ui_state(data)
-                    body = json.dumps(server_ref.get_ui_state()).encode("utf-8")
+                        sid = str(data.get("session_id") or "default")
+                        server_ref.update_ui_state(data, session_id=sid)
+                    body = json.dumps(server_ref.get_ui_state(session_id=sid)).encode("utf-8")
                     self._send(body, "application/json; charset=utf-8", 200, cache_sec=0)
                 except Exception as exc:
                     self._send(f"Bad payload: {exc}".encode("utf-8"), "text/plain", 400)
@@ -165,7 +169,8 @@ class AtlasAssetServer:
                     return
 
                 if path == "/api/ui_state":
-                    body = json.dumps(server_ref.get_ui_state()).encode("utf-8")
+                    sid = (query.get("session") or ["default"])[0]
+                    body = json.dumps(server_ref.get_ui_state(session_id=sid)).encode("utf-8")
                     self._send(body, "application/json; charset=utf-8", 200, cache_sec=0)
                     return
 
@@ -268,7 +273,7 @@ class AtlasAssetServer:
         raw = payload_json.encode("utf-8")
         state_id = hashlib.md5(raw).hexdigest()[:12]
         with self._lock:
-            if len(self._payloads) > 12:
+            if len(self._payloads) > 48:
                 self._payloads.clear()
             self._payloads[state_id] = raw
             self._latest_state_id = state_id
@@ -285,7 +290,7 @@ class AtlasAssetServer:
         raw = payload_json.encode("utf-8")
         state_id = hashlib.md5(raw).hexdigest()[:12]
         with self._lock:
-            if len(self._network_payloads) > 12:
+            if len(self._network_payloads) > 48:
                 self._network_payloads.clear()
             self._network_payloads[state_id] = raw
             self._latest_network_state_id = state_id
@@ -305,9 +310,14 @@ class AtlasAssetServer:
         herd_id: str | None = None,
         scenario_id: str | None = None,
         source: str = "streamlit",
+        session_id: str = "default",
     ) -> None:
+        sid = str(session_id or "default")
         with self._lock:
-            self._ui_state = {
+            if len(self._ui_states) > 200 and sid not in self._ui_states:
+                oldest = next(k for k in self._ui_states if k != "default")
+                self._ui_states.pop(oldest, None)
+            self._ui_states[sid] = {
                 "date": date,
                 "herd_id": herd_id,
                 "scenario_id": scenario_id,
@@ -316,16 +326,32 @@ class AtlasAssetServer:
                 "source": source,
             }
 
-    def update_ui_state(self, patch: dict[str, Any]) -> None:
+    def update_ui_state(self, patch: dict[str, Any], *, session_id: str | None = None) -> None:
+        sid = str(session_id or patch.get("session_id") or "default")
         with self._lock:
+            if sid not in self._ui_states:
+                if len(self._ui_states) > 200:
+                    oldest = next(k for k in self._ui_states if k != "default")
+                    self._ui_states.pop(oldest, None)
+                self._ui_states[sid] = {
+                    "date": None,
+                    "herd_id": None,
+                    "scenario_id": None,
+                    "moving_count": None,
+                    "total_herds": None,
+                    "source": "init",
+                }
+            slot = self._ui_states[sid]
             for k in ("date", "herd_id", "scenario_id", "moving_count", "total_herds"):
                 if k in patch:
-                    self._ui_state[k] = patch[k]
-            self._ui_state["source"] = str(patch.get("source", "cesium"))
+                    slot[k] = patch[k]
+            slot["source"] = str(patch.get("source", "cesium"))
 
-    def get_ui_state(self) -> dict[str, Any]:
+    def get_ui_state(self, *, session_id: str = "default") -> dict[str, Any]:
+        sid = str(session_id or "default")
         with self._lock:
-            return dict(self._ui_state)
+            slot = self._ui_states.get(sid) or self._ui_states.get("default") or {}
+            return dict(slot)
 
     def shutdown(self) -> None:
         try:

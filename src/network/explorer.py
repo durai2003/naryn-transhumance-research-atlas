@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import math
+import threading
 from dataclasses import dataclass
 from typing import Any, Sequence
 
@@ -258,90 +259,115 @@ def _normalize_positions(pos_map: dict[str, tuple[float, float]]) -> dict[str, l
     return out
 
 
-def compute_graph_layouts(filtered: FilteredNetwork) -> dict[str, dict[str, list[float]]]:
-    """Compute 4 deterministic normalized [0, 1] x [0, 1] layouts for the Abstract Graph Explorer."""
+_EXPLORER_LOCK = threading.Lock()
+_LAYOUT_CACHE: dict[tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]], dict[str, dict[str, list[float]]]] = {}
+
+
+def compute_graph_layouts(
+    filtered: FilteredNetwork,
+    *,
+    layout_names: Sequence[str] | None = None,
+) -> dict[str, dict[str, list[float]]]:
+    """Compute requested deterministic normalized [0, 1] x [0, 1] layouts with caching.
+
+    When `layout_names` is None, computes all 4 layouts for full backward compatibility.
+    Pass `layout_names=("geographic", "spring")` from the UI to skip expensive Kamada-Kawai.
+    """
+    requested = tuple(sorted(set(layout_names))) if layout_names is not None else (
+        "geographic", "kamada_kawai", "layered_seasonal", "spring"
+    )
     G = filtered.graph
     nodes_gdf = filtered.nodes_gdf
     if G.number_of_nodes() == 0 or nodes_gdf.empty:
-        return {"layered_seasonal": {}, "geographic": {}, "spring": {}, "kamada_kawai": {}}
+        return {name: {} for name in requested}
+
+    n_sig = tuple(sorted(nodes_gdf["node_id"].astype(str).tolist()))
+    e_sig = tuple(sorted(filtered.edges_gdf["edge_id"].astype(str).tolist())) if not filtered.edges_gdf.empty else ()
+    cache_key = (n_sig, e_sig, requested)
+    with _EXPLORER_LOCK:
+        cached = _LAYOUT_CACHE.get(cache_key)
+        if cached is not None:
+            return cached
+
+    result: dict[str, dict[str, list[float]]] = {}
+    req_set = set(requested)
 
     # 1. Geographic XY (projected lon/lat with North at top -> smaller canvas y)
-    geo_raw: dict[str, tuple[float, float]] = {}
-    for _, row in nodes_gdf.iterrows():
-        nid = str(row["node_id"])
-        geo_raw[nid] = (float(row["longitude"]), -float(row["latitude"]))
-    geo_layout = _normalize_positions(geo_raw)
+    if "geographic" in req_set:
+        geo_raw: dict[str, tuple[float, float]] = {}
+        for _, row in nodes_gdf.iterrows():
+            nid = str(row["node_id"])
+            geo_raw[nid] = (float(row["longitude"]), -float(row["latitude"]))
+        result["geographic"] = _normalize_positions(geo_raw)
 
-    # 2. Seasonal Layered layout (structured columns reflecting transhumance logic)
-    # Column order: Settlement -> Winter -> Spring -> Pass/Rest -> Summer -> Autumn -> Water
-    col_x = {
-        "settlement": 0.08,
-        "winter_pasture": 0.23,
-        "spring_pasture": 0.39,
-        "resting_point": 0.52,
-        "mountain_pass": 0.56,
-        "summer_pasture": 0.70,
-        "autumn_pasture": 0.84,
-        "water_point": 0.94,
-    }
-    layered: dict[str, list[float]] = {}
-    for ntype, grp in nodes_gdf.groupby("node_type"):
-        # Sort vertically by latitude descending so north-to-south geography is preserved within each column!
-        grp_s = grp.sort_values(["latitude", "longitude"], ascending=[False, True]).reset_index(drop=True)
-        n = len(grp_s)
-        x_base = col_x.get(str(ntype), 0.5)
-        for i, row in grp_s.iterrows():
-            y = 0.5 if n == 1 else (0.08 + 0.84 * (i / max(n - 1, 1)))
-            # Gentle horizontal stagger for large columns so labels never collide
-            x_jitter = ((i % 2) - 0.5) * 0.032 if n > 12 else 0.0
-            layered[str(row["node_id"])] = [round(float(np.clip(x_base + x_jitter, 0.05, 0.96)), 4), round(float(y), 4)]
+    # 2. Seasonal Layered layout
+    if "layered_seasonal" in req_set:
+        col_x = {
+            "settlement": 0.08,
+            "winter_pasture": 0.23,
+            "spring_pasture": 0.39,
+            "resting_point": 0.52,
+            "mountain_pass": 0.56,
+            "summer_pasture": 0.70,
+            "autumn_pasture": 0.84,
+            "water_point": 0.94,
+        }
+        layered: dict[str, list[float]] = {}
+        for ntype, grp in nodes_gdf.groupby("node_type"):
+            grp_s = grp.sort_values(["latitude", "longitude"], ascending=[False, True]).reset_index(drop=True)
+            n = len(grp_s)
+            x_base = col_x.get(str(ntype), 0.5)
+            for i, row in grp_s.iterrows():
+                y = 0.5 if n == 1 else (0.08 + 0.84 * (i / max(n - 1, 1)))
+                x_jitter = ((i % 2) - 0.5) * 0.032 if n > 12 else 0.0
+                layered[str(row["node_id"])] = [round(float(np.clip(x_base + x_jitter, 0.05, 0.96)), 4), round(float(y), 4)]
+        result["layered_seasonal"] = layered
 
-    # Simplify to undirected simple graph for spring & kamada_kawai
-    G_simple = nx.Graph()
-    for n in G.nodes():
-        G_simple.add_node(n)
-    for u, v, d in G.edges(data=True):
-        if u != v and not G_simple.has_edge(u, v):
-            G_simple.add_edge(u, v, weight=1.0)
+    if "spring" in req_set or "kamada_kawai" in req_set:
+        G_simple = nx.Graph()
+        for n in G.nodes():
+            G_simple.add_node(n)
+        for u, v, _ in G.edges(data=True):
+            if u != v and not G_simple.has_edge(u, v):
+                G_simple.add_edge(u, v, weight=1.0)
 
-    # 3. Spring layout (deterministic seed=42)
-    if G_simple.number_of_nodes() == 1:
-        only = next(iter(G_simple.nodes()))
-        spring_layout = {only: [0.5, 0.5]}
-    else:
-        k_val = 1.6 / math.sqrt(max(G_simple.number_of_nodes(), 2))
-        sp_raw = nx.spring_layout(G_simple, k=k_val, iterations=60, seed=42)
-        spring_layout = _normalize_positions({str(k): (float(v[0]), float(v[1])) for k, v in sp_raw.items()})
+        if "spring" in req_set:
+            if G_simple.number_of_nodes() == 1:
+                only = next(iter(G_simple.nodes()))
+                result["spring"] = {only: [0.5, 0.5]}
+            else:
+                k_val = 1.6 / math.sqrt(max(G_simple.number_of_nodes(), 2))
+                sp_raw = nx.spring_layout(G_simple, k=k_val, iterations=45, seed=42)
+                result["spring"] = _normalize_positions({str(k): (float(v[0]), float(v[1])) for k, v in sp_raw.items()})
 
-    # 4. Kamada-Kawai layout (packed cleanly per connected component so disconnected graphs never pile up)
-    kk_raw: dict[str, tuple[float, float]] = {}
-    comps = sorted((list(c) for c in nx.connected_components(G_simple)), key=lambda c: (-len(c), c[0]))
-    x_cursor = 0.0
-    for comp in comps:
-        if len(comp) == 1:
-            kk_raw[str(comp[0])] = (x_cursor, 0.0)
-            x_cursor += 0.9
-        elif len(comp) == 2:
-            kk_raw[str(comp[0])] = (x_cursor, -0.35)
-            kk_raw[str(comp[1])] = (x_cursor, 0.35)
-            x_cursor += 1.0
-        else:
-            sub = G_simple.subgraph(comp)
-            sub_pos = nx.kamada_kawai_layout(sub)
-            sxs = [float(p[0]) for p in sub_pos.values()]
-            width = max(max(sxs) - min(sxs), 0.6)
-            scale = max(1.0, math.sqrt(len(comp)) * 0.45)
-            for nid, xy in sub_pos.items():
-                kk_raw[str(nid)] = (x_cursor + (float(xy[0]) - min(sxs)) * scale, float(xy[1]) * scale)
-            x_cursor += width * scale + 1.1
-    kk_layout = _normalize_positions(kk_raw)
+        if "kamada_kawai" in req_set:
+            kk_raw: dict[str, tuple[float, float]] = {}
+            comps = sorted((list(c) for c in nx.connected_components(G_simple)), key=lambda c: (-len(c), c[0]))
+            x_cursor = 0.0
+            for comp in comps:
+                if len(comp) == 1:
+                    kk_raw[str(comp[0])] = (x_cursor, 0.0)
+                    x_cursor += 0.9
+                elif len(comp) == 2:
+                    kk_raw[str(comp[0])] = (x_cursor, -0.35)
+                    kk_raw[str(comp[1])] = (x_cursor, 0.35)
+                    x_cursor += 1.0
+                else:
+                    sub = G_simple.subgraph(comp)
+                    sub_pos = nx.kamada_kawai_layout(sub)
+                    sxs = [float(p[0]) for p in sub_pos.values()]
+                    width = max(max(sxs) - min(sxs), 0.6)
+                    scale = max(1.0, math.sqrt(len(comp)) * 0.45)
+                    for nid, xy in sub_pos.items():
+                        kk_raw[str(nid)] = (x_cursor + (float(xy[0]) - min(sxs)) * scale, float(xy[1]) * scale)
+                    x_cursor += width * scale + 1.1
+            result["kamada_kawai"] = _normalize_positions(kk_raw)
 
-    return {
-        "layered_seasonal": layered,
-        "geographic": geo_layout,
-        "spring": spring_layout,
-        "kamada_kawai": kk_layout,
-    }
+    with _EXPLORER_LOCK:
+        if len(_LAYOUT_CACHE) > 48:
+            _LAYOUT_CACHE.clear()
+        _LAYOUT_CACHE[cache_key] = result
+    return result
 
 
 def _build_node_herd_index(net: Stage1NetworkData, livestock_filter: set[str] | None = None) -> dict[str, list[dict[str, Any]]]:
@@ -399,6 +425,28 @@ def _line_coords(geom) -> list[list[float]]:
     return []
 
 
+def _get_net_explorer_cache(net: Stage1NetworkData) -> dict[str, Any]:
+    cached = getattr(net, "_explorer_cache", None)
+    if cached is not None:
+        return cached
+    with _EXPLORER_LOCK:
+        cached = getattr(net, "_explorer_cache", None)
+        if cached is not None:
+            return cached
+        boundary_geojson = (
+            json.loads(net.boundary[["shapeName", "shapeISO", "geometry"]].to_json())
+            if not net.boundary.empty and {"shapeName", "shapeISO"}.issubset(net.boundary.columns)
+            else (json.loads(net.boundary.to_json()) if not net.boundary.empty else {"type": "FeatureCollection", "features": []})
+        )
+        cache_obj: dict[str, Any] = {
+            "boundary": boundary_geojson,
+            "node_herds": {},
+            "payloads": {},
+        }
+        setattr(net, "_explorer_cache", cache_obj)
+        return cache_obj
+
+
 def build_network_explorer_payload(
     net: Stage1NetworkData,
     filtered: FilteredNetwork,
@@ -408,13 +456,41 @@ def build_network_explorer_payload(
     initial_layout: str = "layered_seasonal",
     selected_node_id: str | None = None,
     selected_edge_id: str | None = None,
+    layout_names: Sequence[str] | None = None,
 ) -> dict[str, Any]:
     """Assemble the complete JSON payload for the Synchronised Geographical + Abstract Graph Explorer."""
+    net_cache = _get_net_explorer_cache(net)
+    n_sig = tuple(sorted(filtered.nodes_gdf["node_id"].astype(str).tolist())) if not filtered.nodes_gdf.empty else ()
+    e_sig = tuple(sorted(filtered.edges_gdf["edge_id"].astype(str).tolist())) if not filtered.edges_gdf.empty else ()
+    ls_key = tuple(sorted(str(s).lower() for s in (filtered.active_filters.get("livestock_types") or [])))
+    lay_key = tuple(sorted(set(layout_names))) if layout_names is not None else ("geographic", "kamada_kawai", "layered_seasonal", "spring")
+    pub_only = bool(filtered.active_filters.get("public_only", False))
+    base_key = (n_sig, e_sig, ls_key, lay_key, pub_only)
+
+    with _EXPLORER_LOCK:
+        cached_base = net_cache["payloads"].get(base_key)
+    if cached_base is not None:
+        return {
+            **cached_base,
+            "config": {
+                "basemap": basemap,
+                "verticalExaggeration": float(vertical_exaggeration),
+                "initialLayout": initial_layout,
+                "selectedNodeId": selected_node_id,
+                "selectedEdgeId": selected_edge_id,
+                "activeFilters": filtered.active_filters,
+            },
+        }
+
     G = filtered.graph
-    layouts = compute_graph_layouts(filtered)
-    ls_filter = set(filtered.active_filters.get("livestock_types") or [])
-    ls_set = {s.lower() for s in ls_filter} if ls_filter else None
-    node_herds_index = _build_node_herd_index(net, livestock_filter=ls_set)
+    layouts = compute_graph_layouts(filtered, layout_names=layout_names)
+    ls_set = set(ls_key) if ls_key else None
+    with _EXPLORER_LOCK:
+        node_herds_index = net_cache["node_herds"].get(ls_key)
+    if node_herds_index is None:
+        node_herds_index = _build_node_herd_index(net, livestock_filter=ls_set)
+        with _EXPLORER_LOCK:
+            net_cache["node_herds"][ls_key] = node_herds_index
 
     # Pre-index node names for fast edge tooltips/inspectors
     node_names = {
@@ -540,22 +616,8 @@ def build_network_explorer_payload(
             "connected_herd_count": len(herds_for_node),
         })
 
-    boundary_geojson = (
-        json.loads(net.boundary[["shapeName", "shapeISO", "geometry"]].to_json())
-        if not net.boundary.empty and {"shapeName", "shapeISO"}.issubset(net.boundary.columns)
-        else (json.loads(net.boundary.to_json()) if not net.boundary.empty else {"type": "FeatureCollection", "features": []})
-    )
-
-    return {
+    base_payload = {
         "stage": "stage2_network_explorer",
-        "config": {
-            "basemap": basemap,
-            "verticalExaggeration": float(vertical_exaggeration),
-            "initialLayout": initial_layout,
-            "selectedNodeId": selected_node_id,
-            "selectedEdgeId": selected_edge_id,
-            "activeFilters": filtered.active_filters,
-        },
         "meta": {
             "nodeCategories": NODE_CATEGORY_META,
             "edgeCategories": EDGE_CATEGORY_META,
@@ -572,6 +634,22 @@ def build_network_explorer_payload(
         "layouts": layouts,
         "nodes": node_records,
         "edges": edge_records,
-        "boundary": boundary_geojson,
+        "boundary": net_cache["boundary"],
         "localDemGrid": export_local_dem_grid(net.root),
+    }
+    with _EXPLORER_LOCK:
+        if len(net_cache["payloads"]) > 32:
+            net_cache["payloads"].clear()
+        net_cache["payloads"][base_key] = base_payload
+
+    return {
+        **base_payload,
+        "config": {
+            "basemap": basemap,
+            "verticalExaggeration": float(vertical_exaggeration),
+            "initialLayout": initial_layout,
+            "selectedNodeId": selected_node_id,
+            "selectedEdgeId": selected_edge_id,
+            "activeFilters": filtered.active_filters,
+        },
     }

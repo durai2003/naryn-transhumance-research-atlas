@@ -1,7 +1,8 @@
-"""Shared temporal state, authoritative snapshot/corridor resolvers, and CesiumJS payload builder."""
+"""Shared temporal state, cached payload assembly, and authoritative snapshot/corridor resolvers."""
 from __future__ import annotations
 
 import json
+import threading
 from typing import Any
 
 import geopandas as gpd
@@ -12,6 +13,7 @@ from src.atlas.data_access import AtlasData
 from src.atlas.terrain import export_local_dem_grid
 
 MOVING_STATES = frozenset({"departing", "moving", "seasonal_transition", "returning"})
+_CACHE_LOCK = threading.Lock()
 
 
 def _gdf_to_compact_geojson(gdf: gpd.GeoDataFrame | None, props: list[str] | None = None) -> dict[str, Any]:
@@ -28,13 +30,7 @@ def reconcile_trajectory_pasture_state(
     traj_df: pd.DataFrame,
     events_df: pd.DataFrame | None,
 ) -> pd.DataFrame:
-    """Ensure current/previous pasture and next destination are logically consistent on every date.
-
-    Resolves the known premature-flip bug in pre-generated trajectory CSVs (where
-    `current_pasture_id` switched to `destination` at `frac >= 0.5` while still moving)
-    strictly from the authoritative departure/arrival legs in `movement_events.csv`,
-    without regenerating or modifying any dataset on disk.
-    """
+    """Ensure current/previous pasture and next destination are logically consistent on every date."""
     if traj_df is None or traj_df.empty:
         return traj_df
     if events_df is None or events_df.empty:
@@ -105,9 +101,55 @@ def _get_reconciled_trajectories(data: AtlasData) -> pd.DataFrame:
     cached = getattr(data, "_reconciled_trajectories", None)
     if cached is not None:
         return cached
-    rec = reconcile_trajectory_pasture_state(data.herd_trajectories, data.movement_events)
-    setattr(data, "_reconciled_trajectories", rec)
-    return rec
+    with _CACHE_LOCK:
+        cached = getattr(data, "_reconciled_trajectories", None)
+        if cached is not None:
+            return cached
+        rec = reconcile_trajectory_pasture_state(data.herd_trajectories, data.movement_events)
+        setattr(data, "_reconciled_trajectories", rec)
+        return rec
+
+
+def _get_static_assets_cache(data: AtlasData) -> dict[str, Any]:
+    """Serialize heavy static GIS layers once per shared AtlasData resource."""
+    cached = getattr(data, "_static_assets_cache", None)
+    if cached is not None:
+        return cached
+    with _CACHE_LOCK:
+        cached = getattr(data, "_static_assets_cache", None)
+        if cached is not None:
+            return cached
+        locations_payload = []
+        if not data.locations.empty:
+            for _, r in data.locations.dropna(subset=["latitude", "longitude"]).iterrows():
+                locations_payload.append({
+                    "location_id": str(r.get("location_id", "")),
+                    "name": str(r.get("location_name", "Location")),
+                    "qid": str(r.get("external_identifier", "")),
+                    "lat": float(r["latitude"]),
+                    "lon": float(r["longitude"]),
+                    "provenance": "Wikidata verified entity reference (not a weather station)",
+                })
+        static_cache: dict[str, Any] = {
+            "boundary": _gdf_to_compact_geojson(data.boundary, ["shapeName", "shapeISO", "shapeID"]),
+            "corridors": _gdf_to_compact_geojson(
+                data.migration_corridors,
+                ["route_id", "name", "origin_pasture_id", "destination_pasture_id", "season",
+                 "distance_km", "elevation_gain_m", "elevation_loss_m", "avg_slope_deg",
+                 "estimated_travel_days", "route_generation_method", "is_synthetic", "provenance"],
+            ),
+            "osm_roads": _gdf_to_compact_geojson(data.osm_roads.head(1200) if data.osm_roads is not None else None, ["fclass", "name", "ref"]),
+            "osm_waterways": _gdf_to_compact_geojson(data.osm_waterways.head(900) if data.osm_waterways is not None else None, ["fclass", "name"]),
+            "osm_settlements": _gdf_to_compact_geojson(data.osm_settlements.head(220) if data.osm_settlements is not None else None, ["fclass", "name", "population"]),
+            "empty_fc": {"type": "FeatureCollection", "features": []},
+            "locations": locations_payload,
+            "climate_by_scenario": {},
+            "pastures_by_scenario_season": {},
+            "herds_by_scenario_species": {},
+            "events_by_scenario_herd": {},
+        }
+        setattr(data, "_static_assets_cache", static_cache)
+        return static_cache
 
 
 def resolve_climate_on_date(
@@ -183,7 +225,6 @@ def resolve_herd_snapshot(
         moving_rows = day_slice.loc[moving_mask]
         chosen_row = moving_rows.iloc[0] if not moving_rows.empty else day_slice.iloc[0]
 
-    # Always synchronize herd climate context with scenario_climate for exact date agreement
     t_val = climate["t2m_c"] if climate["t2m_c"] is not None else (
         None if pd.isna(chosen_row["temperature_context"]) else round(float(chosen_row["temperature_context"]), 2)
     )
@@ -256,11 +297,7 @@ def resolve_corridor_profile(
     origin_pasture_id: str | None = None,
     dest_pasture_id: str | None = None,
 ) -> dict[str, Any] | None:
-    """Resolve the exact corridor elevation profile for a herd's route_id (direct, reversed, or composite A+B).
-
-    Returns None when no matching modelled corridor geometry exists so callers can display an
-    honest message instead of showing an unrelated fallback corridor.
-    """
+    """Resolve the exact corridor elevation profile for a herd's route_id (direct, reversed, or composite A+B)."""
     routes = data.migration_corridors
     if routes is None or routes.empty or not route_id:
         return None
@@ -268,7 +305,10 @@ def resolve_corridor_profile(
     if not rid_str or rid_str == "nan":
         return None
 
-    by_id = {str(r["route_id"]): r for _, r in routes.iterrows()}
+    by_id = getattr(data, "_routes_by_id_cache", None)
+    if by_id is None:
+        by_id = {str(r["route_id"]): r for _, r in routes.iterrows()}
+        setattr(data, "_routes_by_id_cache", by_id)
 
     def _parse_prof(row) -> list[dict[str, Any]]:
         raw = row.get("elevation_profile_json") if hasattr(row, "get") else row["elevation_profile_json"]
@@ -279,7 +319,6 @@ def resolve_corridor_profile(
                 return []
         return []
 
-    # 1. Exact single corridor match
     if rid_str in by_id:
         row = by_id[rid_str]
         prof = _parse_prof(row)
@@ -301,7 +340,6 @@ def resolve_corridor_profile(
             "profile": oriented,
         }
 
-    # 2. Composite corridor (e.g., SYN-CORRIDOR-003+SYN-CORRIDOR-012)
     if "+" in rid_str:
         parts = [p.strip() for p in rid_str.split("+") if p.strip()]
         stitched: list[dict[str, Any]] = []
@@ -341,7 +379,6 @@ def resolve_corridor_profile(
                 "profile": stitched,
             }
 
-    # 3. Direct endpoint match for FALLBACK routes if an existing corridor connects the same pair
     if origin_pasture_id and dest_pasture_id:
         for cid, row in by_id.items():
             c_orig = str(row.get("origin_pasture_id", ""))
@@ -382,82 +419,33 @@ def build_cesium_payload(
     playback_speed: float = 10.0,
     cesium_ion_token: str = "",
     google_maps_api_key: str = "",
+    session_id: str | None = None,
 ) -> dict[str, Any]:
-    """Assemble a clean, synchronized JSON payload for the CesiumJS 3D globe."""
+    """Assemble a clean, synchronized, heavily cached JSON payload for the CesiumJS 3D globe."""
     layers = show_layers or {}
+    static = _get_static_assets_cache(data)
 
-    traj = _get_reconciled_trajectories(data)
-    if not traj.empty:
-        traj = traj.loc[traj["climate_scenario"] == scenario_id]
-        if species_filter:
-            traj = traj.loc[traj["species"].isin(species_filter)]
-
-    # Compact per-herd sampled trajectory arrays:
-    # [iso_time, lon, lat, elev, state, current_pasture_id, next_pasture_id, suit, speed, route_id]
-    # Keep every moving/arrived day, every transition boundary day (day before & day after moving),
-    # selected_date, and periodic stationary anchors so JS lookup on ANY date returns exact state!
-    herds_payload: list[dict[str, Any]] = []
-    if not traj.empty:
-        herd_meta = data.synthetic_herds.set_index("herd_id").to_dict(orient="index") if not data.synthetic_herds.empty else {}
-        for hid, grp in traj.groupby("herd_id", sort=True):
-            grp = grp.sort_values("date").reset_index(drop=True)
-            is_active = grp["movement_state"].isin(MOVING_STATES | {"arrived"})
-            state_changed = grp["movement_state"].ne(grp["movement_state"].shift(1))
-            pasture_changed = grp["current_pasture_id"].ne(grp["current_pasture_id"].shift(1))
-            keep_mask = (
-                is_active
-                | state_changed
-                | pasture_changed
-                | (grp.index % 7 == 0)
-                | (grp.index == 0)
-                | (grp.index == len(grp) - 1)
-                | (grp["date"] == selected_date)
-            )
-            sub = grp.loc[keep_mask]
-            samples = [
-                [
-                    str(r.timestamp),
-                    round(float(r.longitude), 5),
-                    round(float(r.latitude), 5),
-                    round(float(r.elevation_m), 1),
-                    str(r.movement_state),
-                    str(r.current_pasture_id),
-                    str(r.next_pasture_id),
-                    round(float(r.pasture_suitability_score), 3),
-                    round(float(r.movement_speed_km_day), 2),
-                    str(r.route_id),
-                ]
-                for r in sub.itertuples(index=False)
+    # 1. Cached climate series per scenario
+    clim_cache = static["climate_by_scenario"]
+    clim_series = clim_cache.get(scenario_id)
+    if clim_series is None:
+        built_clim = []
+        if not data.scenario_climate.empty:
+            sc = data.scenario_climate.loc[data.scenario_climate["scenario_id"] == scenario_id].sort_values("date_str")
+            built_clim = [
+                {
+                    "date": str(r.date_str),
+                    "season": str(r.season),
+                    "t2m_c": None if pd.isna(r.scenario_t2m_c) else round(float(r.scenario_t2m_c), 2),
+                    "precip_mm": None if pd.isna(r.scenario_precip_mm_day) else round(float(r.scenario_precip_mm_day), 2),
+                    "precip_30d_mm": None if pd.isna(r.precip_30d_mm) else round(float(r.precip_30d_mm), 1),
+                    "snow_risk": bool(r.high_alpine_snow_risk),
+                }
+                for r in sc.itertuples(index=False)
             ]
-            meta = herd_meta.get(str(hid), {})
-            herds_payload.append({
-                "herd_id": str(hid),
-                "herd_name": str(meta.get("herd_name", hid)),
-                "species": str(grp["species"].iloc[0]),
-                "group_size": int(grp["group_size"].iloc[0]),
-                "winter_pasture_id": str(meta.get("winter_pasture_id", "")),
-                "summer_pasture_id": str(meta.get("summer_pasture_id", "")),
-                "origin_class": str(grp["origin_class"].iloc[0]),
-                "provenance": "synthetic_demo",
-                "is_synthetic": True,
-                "samples": samples,
-            })
-
-    # Climate timeline array for HUD & right panel readout during playback
-    clim_series = []
-    if not data.scenario_climate.empty:
-        sc = data.scenario_climate.loc[data.scenario_climate["scenario_id"] == scenario_id].sort_values("date_str")
-        clim_series = [
-            {
-                "date": str(r.date_str),
-                "season": str(r.season),
-                "t2m_c": None if pd.isna(r.scenario_t2m_c) else round(float(r.scenario_t2m_c), 2),
-                "precip_mm": None if pd.isna(r.scenario_precip_mm_day) else round(float(r.scenario_precip_mm_day), 2),
-                "precip_30d_mm": None if pd.isna(r.precip_30d_mm) else round(float(r.precip_30d_mm), 1),
-                "snow_risk": bool(r.high_alpine_snow_risk),
-            }
-            for r in sc.itertuples(index=False)
-        ]
+        with _CACHE_LOCK:
+            clim_cache[scenario_id] = built_clim
+        clim_series = built_clim
 
     current_season = "summer"
     if clim_series:
@@ -465,50 +453,127 @@ def build_cesium_payload(
         if match:
             current_season = match["season"]
 
-    pastures_gdf = data.synthetic_pastures
-    if pastures_gdf is not None and not pastures_gdf.empty and not data.suitability_scores.empty:
-        s_map = (
-            data.suitability_scores.loc[
-                (data.suitability_scores["scenario_id"] == scenario_id)
-                & (data.suitability_scores["season"] == current_season)
-            ]
-            .set_index("pasture_id")["suitability_score"]
-            .to_dict()
+    # 2. Cached herd samples per (scenario_id, sorted species tuple)
+    species_key = tuple(sorted(str(s) for s in (species_filter or [])))
+    herd_cache_key = (scenario_id, species_key)
+    herds_cache = static["herds_by_scenario_species"]
+    herds_payload = herds_cache.get(herd_cache_key)
+    if herds_payload is None:
+        traj = _get_reconciled_trajectories(data)
+        if not traj.empty:
+            traj = traj.loc[traj["climate_scenario"] == scenario_id]
+            if species_filter:
+                traj = traj.loc[traj["species"].isin(species_filter)]
+
+        built_herds: list[dict[str, Any]] = []
+        if not traj.empty:
+            herd_meta = data.synthetic_herds.set_index("herd_id").to_dict(orient="index") if not data.synthetic_herds.empty else {}
+            for hid, grp in traj.groupby("herd_id", sort=True):
+                grp = grp.sort_values("date").reset_index(drop=True)
+                is_active = grp["movement_state"].isin(MOVING_STATES | {"arrived"})
+                state_changed = grp["movement_state"].ne(grp["movement_state"].shift(1))
+                pasture_changed = grp["current_pasture_id"].ne(grp["current_pasture_id"].shift(1))
+                season_changed = grp["season"].ne(grp["season"].shift(1))
+                keep_mask = (
+                    is_active
+                    | state_changed
+                    | pasture_changed
+                    | season_changed
+                    | (grp.index % 7 == 0)
+                    | (grp.index == 0)
+                    | (grp.index == len(grp) - 1)
+                )
+                sub = grp.loc[keep_mask]
+                samples = [
+                    [
+                        str(r.timestamp),
+                        round(float(r.longitude), 5),
+                        round(float(r.latitude), 5),
+                        round(float(r.elevation_m), 1),
+                        str(r.movement_state),
+                        str(r.current_pasture_id),
+                        str(r.next_pasture_id),
+                        round(float(r.pasture_suitability_score), 3),
+                        round(float(r.movement_speed_km_day), 2),
+                        str(r.route_id),
+                    ]
+                    for r in sub.itertuples(index=False)
+                ]
+                meta = herd_meta.get(str(hid), {})
+                built_herds.append({
+                    "herd_id": str(hid),
+                    "herd_name": str(meta.get("herd_name", hid)),
+                    "species": str(grp["species"].iloc[0]),
+                    "group_size": int(grp["group_size"].iloc[0]),
+                    "winter_pasture_id": str(meta.get("winter_pasture_id", "")),
+                    "summer_pasture_id": str(meta.get("summer_pasture_id", "")),
+                    "origin_class": str(grp["origin_class"].iloc[0]),
+                    "provenance": "synthetic_demo",
+                    "is_synthetic": True,
+                    "samples": samples,
+                })
+        with _CACHE_LOCK:
+            if len(herds_cache) > 32:
+                herds_cache.clear()
+            herds_cache[herd_cache_key] = built_herds
+        herds_payload = built_herds
+
+    # 3. Cached pastures GeoJSON per (scenario_id, current_season)
+    pasture_key = (scenario_id, current_season)
+    pastures_cache = static["pastures_by_scenario_season"]
+    pastures_geojson = pastures_cache.get(pasture_key)
+    if pastures_geojson is None:
+        pastures_gdf = data.synthetic_pastures
+        if pastures_gdf is not None and not pastures_gdf.empty and not data.suitability_scores.empty:
+            s_map = (
+                data.suitability_scores.loc[
+                    (data.suitability_scores["scenario_id"] == scenario_id)
+                    & (data.suitability_scores["season"] == current_season)
+                ]
+                .set_index("pasture_id")["suitability_score"]
+                .to_dict()
+            )
+            pastures_gdf = pastures_gdf.copy()
+            pastures_gdf["current_suitability"] = pastures_gdf["pasture_id"].map(s_map).fillna(0.5).round(3)
+        built_pastures = _gdf_to_compact_geojson(
+            pastures_gdf,
+            ["pasture_id", "pasture_name", "elevation_m", "slope_degrees", "elevation_band",
+             "landcover_class", "water_access_indicator", "seasonal_suitability", "current_suitability",
+             "elevation_source", "is_synthetic", "provenance"],
         )
-        pastures_gdf = pastures_gdf.copy()
-        pastures_gdf["current_suitability"] = pastures_gdf["pasture_id"].map(s_map).fillna(0.5).round(3)
+        with _CACHE_LOCK:
+            pastures_cache[pasture_key] = built_pastures
+        pastures_geojson = built_pastures
 
-    events_payload = []
-    if not data.movement_events.empty:
-        ev = data.movement_events.loc[data.movement_events["climate_scenario"] == scenario_id]
-        if selected_herd_id and selected_herd_id != "All herds":
-            ev = ev.loc[ev["herd_id"] == selected_herd_id]
-        else:
-            ev = ev.head(60)
-        events_payload = [
-            {
-                "event_id": str(r.event_id),
-                "timestamp": str(r.timestamp),
-                "herd_id": str(r.herd_id),
-                "event_type": str(r.event_type),
-                "leg_name": str(r.leg_name),
-                "pasture_id": str(r.pasture_id),
-                "changed": bool(r.scenario_changed_route),
-            }
-            for r in ev.itertuples(index=False)
-        ]
-
-    locations_payload = []
-    if not data.locations.empty:
-        for _, r in data.locations.dropna(subset=["latitude", "longitude"]).iterrows():
-            locations_payload.append({
-                "location_id": str(r.get("location_id", "")),
-                "name": str(r.get("location_name", "Location")),
-                "qid": str(r.get("external_identifier", "")),
-                "lat": float(r["latitude"]),
-                "lon": float(r["longitude"]),
-                "provenance": "Wikidata verified entity reference (not a weather station)",
-            })
+    # 4. Cached events list per (scenario_id, selected_herd_id)
+    ev_key = (scenario_id, str(selected_herd_id or "All herds"))
+    ev_cache = static["events_by_scenario_herd"]
+    events_payload = ev_cache.get(ev_key)
+    if events_payload is None:
+        built_events = []
+        if not data.movement_events.empty:
+            ev = data.movement_events.loc[data.movement_events["climate_scenario"] == scenario_id]
+            if selected_herd_id and selected_herd_id != "All herds":
+                ev = ev.loc[ev["herd_id"] == selected_herd_id]
+            else:
+                ev = ev.head(60)
+            built_events = [
+                {
+                    "event_id": str(r.event_id),
+                    "timestamp": str(r.timestamp),
+                    "herd_id": str(r.herd_id),
+                    "event_type": str(r.event_type),
+                    "leg_name": str(r.leg_name),
+                    "pasture_id": str(r.pasture_id),
+                    "changed": bool(r.scenario_changed_route),
+                }
+                for r in ev.itertuples(index=False)
+            ]
+        with _CACHE_LOCK:
+            if len(ev_cache) > 64:
+                ev_cache.clear()
+            ev_cache[ev_key] = built_events
+        events_payload = built_events
 
     start_iso = f"{clim_series[0]['date']}T00:00:00Z" if clim_series else "2024-01-01T00:00:00Z"
     end_iso = f"{clim_series[-1]['date']}T23:59:59Z" if clim_series else "2024-12-31T23:59:59Z"
@@ -520,8 +585,10 @@ def build_cesium_payload(
         "local_dem_resolution": tstat.resolution_desc if tstat else "N/A",
     }
 
+    empty_fc = static["empty_fc"]
     return {
         "config": {
+            "sessionId": session_id or "default",
             "cesiumIonToken": cesium_ion_token,
             "googleMapsApiKey": google_maps_api_key,
             "cameraMode": camera_mode,
@@ -537,26 +604,16 @@ def build_cesium_payload(
             "layers": layers,
             "terrainMeta": terrain_meta,
         },
-        "boundary": _gdf_to_compact_geojson(data.boundary, ["shapeName", "shapeISO", "shapeID"]),
-        "pastures": _gdf_to_compact_geojson(
-            pastures_gdf,
-            ["pasture_id", "pasture_name", "elevation_m", "slope_degrees", "elevation_band",
-             "landcover_class", "water_access_indicator", "seasonal_suitability", "current_suitability",
-             "elevation_source", "is_synthetic", "provenance"],
-        ),
-        "corridors": _gdf_to_compact_geojson(
-            data.migration_corridors,
-            ["route_id", "name", "origin_pasture_id", "destination_pasture_id", "season",
-             "distance_km", "elevation_gain_m", "elevation_loss_m", "avg_slope_deg",
-             "estimated_travel_days", "route_generation_method", "is_synthetic", "provenance"],
-        ),
+        "boundary": static["boundary"],
+        "pastures": pastures_geojson,
+        "corridors": static["corridors"],
         "osm": {
-            "roads": _gdf_to_compact_geojson(data.osm_roads, ["fclass", "name", "ref"]) if layers.get("osm_roads", True) else {"type": "FeatureCollection", "features": []},
-            "waterways": _gdf_to_compact_geojson(data.osm_waterways, ["fclass", "name"]) if layers.get("osm_water", True) else {"type": "FeatureCollection", "features": []},
-            "waterbodies": _gdf_to_compact_geojson(data.osm_waterbodies, ["fclass", "name"]) if layers.get("osm_water", True) else {"type": "FeatureCollection", "features": []},
-            "settlements": _gdf_to_compact_geojson(data.osm_settlements, ["fclass", "name", "population"]) if layers.get("osm_settlements", True) else {"type": "FeatureCollection", "features": []},
+            "roads": static["osm_roads"] if layers.get("osm_roads", True) else empty_fc,
+            "waterways": static["osm_waterways"] if layers.get("osm_water", True) else empty_fc,
+            "waterbodies": empty_fc,
+            "settlements": static["osm_settlements"] if layers.get("osm_settlements", True) else empty_fc,
         },
-        "locations": locations_payload,
+        "locations": static["locations"],
         "herds": herds_payload,
         "events": events_payload,
         "climate": clim_series,
