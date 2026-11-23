@@ -528,6 +528,7 @@ function renderElevationSvg(profile) {
   viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#16324f");
   viewer.scene.globe.enableLighting = false;
   viewer.scene.globe.depthTestAgainstTerrain = false;
+  viewer.scene.globe.maximumScreenSpaceError = 3.5; // Fewer initial terrain tiles on constrained hosting.
   viewer.scene.verticalExaggeration = Math.max(1.0, cfg.verticalExaggeration || 1.4);
 
   let activeImagery = [];
