@@ -298,8 +298,9 @@ else:
         sidebar_date: str,
         species_filter: list[str],
         sidebar_herd_id: str,
+        session_id: str,
     ) -> None:
-        _render_synced_charts_body(data, scenario_id, sidebar_date, species_filter, sidebar_herd_id)
+        _render_synced_charts_body(data, scenario_id, sidebar_date, species_filter, sidebar_herd_id, session_id)
 
 
 def _select_active_view() -> str:
