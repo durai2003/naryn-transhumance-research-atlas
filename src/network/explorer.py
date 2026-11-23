@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import math
+import threading
 from dataclasses import dataclass
 from typing import Any, Sequence
 
@@ -258,91 +259,117 @@ def _normalize_positions(pos_map: dict[str, tuple[float, float]]) -> dict[str, l
     return out
 
 
-def compute_graph_layouts(filtered: FilteredNetwork) -> dict[str, dict[str, list[float]]]:
-    """Compute 4 deterministic normalized [0, 1] x [0, 1] layouts for the Abstract Graph Explorer."""
-    G = filtered.graph
+_EXPLORER_LOCK = threading.Lock()
+_LAYOUT_CACHE: dict[tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]], dict[str, dict[str, list[float]]]] = {}
+
+
+def compute_graph_layouts(
+    filtered: FilteredNetwork,
+    *,
+    layout_names: Sequence[str] | None = None,
+) -> dict[str, dict[str, list[float]]]:
+    """Compute requested deterministic layouts and reuse them across visitors."""
+    requested = tuple(sorted(set(layout_names))) if layout_names is not None else (
+        "geographic", "kamada_kawai", "layered_seasonal", "spring"
+    )
+    graph = filtered.graph
     nodes_gdf = filtered.nodes_gdf
-    if G.number_of_nodes() == 0 or nodes_gdf.empty:
-        return {"layered_seasonal": {}, "geographic": {}, "spring": {}, "kamada_kawai": {}}
+    if graph.number_of_nodes() == 0 or nodes_gdf.empty:
+        return {name: {} for name in requested}
 
-    # 1. Geographic XY (projected lon/lat with North at top -> smaller canvas y)
-    geo_raw: dict[str, tuple[float, float]] = {}
-    for _, row in nodes_gdf.iterrows():
-        nid = str(row["node_id"])
-        geo_raw[nid] = (float(row["longitude"]), -float(row["latitude"]))
-    geo_layout = _normalize_positions(geo_raw)
+    node_signature = tuple(sorted(nodes_gdf["node_id"].astype(str).tolist()))
+    edge_signature = tuple(sorted(filtered.edges_gdf["edge_id"].astype(str).tolist())) if not filtered.edges_gdf.empty else ()
+    cache_key = (node_signature, edge_signature, requested)
+    with _EXPLORER_LOCK:
+        cached = _LAYOUT_CACHE.get(cache_key)
+        if cached is not None:
+            return cached
 
-    # 2. Seasonal Layered layout (structured columns reflecting transhumance logic)
-    # Column order: Settlement -> Winter -> Spring -> Pass/Rest -> Summer -> Autumn -> Water
-    col_x = {
-        "settlement": 0.08,
-        "winter_pasture": 0.23,
-        "spring_pasture": 0.39,
-        "resting_point": 0.52,
-        "mountain_pass": 0.56,
-        "summer_pasture": 0.70,
-        "autumn_pasture": 0.84,
-        "water_point": 0.94,
-    }
-    layered: dict[str, list[float]] = {}
-    for ntype, grp in nodes_gdf.groupby("node_type"):
-        # Sort vertically by latitude descending so north-to-south geography is preserved within each column!
-        grp_s = grp.sort_values(["latitude", "longitude"], ascending=[False, True]).reset_index(drop=True)
-        n = len(grp_s)
-        x_base = col_x.get(str(ntype), 0.5)
-        for i, row in grp_s.iterrows():
-            y = 0.5 if n == 1 else (0.08 + 0.84 * (i / max(n - 1, 1)))
-            # Gentle horizontal stagger for large columns so labels never collide
-            x_jitter = ((i % 2) - 0.5) * 0.032 if n > 12 else 0.0
-            layered[str(row["node_id"])] = [round(float(np.clip(x_base + x_jitter, 0.05, 0.96)), 4), round(float(y), 4)]
+    result: dict[str, dict[str, list[float]]] = {}
+    wanted = set(requested)
 
-    # Simplify to undirected simple graph for spring & kamada_kawai
-    G_simple = nx.Graph()
-    for n in G.nodes():
-        G_simple.add_node(n)
-    for u, v, d in G.edges(data=True):
-        if u != v and not G_simple.has_edge(u, v):
-            G_simple.add_edge(u, v, weight=1.0)
+    if "geographic" in wanted:
+        geo_raw = {
+            str(row["node_id"]): (float(row["longitude"]), -float(row["latitude"]))
+            for _, row in nodes_gdf.iterrows()
+        }
+        result["geographic"] = _normalize_positions(geo_raw)
 
-    # 3. Spring layout (deterministic seed=42)
-    if G_simple.number_of_nodes() == 1:
-        only = next(iter(G_simple.nodes()))
-        spring_layout = {only: [0.5, 0.5]}
-    else:
-        k_val = 1.6 / math.sqrt(max(G_simple.number_of_nodes(), 2))
-        sp_raw = nx.spring_layout(G_simple, k=k_val, iterations=60, seed=42)
-        spring_layout = _normalize_positions({str(k): (float(v[0]), float(v[1])) for k, v in sp_raw.items()})
+    if "layered_seasonal" in wanted:
+        col_x = {
+            "settlement": 0.08, "winter_pasture": 0.23, "spring_pasture": 0.39,
+            "resting_point": 0.52, "mountain_pass": 0.56, "summer_pasture": 0.70,
+            "autumn_pasture": 0.84, "water_point": 0.94,
+        }
+        layered: dict[str, list[float]] = {}
+        for node_type, group in nodes_gdf.groupby("node_type"):
+            group_sorted = group.sort_values(
+                ["latitude", "longitude"], ascending=[False, True]
+            ).reset_index(drop=True)
+            count = len(group_sorted)
+            x_base = col_x.get(str(node_type), 0.5)
+            for index, row in group_sorted.iterrows():
+                y = 0.5 if count == 1 else (0.08 + 0.84 * (index / max(count - 1, 1)))
+                jitter = ((index % 2) - 0.5) * 0.032 if count > 12 else 0.0
+                layered[str(row["node_id"])] = [
+                    round(float(np.clip(x_base + jitter, 0.05, 0.96)), 4),
+                    round(float(y), 4),
+                ]
+        result["layered_seasonal"] = layered
 
-    # 4. Kamada-Kawai layout (packed cleanly per connected component so disconnected graphs never pile up)
-    kk_raw: dict[str, tuple[float, float]] = {}
-    comps = sorted((list(c) for c in nx.connected_components(G_simple)), key=lambda c: (-len(c), c[0]))
-    x_cursor = 0.0
-    for comp in comps:
-        if len(comp) == 1:
-            kk_raw[str(comp[0])] = (x_cursor, 0.0)
-            x_cursor += 0.9
-        elif len(comp) == 2:
-            kk_raw[str(comp[0])] = (x_cursor, -0.35)
-            kk_raw[str(comp[1])] = (x_cursor, 0.35)
-            x_cursor += 1.0
-        else:
-            sub = G_simple.subgraph(comp)
-            sub_pos = nx.kamada_kawai_layout(sub)
-            sxs = [float(p[0]) for p in sub_pos.values()]
-            width = max(max(sxs) - min(sxs), 0.6)
-            scale = max(1.0, math.sqrt(len(comp)) * 0.45)
-            for nid, xy in sub_pos.items():
-                kk_raw[str(nid)] = (x_cursor + (float(xy[0]) - min(sxs)) * scale, float(xy[1]) * scale)
-            x_cursor += width * scale + 1.1
-    kk_layout = _normalize_positions(kk_raw)
+    if "spring" in wanted or "kamada_kawai" in wanted:
+        simple_graph = nx.Graph()
+        simple_graph.add_nodes_from(graph.nodes())
+        for source, target, _ in graph.edges(data=True):
+            if source != target and not simple_graph.has_edge(source, target):
+                simple_graph.add_edge(source, target, weight=1.0)
 
-    return {
-        "layered_seasonal": layered,
-        "geographic": geo_layout,
-        "spring": spring_layout,
-        "kamada_kawai": kk_layout,
-    }
+        if "spring" in wanted:
+            if simple_graph.number_of_nodes() == 1:
+                only = next(iter(simple_graph.nodes()))
+                result["spring"] = {only: [0.5, 0.5]}
+            else:
+                k_value = 1.6 / math.sqrt(max(simple_graph.number_of_nodes(), 2))
+                spring_raw = nx.spring_layout(simple_graph, k=k_value, iterations=45, seed=42)
+                result["spring"] = _normalize_positions({
+                    str(key): (float(value[0]), float(value[1]))
+                    for key, value in spring_raw.items()
+                })
 
+        if "kamada_kawai" in wanted:
+            kk_raw: dict[str, tuple[float, float]] = {}
+            components = sorted(
+                (list(component) for component in nx.connected_components(simple_graph)),
+                key=lambda component: (-len(component), component[0]),
+            )
+            x_cursor = 0.0
+            for component in components:
+                if len(component) == 1:
+                    kk_raw[str(component[0])] = (x_cursor, 0.0)
+                    x_cursor += 0.9
+                elif len(component) == 2:
+                    kk_raw[str(component[0])] = (x_cursor, -0.35)
+                    kk_raw[str(component[1])] = (x_cursor, 0.35)
+                    x_cursor += 1.0
+                else:
+                    subgraph = simple_graph.subgraph(component)
+                    positions = nx.kamada_kawai_layout(subgraph)
+                    x_values = [float(position[0]) for position in positions.values()]
+                    width = max(max(x_values) - min(x_values), 0.6)
+                    scale = max(1.0, math.sqrt(len(component)) * 0.45)
+                    for node_id, xy in positions.items():
+                        kk_raw[str(node_id)] = (
+                            x_cursor + (float(xy[0]) - min(x_values)) * scale,
+                            float(xy[1]) * scale,
+                        )
+                    x_cursor += width * scale + 1.1
+            result["kamada_kawai"] = _normalize_positions(kk_raw)
+
+    with _EXPLORER_LOCK:
+        if len(_LAYOUT_CACHE) > 48:
+            _LAYOUT_CACHE.clear()
+        result = _LAYOUT_CACHE.setdefault(cache_key, result)
+    return result
 
 def _build_node_herd_index(net: Stage1NetworkData, livestock_filter: set[str] | None = None) -> dict[str, list[dict[str, Any]]]:
     """Map every static node_id to the synthetic herds originating, visiting, or passing through it."""
@@ -399,163 +426,18 @@ def _line_coords(geom) -> list[list[float]]:
     return []
 
 
-def build_network_explorer_payload(
-    net: Stage1NetworkData,
-    filtered: FilteredNetwork,
-    *,
-    basemap: str = "esri_satellite",
-    vertical_exaggeration: float = 1.4,
-    initial_layout: str = "layered_seasonal",
-    selected_node_id: str | None = None,
-    selected_edge_id: str | None = None,
-) -> dict[str, Any]:
-    """Assemble the complete JSON payload for the Synchronised Geographical + Abstract Graph Explorer."""
-    G = filtered.graph
-    layouts = compute_graph_layouts(filtered)
-    ls_filter = set(filtered.active_filters.get("livestock_types") or [])
-    ls_set = {s.lower() for s in ls_filter} if ls_filter else None
-    node_herds_index = _build_node_herd_index(net, livestock_filter=ls_set)
+def _get_net_explorer_cache(net: Stage1NetworkData) -> dict[str, Any]:
+    cached = getattr(net, "_explorer_cache", None)
+    if cached is not None:
+        return cached
+    with _EXPLORER_LOCK:
+        cached = getattr(net, "_explorer_cache", None)
+        if cached is not None:
+            return cached
+    
 
-    # Pre-index node names for fast edge tooltips/inspectors
-    node_names = {
-        str(r["node_id"]): _safe_str(r.get("node_name", r["node_id"]))
-        for _, r in filtered.nodes_gdf.iterrows()
-    }
-
-    # Build edge records & incident route lists per node
-    incident_routes: dict[str, list[dict[str, Any]]] = {}
-    edge_records: list[dict[str, Any]] = []
-    for _, row in filtered.edges_gdf.iterrows():
-        eid = str(row["edge_id"])
-        src = str(row["source_node_id"])
-        dst = str(row["target_node_id"])
-        etype = _safe_str(row.get("edge_type", "ACCESS_ROUTE"))
-        dist_m = _safe_float(row.get("distance_m")) or 0.0
-        prof_raw = row.get("elevation_profile_json")
-        try:
-            profile = json.loads(prof_raw) if isinstance(prof_raw, str) and prof_raw.strip() else []
-        except Exception:
-            profile = []
-
-        rec = {
-            "edge_id": eid,
-            "source_node_id": src,
-            "source_node_name": node_names.get(src, src),
-            "target_node_id": dst,
-            "target_node_name": node_names.get(dst, dst),
-            "edge_type": etype,
-            "network_layer": _safe_str(row.get("network_layer", "pastoral_mobility")),
-            "distance_m": round(dist_m, 1),
-            "distance_km": round(dist_m / 1000.0, 2),
-            "start_elevation_m": _safe_float(row.get("start_elevation_m")),
-            "end_elevation_m": _safe_float(row.get("end_elevation_m")),
-            "max_elevation_m": _safe_float(row.get("max_elevation_m")),
-            "elevation_gain_m": _safe_float(row.get("elevation_gain_m")),
-            "elevation_loss_m": _safe_float(row.get("elevation_loss_m")),
-            "average_slope": _safe_float(row.get("average_slope")),
-            "maximum_slope": _safe_float(row.get("maximum_slope")),
-            "elevation_status": _safe_str(row.get("elevation_status", "unavailable_no_local_dem")),
-            "elevation_source": _safe_str(row.get("elevation_source", "")),
-            "estimated_travel_days": _safe_float(row.get("estimated_travel_days")),
-            "season": _safe_str(row.get("season", "all_year")),
-            "direction": _safe_str(row.get("direction", "")),
-            "livestock_compatibility": _safe_str(row.get("livestock_compatibility", "")),
-            "route_generation_method": _safe_str(row.get("route_generation_method", "")),
-            "source": _safe_str(row.get("source", "")),
-            "provenance": _safe_str(row.get("provenance", "")),
-            "evidence_status": _safe_str(row.get("evidence_status", "synthetic_demo")),
-            "is_synthetic": bool(row.get("is_synthetic", True)),
-            "utilisation": {
-                "herd_count": _safe_int(row.get("herd_count"), 0),
-                "animal_count": _safe_int(row.get("animal_count"), 0),
-                "movement_event_count": _safe_int(row.get("movement_event_count"), 0),
-                "winter_usage": _safe_int(row.get("winter_usage"), 0),
-                "spring_usage": _safe_int(row.get("spring_usage"), 0),
-                "summer_usage": _safe_int(row.get("summer_usage"), 0),
-                "autumn_usage": _safe_int(row.get("autumn_usage"), 0),
-                "avg_estimated_travel_days": _safe_float(row.get("avg_estimated_travel_days")) or 0.0,
-                "alternative_route_usage": _safe_int(row.get("alternative_route_usage"), 0),
-            },
-            "elevation_profile": profile,
-            "coordinates": _line_coords(row.geometry),
-        }
-        edge_records.append(rec)
-
-        brief_out = {
-            "edge_id": eid,
-            "relation": "outgoing",
-            "peer_node_id": dst,
-            "peer_node_name": node_names.get(dst, dst),
-            "edge_type": etype,
-            "season": rec["season"],
-            "distance_km": rec["distance_km"],
-            "herd_count": rec["utilisation"]["herd_count"],
-        }
-        brief_in = {
-            "edge_id": eid,
-            "relation": "incoming",
-            "peer_node_id": src,
-            "peer_node_name": node_names.get(src, src),
-            "edge_type": etype,
-            "season": rec["season"],
-            "distance_km": rec["distance_km"],
-            "herd_count": rec["utilisation"]["herd_count"],
-        }
-        incident_routes.setdefault(src, []).append(brief_out)
-        incident_routes.setdefault(dst, []).append(brief_in)
-
-    # Build node records with full Stage 2 Inspector attributes
-    node_records: list[dict[str, Any]] = []
-    for _, row in filtered.nodes_gdf.iterrows():
-        nid = str(row["node_id"])
-        in_neighbors = sorted(list(G.predecessors(nid))) if nid in G else []
-        out_neighbors = sorted(list(G.successors(nid))) if nid in G else []
-        herds_for_node = node_herds_index.get(nid, []) if not filtered.active_filters.get("public_only", False) else []
-        node_records.append({
-            "node_id": nid,
-            "node_name": _safe_str(row.get("node_name", nid)),
-            "node_type": _safe_str(row.get("node_type", "")),
-            "network_layer": _safe_str(row.get("network_layer", "")),
-            "subregion_zone": _safe_str(row.get("subregion_zone", "")),
-            "latitude": round(float(row["latitude"]), 5),
-            "longitude": round(float(row["longitude"]), 5),
-            "elevation_m": _safe_float(row.get("elevation_m")),
-            "slope_degrees": _safe_float(row.get("slope_degrees")),
-            "elevation_status": _safe_str(row.get("elevation_status", "unavailable_no_local_dem")),
-            "elevation_source": _safe_str(row.get("elevation_source", "")),
-            "landcover_code": _safe_int(row.get("landcover_code"), -1) if _safe_float(row.get("landcover_code")) is not None else None,
-            "landcover_class": _safe_str(row.get("landcover_class", "unavailable_no_local_worldcover")),
-            "source": _safe_str(row.get("source", "")),
-            "provenance": _safe_str(row.get("provenance", "")),
-            "evidence_status": _safe_str(row.get("evidence_status", "synthetic_demo")),
-            "is_synthetic": bool(row.get("is_synthetic", True)),
-            "external_id": _safe_str(row.get("external_id", "")),
-            "external_uri": _safe_str(row.get("external_uri", "")),
-            "component_id": int(filtered.node_to_component.get(nid, 0)),
-            "in_neighbors": in_neighbors,
-            "out_neighbors": out_neighbors,
-            "degree_total": len(incident_routes.get(nid, [])),
-            "connected_routes": incident_routes.get(nid, []),
-            "connected_herds": herds_for_node,
-            "connected_herd_count": len(herds_for_node),
-        })
-
-    boundary_geojson = (
-        json.loads(net.boundary[["shapeName", "shapeISO", "geometry"]].to_json())
-        if not net.boundary.empty and {"shapeName", "shapeISO"}.issubset(net.boundary.columns)
-        else (json.loads(net.boundary.to_json()) if not net.boundary.empty else {"type": "FeatureCollection", "features": []})
-    )
-
-    return {
+    base_payload = {
         "stage": "stage2_network_explorer",
-        "config": {
-            "basemap": basemap,
-            "verticalExaggeration": float(vertical_exaggeration),
-            "initialLayout": initial_layout,
-            "selectedNodeId": selected_node_id,
-            "selectedEdgeId": selected_edge_id,
-            "activeFilters": filtered.active_filters,
-        },
         "meta": {
             "nodeCategories": NODE_CATEGORY_META,
             "edgeCategories": EDGE_CATEGORY_META,
@@ -564,14 +446,30 @@ def build_network_explorer_payload(
             "visible_nodes": len(node_records),
             "visible_edges": len(edge_records),
             "connected_components": len(filtered.components),
-            "public_nodes": sum(1 for n in node_records if not n["is_synthetic"]),
-            "synthetic_nodes": sum(1 for n in node_records if n["is_synthetic"]),
-            "active_used_edges": sum(1 for e in edge_records if e["utilisation"]["movement_event_count"] > 0),
+            "public_nodes": sum(1 for node in node_records if not node["is_synthetic"]),
+            "synthetic_nodes": sum(1 for node in node_records if node["is_synthetic"]),
+            "active_used_edges": sum(1 for edge in edge_records if edge["utilisation"]["movement_event_count"] > 0),
         },
         "components": filtered.components,
         "layouts": layouts,
         "nodes": node_records,
         "edges": edge_records,
-        "boundary": boundary_geojson,
+        "boundary": net_cache["boundary"],
         "localDemGrid": export_local_dem_grid(net.root),
+    }
+    with _EXPLORER_LOCK:
+        if len(net_cache["payloads"]) > 32:
+            net_cache["payloads"].clear()
+        base_payload = net_cache["payloads"].setdefault(base_key, base_payload)
+
+    return {
+        **base_payload,
+        "config": {
+            "basemap": basemap,
+            "verticalExaggeration": float(vertical_exaggeration),
+            "initialLayout": initial_layout,
+            "selectedNodeId": selected_node_id,
+            "selectedEdgeId": selected_edge_id,
+            "activeFilters": filtered.active_filters,
+        },
     }
