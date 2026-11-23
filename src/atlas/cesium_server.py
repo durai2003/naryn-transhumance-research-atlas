@@ -177,7 +177,7 @@ class AtlasAssetServer:
                         rel=rel,
                         cache_dir=server_ref.cesium_cache,
                         upstream_url=CESIUM_CDN_BASE + rel,
-                        cache_sec=86400,
+                        cache_sec=604800,
                     )
                     return
 
@@ -191,7 +191,7 @@ class AtlasAssetServer:
                                 rel=rel,
                                 cache_dir=server_ref.terrarium_cache,
                                 upstream_url=TERRARIUM_BASE + rel,
-                                cache_sec=86400,
+                                cache_sec=604800,
                                 force_mime="image/png",
                             )
                             return
@@ -211,7 +211,7 @@ class AtlasAssetServer:
                                 rel=rel,
                                 cache_dir=server_ref.imagery_cache,
                                 upstream_url=upstream,
-                                cache_sec=86400,
+                                cache_sec=604800,
                             )
                             return
                     self._send(b"Invalid imagery tile", "text/plain", 400)
