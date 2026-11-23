@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>3D Mini Transhumance Research Data Atlas — CesiumJS v3.2</title>
   <script>
-    window.CESIUM_BASE_URL = "/cesium/";
+    window.ATLAS_BASE_PATH = window.location.pathname.startsWith("/atlas/") ? "/atlas" : "";
+    window.CESIUM_BASE_URL = window.ATLAS_BASE_PATH + "/cesium/";
+    document.write('<link href="' + window.ATLAS_BASE_PATH + '/cesium/Widgets/widgets.css" rel="stylesheet" />');
+    document.write('<script src="' + window.ATLAS_BASE_PATH + '/cesium/Cesium.js"><\/script>');
   </script>
-  <link href="/cesium/Widgets/widgets.css" rel="stylesheet" />
-  <script src="/cesium/Cesium.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #ffffff; color: #0f172a; }
@@ -387,7 +388,7 @@ class TerrariumTerrainProvider {
     const eastDeg = Cesium.Math.toDegrees(rect.east);
     const southDeg = Cesium.Math.toDegrees(rect.south);
     const northDeg = Cesium.Math.toDegrees(rect.north);
-    const url = `/proxy/terrarium/${level}/${x}/${y}.png`;
+    const url = `${window.ATLAS_BASE_PATH}/proxy/terrarium/${level}/${x}/${y}.png`;
 
     return fetch(url)
       .then(async (resp) => {
@@ -462,7 +463,7 @@ class TerrariumTerrainProvider {
   const stateId = params.get("state") || "empty";
   let ATLAS_DATA = {};
   try {
-    const res = await fetch(`/payload.json?state=${encodeURIComponent(stateId)}`);
+    const res = await fetch(`${window.ATLAS_BASE_PATH}/payload.json?state=${encodeURIComponent(stateId)}`);
     ATLAS_DATA = await res.json();
   } catch (e) {
     terrainBadge.className = "status-pill pill-err";
@@ -502,17 +503,17 @@ class TerrariumTerrainProvider {
   function setBasemap(key) {
     clearImagery();
     if (key === "esri_topo") {
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_topo/{z}/{y}/{x}", maximumLevel: 18 })));
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_topo/{z}/{y}/{x}`, maximumLevel: 18 })));
     } else if (key === "opentopo") {
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/opentopo/{z}/{y}/{x}", maximumLevel: 16 })));
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/opentopo/{z}/{y}/{x}`, maximumLevel: 16 })));
     } else if (key === "osm") {
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/osm/{z}/{y}/{x}", maximumLevel: 19 })));
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/osm/{z}/{y}/{x}`, maximumLevel: 19 })));
     } else {
-      const sat = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_satellite/{z}/{y}/{x}", maximumLevel: 18 }));
+      const sat = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_satellite/{z}/{y}/{x}`, maximumLevel: 18 }));
       sat.contrast = 1.08; sat.saturation = 1.12; activeLayers.push(sat);
-      const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_hillshade/{z}/{y}/{x}", maximumLevel: 16 }));
+      const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_hillshade/{z}/{y}/{x}`, maximumLevel: 16 }));
       hs.alpha = 0.28; hs.contrast = 1.28; activeLayers.push(hs);
-      const lbl = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_labels/{z}/{y}/{x}", maximumLevel: 15 }));
+      const lbl = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_labels/{z}/{y}/{x}`, maximumLevel: 15 }));
       lbl.alpha = 0.86; activeLayers.push(lbl);
     }
   }
@@ -876,7 +877,7 @@ class TerrariumTerrainProvider {
     if (syncKey === lastSyncedKey && !immediate) return;
     const doPost = () => {
       lastSyncedKey = syncKey;
-      fetch("/api/ui_state", {
+      fetch(`${window.ATLAS_BASE_PATH}/api/ui_state`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
