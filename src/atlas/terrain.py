@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import math
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Sequence
@@ -241,6 +242,10 @@ def compute_route_elevation_profile(
     }
 
 
+_DEM_GRID_CACHE_LOCK = threading.Lock()
+_DEM_GRID_CACHE: dict[tuple[str, int, int, str, float], dict[str, Any] | None] = {}
+
+
 def export_local_dem_grid(
     root: Path,
     *,
@@ -258,6 +263,14 @@ def export_local_dem_grid(
     status = find_local_dem(root)
     if not status.has_local_dem or status.dem_path is None or not HAS_RASTERIO:
         return None
+    try:
+        dem_mtime = status.dem_path.stat().st_mtime
+    except OSError:
+        dem_mtime = 0.0
+    cache_key = (str(Path(root).resolve()), int(width), int(height), str(status.dem_path), dem_mtime)
+    with _DEM_GRID_CACHE_LOCK:
+        if cache_key in _DEM_GRID_CACHE:
+            return _DEM_GRID_CACHE[cache_key]
     try:
         from rasterio.enums import Resampling
         from rasterio.warp import calculate_default_transform, reproject
@@ -293,7 +306,7 @@ def export_local_dem_grid(
             encoded = np.zeros((height, width), dtype="<u2")
             encoded[valid] = np.clip(np.round((dest[valid] + 500.0) / 0.25), 1, 65535).astype("<u2")
             b64 = base64.b64encode(encoded.tobytes()).decode("ascii")
-            return {
+            grid_dict = {
                 "source": status.source_name,
                 "resolution": status.resolution_desc,
                 "width": width,
@@ -303,5 +316,10 @@ def export_local_dem_grid(
                 "scale_m": 0.25,
                 "data_b64_u16": b64,
             }
+            with _DEM_GRID_CACHE_LOCK:
+                if len(_DEM_GRID_CACHE) > 8:
+                    _DEM_GRID_CACHE.clear()
+                _DEM_GRID_CACHE[cache_key] = grid_dict
+            return grid_dict
     except Exception:
         return None

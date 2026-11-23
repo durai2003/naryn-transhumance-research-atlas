@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import mimetypes
+import os
 import threading
 import urllib.parse
 from http import HTTPStatus
@@ -56,6 +57,7 @@ class AtlasAssetServer:
 
     def __init__(self, root: Path) -> None:
         self.root = Path(root).resolve()
+        self.url_prefix = os.environ.get("ATLAS_URL_PREFIX", "").rstrip("/")
         self.template_path = self.root / "frontend/cesium/index.html"
         self.network_template_path = self.root / "frontend/network/explorer.html"
         self.cache_root = self.root / ".cache"
@@ -70,13 +72,15 @@ class AtlasAssetServer:
         self._latest_state_id: str = "empty"
         self._network_payloads: dict[str, bytes] = {"empty": b"{}"}
         self._latest_network_state_id: str = "empty"
-        self._ui_state: dict[str, Any] = {
-            "date": None,
-            "herd_id": None,
-            "scenario_id": None,
-            "moving_count": None,
-            "total_herds": None,
-            "source": "init",
+        self._ui_states: dict[str, dict[str, Any]] = {
+            "default": {
+                "date": None,
+                "herd_id": None,
+                "scenario_id": None,
+                "moving_count": None,
+                "total_herds": None,
+                "source": "init",
+            }
         }
 
         self._session = requests.Session()
@@ -124,9 +128,11 @@ class AtlasAssetServer:
                     length = int(self.headers.get("Content-Length", "0"))
                     raw = self.rfile.read(min(length, 65536))
                     data = json.loads(raw.decode("utf-8")) if raw else {}
+                    session_id = "default"
                     if isinstance(data, dict):
-                        server_ref.update_ui_state(data)
-                    body = json.dumps(server_ref.get_ui_state()).encode("utf-8")
+                        session_id = str(data.get("session_id") or "default")
+                        server_ref.update_ui_state(data, session_id=session_id)
+                    body = json.dumps(server_ref.get_ui_state(session_id=session_id)).encode("utf-8")
                     self._send(body, "application/json; charset=utf-8", 200, cache_sec=0)
                 except Exception as exc:
                     self._send(f"Bad payload: {exc}".encode("utf-8"), "text/plain", 400)
@@ -145,7 +151,7 @@ class AtlasAssetServer:
 
                 if path == "/payload.json":
                     state_id = (query.get("state") or [server_ref._latest_state_id])[0]
-                    self._send(server_ref.get_payload(state_id), "application/json; charset=utf-8", 200, cache_sec=0)
+                    self._send(server_ref.get_payload(state_id), "application/json; charset=utf-8", 200, cache_sec=604800)
                     return
 
                 if path in ("/network", "/network/", "/network/index.html"):
@@ -157,7 +163,7 @@ class AtlasAssetServer:
 
                 if path == "/network/payload.json":
                     state_id = (query.get("state") or [server_ref._latest_network_state_id])[0]
-                    self._send(server_ref.get_network_payload(state_id), "application/json; charset=utf-8", 200, cache_sec=0)
+                    self._send(server_ref.get_network_payload(state_id), "application/json; charset=utf-8", 200, cache_sec=604800)
                     return
 
                 if path == "/health":
@@ -165,7 +171,8 @@ class AtlasAssetServer:
                     return
 
                 if path == "/api/ui_state":
-                    body = json.dumps(server_ref.get_ui_state()).encode("utf-8")
+                    session_id = str((query.get("session") or ["default"])[0])
+                    body = json.dumps(server_ref.get_ui_state(session_id=session_id)).encode("utf-8")
                     self._send(body, "application/json; charset=utf-8", 200, cache_sec=0)
                     return
 
@@ -175,7 +182,7 @@ class AtlasAssetServer:
                         rel=rel,
                         cache_dir=server_ref.cesium_cache,
                         upstream_url=CESIUM_CDN_BASE + rel,
-                        cache_sec=86400,
+                        cache_sec=604800,
                     )
                     return
 
@@ -189,7 +196,7 @@ class AtlasAssetServer:
                                 rel=rel,
                                 cache_dir=server_ref.terrarium_cache,
                                 upstream_url=TERRARIUM_BASE + rel,
-                                cache_sec=86400,
+                                cache_sec=604800,
                                 force_mime="image/png",
                             )
                             return
@@ -209,7 +216,7 @@ class AtlasAssetServer:
                                 rel=rel,
                                 cache_dir=server_ref.imagery_cache,
                                 upstream_url=upstream,
-                                cache_sec=86400,
+                                cache_sec=604800,
                             )
                             return
                     self._send(b"Invalid imagery tile", "text/plain", 400)
@@ -258,7 +265,9 @@ class AtlasAssetServer:
                 except Exception as exc:
                     self._send(f"Upstream fetch failed: {exc}".encode("utf-8"), "text/plain", HTTPStatus.BAD_GATEWAY)
 
-        self._httpd = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        bind_host = os.environ.get("ATLAS_ASSET_BIND_HOST", "127.0.0.1")
+        bind_port = int(os.environ.get("ATLAS_ASSET_PORT", "0"))
+        self._httpd = ThreadingHTTPServer((bind_host, bind_port), Handler)
         self._httpd.daemon_threads = True
         self.port: int = int(self._httpd.server_address[1])
         self._thread = threading.Thread(target=self._httpd.serve_forever, name="AtlasAssetServer", daemon=True)
@@ -279,6 +288,8 @@ class AtlasAssetServer:
             return self._payloads.get(state_id) or self._payloads.get(self._latest_state_id, b"{}")
 
     def iframe_url(self, state_id: str) -> str:
+        if self.url_prefix:
+            return f"{self.url_prefix}/?state={state_id}"
         return f"http://127.0.0.1:{self.port}/?state={state_id}"
 
     def register_network_payload(self, payload_json: str) -> str:
@@ -296,6 +307,8 @@ class AtlasAssetServer:
             return self._network_payloads.get(state_id) or self._network_payloads.get(self._latest_network_state_id, b"{}")
 
     def network_iframe_url(self, state_id: str) -> str:
+        if self.url_prefix:
+            return f"{self.url_prefix}/network/?state={state_id}"
         return f"http://127.0.0.1:{self.port}/network/?state={state_id}"
 
     def set_ui_state(
@@ -305,9 +318,15 @@ class AtlasAssetServer:
         herd_id: str | None = None,
         scenario_id: str | None = None,
         source: str = "streamlit",
+        session_id: str = "default",
     ) -> None:
+        sid = str(session_id or "default")
         with self._lock:
-            self._ui_state = {
+            if len(self._ui_states) > 200 and sid not in self._ui_states:
+                oldest = next((key for key in self._ui_states if key != "default"), None)
+                if oldest is not None:
+                    self._ui_states.pop(oldest, None)
+            self._ui_states[sid] = {
                 "date": date,
                 "herd_id": herd_id,
                 "scenario_id": scenario_id,
@@ -316,16 +335,33 @@ class AtlasAssetServer:
                 "source": source,
             }
 
-    def update_ui_state(self, patch: dict[str, Any]) -> None:
+    def update_ui_state(self, patch: dict[str, Any], *, session_id: str | None = None) -> None:
+        sid = str(session_id or patch.get("session_id") or "default")
         with self._lock:
-            for k in ("date", "herd_id", "scenario_id", "moving_count", "total_herds"):
-                if k in patch:
-                    self._ui_state[k] = patch[k]
-            self._ui_state["source"] = str(patch.get("source", "cesium"))
+            if sid not in self._ui_states:
+                if len(self._ui_states) > 200:
+                    oldest = next((key for key in self._ui_states if key != "default"), None)
+                    if oldest is not None:
+                        self._ui_states.pop(oldest, None)
+                self._ui_states[sid] = {
+                    "date": None,
+                    "herd_id": None,
+                    "scenario_id": None,
+                    "moving_count": None,
+                    "total_herds": None,
+                    "source": "init",
+                }
+            slot = self._ui_states[sid]
+            for key in ("date", "herd_id", "scenario_id", "moving_count", "total_herds"):
+                if key in patch:
+                    slot[key] = patch[key]
+            slot["source"] = str(patch.get("source", "cesium"))
 
-    def get_ui_state(self) -> dict[str, Any]:
+    def get_ui_state(self, *, session_id: str = "default") -> dict[str, Any]:
+        sid = str(session_id or "default")
         with self._lock:
-            return dict(self._ui_state)
+            slot = self._ui_states.get(sid) or self._ui_states.get("default") or {}
+            return dict(slot)
 
     def shutdown(self) -> None:
         try:

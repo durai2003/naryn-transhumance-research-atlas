@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import uuid
 from pathlib import Path
 
 import pandas as pd
@@ -43,19 +44,20 @@ st.markdown(
 )
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_resource(show_spinner=False)
 def _load_data(root_string: str) -> AtlasData:
+    """Share a read-only AtlasData resource across concurrent visitors."""
     return load_atlas_data(Path(root_string))
 
 
-def _render_climate_cursor_chart(data: AtlasData, scenario_id: str, authoritative_date: str) -> None:
+@st.cache_data(show_spinner=False, max_entries=128)
+def _build_climate_cursor_figure(root_string: str, scenario_id: str, authoritative_date: str):
+    data = _load_data(root_string)
     sc = data.scenario_climate
     if sc.empty:
-        st.info("Scenario climate table not generated yet. Run `python3 scripts/generate_herd_simulation.py --root . --seed 42`.")
-        return
+        return None
     base = sc.loc[sc["scenario_id"] == "SCENARIO_BASELINE"].sort_values("date_str")
     curr = sc.loc[sc["scenario_id"] == scenario_id].sort_values("date_str")
-
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=curr["date_str"], y=curr["scenario_precip_mm_day"], name="Precip (mm/day)",
@@ -78,80 +80,107 @@ def _render_climate_cursor_chart(data: AtlasData, scenario_id: str, authoritativ
         yaxis2=dict(title="Precip (mm/day)", overlaying="y", side="right", showgrid=False),
         legend=dict(orientation="h", y=-0.22),
     )
+    return fig
+
+
+def _render_climate_cursor_chart(scenario_id: str, authoritative_date: str) -> None:
+    fig = _build_climate_cursor_figure(str(ROOT), scenario_id, authoritative_date)
+    if fig is None:
+        st.info("Scenario climate table not generated yet. Run python3 scripts/generate_herd_simulation.py --root . --seed 42.")
+        return
     st.plotly_chart(fig, use_container_width=True)
 
 
-def _render_elevation_profile(data: AtlasData, snapshot: dict) -> None:
-    herd = snapshot.get("herd")
-    if not herd:
-        st.info("No herd selected or visible under the current filters.")
-        return
-
-    route_id = herd.get("route_id")
-    origin_pid = herd.get("current_pasture_id")
-    dest_pid = herd.get("next_pasture_id")
+@st.cache_data(show_spinner=False, max_entries=128)
+def _build_elevation_profile_figure(
+    root_string: str, route_id: str, origin_pid: str, dest_pid: str,
+    herd_id: str, is_moving: bool,
+):
+    data = _load_data(root_string)
     resolved = resolve_corridor_profile(
-        data,
-        route_id,
-        origin_pasture_id=origin_pid,
-        dest_pasture_id=dest_pid,
+        data, route_id, origin_pasture_id=origin_pid, dest_pasture_id=dest_pid
     )
     if resolved is None or not resolved.get("profile"):
-        st.info(
-            f"No modelled corridor elevation profile is available for **{herd['herd_id']}** "
-            f"(route `{route_id}`: `{origin_pid}` → `{dest_pid}`) on `{snapshot['date']}`."
-        )
-        return
-
-    pdf = pd.DataFrame(resolved["profile"])
-    role_tag = "Active Corridor" if herd.get("is_moving") else "Next Planned Corridor"
+        return None
+    profile_df = pd.DataFrame(resolved["profile"])
+    role_tag = "Active Corridor" if is_moving else "Next Planned Corridor"
     title = (
         f"Terrain Elevation Profile · {resolved['route_id']} "
-        f"({herd['herd_id']} · {role_tag}: {resolved['origin_pasture_id']} → {resolved['destination_pasture_id']} · "
+        f"({herd_id} · {role_tag}: {resolved['origin_pasture_id']} → {resolved['destination_pasture_id']} · "
         f"{resolved['distance_km']} km, +{resolved['elevation_gain_m']}m)"
     )
     fig = px.area(
-        pdf, x="distance_km", y="elevation_m",
-        title=title,
+        profile_df, x="distance_km", y="elevation_m", title=title,
         labels={"distance_km": "Distance (km)", "elevation_m": "Elevation (m)"},
     )
     fig.update_traces(line_color="#a855f7", fillcolor="rgba(168, 85, 247, 0.25)")
     fig.update_layout(height=310, margin=dict(l=30, r=20, t=42, b=30))
+    return fig
+
+
+def _render_elevation_profile(snapshot: dict) -> None:
+    herd = snapshot.get("herd")
+    if not herd:
+        st.info("No herd selected or visible under the current filters.")
+        return
+    route_id = str(herd.get("route_id") or "")
+    origin_pid = str(herd.get("current_pasture_id") or "")
+    dest_pid = str(herd.get("next_pasture_id") or "")
+    fig = _build_elevation_profile_figure(
+        str(ROOT), route_id, origin_pid, dest_pid,
+        str(herd["herd_id"]), bool(herd.get("is_moving")),
+    )
+    if fig is None:
+        st.info(
+            f"No modelled corridor elevation profile is available for {herd['herd_id']} "
+            f"(route {route_id}: {origin_pid} to {dest_pid}) on {snapshot['date']}."
+        )
+        return
     st.plotly_chart(fig, use_container_width=True)
 
 
-def _render_scenario_comparison(data: AtlasData, scenario_id: str, selected_season: str) -> None:
+@st.cache_data(show_spinner=False, max_entries=32)
+def _build_scenario_comparison_figure(root_string: str, scenario_id: str, selected_season: str):
+    data = _load_data(root_string)
     if data.suitability_scores.empty:
-        st.info("Suitability scores not available yet.")
-        return
-    df = data.suitability_scores
-    base = df.loc[(df["scenario_id"] == "SCENARIO_BASELINE") & (df["season"] == selected_season)][
-        ["pasture_id", "pasture_name", "elevation_m", "suitability_score"]
-    ].rename(columns={"suitability_score": "baseline_score"})
-    comp = df.loc[(df["scenario_id"] == scenario_id) & (df["season"] == selected_season)][
-        ["pasture_id", "suitability_score"]
-    ].rename(columns={"suitability_score": "scenario_score"})
-    merged = base.merge(comp, on="pasture_id", how="inner")
+        return None, 0
+    scores = data.suitability_scores
+    base = scores.loc[
+        (scores["scenario_id"] == "SCENARIO_BASELINE") & (scores["season"] == selected_season)
+    ][["pasture_id", "pasture_name", "elevation_m", "suitability_score"]].rename(
+        columns={"suitability_score": "baseline_score"}
+    )
+    comparison = scores.loc[
+        (scores["scenario_id"] == scenario_id) & (scores["season"] == selected_season)
+    ][["pasture_id", "suitability_score"]].rename(columns={"suitability_score": "scenario_score"})
+    merged = base.merge(comparison, on="pasture_id", how="inner")
     merged["delta"] = (merged["scenario_score"] - merged["baseline_score"]).round(3)
     merged = merged.sort_values("scenario_score", ascending=False)
-
     fig = px.bar(
         merged, x="pasture_id", y=["baseline_score", "scenario_score"], barmode="group",
         title=f"Pasture Suitability Comparison ({selected_season.title()}) · Baseline vs {scenario_id}",
         labels={"value": "Suitability Score (0–1)", "pasture_id": "Synthetic Candidate Pasture"},
     )
     fig.update_layout(height=310, margin=dict(l=30, r=20, t=42, b=30), legend=dict(orientation="h", y=-0.28))
-    st.plotly_chart(fig, use_container_width=True)
-
+    rerouted = 0
     if not data.movement_events.empty:
-        rerouted = data.movement_events.loc[
+        rerouted = int(data.movement_events.loc[
             (data.movement_events["climate_scenario"] == scenario_id)
-            & (data.movement_events["scenario_changed_route"])
-        ]["herd_id"].nunique()
-        st.caption(
-            f"Illustrative climate-responsive simulation: **{rerouted}** synthetic herd group(s) changed destination "
-            f"or corridor under `{scenario_id}` relative to `SCENARIO_BASELINE`."
-        )
+            & data.movement_events["scenario_changed_route"]
+        ]["herd_id"].nunique())
+    return fig, rerouted
+
+
+def _render_scenario_comparison(scenario_id: str, selected_season: str) -> None:
+    fig, rerouted = _build_scenario_comparison_figure(str(ROOT), scenario_id, selected_season)
+    if fig is None:
+        st.info("Suitability scores not available yet.")
+        return
+    st.plotly_chart(fig, use_container_width=True)
+    st.caption(
+        f"Illustrative climate-responsive simulation: {rerouted} synthetic herd group(s) changed destination "
+        f"or corridor under {scenario_id} relative to SCENARIO_BASELINE."
+    )
 
 
 @st.cache_resource(show_spinner=False)
@@ -161,6 +190,22 @@ def _load_rdf_graph_cached(graph_path_str: str, mtime: float) -> Graph:
     g = Graph()
     g.parse(gp, format="turtle" if gp.suffix == ".ttl" else "json-ld")
     return g
+
+@st.cache_data(show_spinner=False, max_entries=8)
+def _rdf_class_counts_cached(graph_path_str: str, mtime: float) -> tuple[int, dict[str, int]]:
+    graph = _load_rdf_graph_cached(graph_path_str, mtime)
+    classes = {
+        "Locations": TA.Location,
+        "Climate Obs.": TA.ClimateObservation,
+        "Candidate Pastures": TA.Pasture,
+        "Corridors/Routes": TA.Route,
+        "Herd Groups": TA.HerdGroup,
+        "Movement Events": TA.MovementEvent,
+        "Suitability Assessments": TA.PastureSuitabilityAssessment,
+        "Datasets": TA.Dataset,
+    }
+    counts = {label: sum(1 for _ in graph.subjects(RDF.type, cls)) for label, cls in classes.items()}
+    return len(graph), counts
 
 
 def _rdf_graph_needs_rebuild(root: Path, graph_path: Path | None) -> bool:
@@ -218,20 +263,11 @@ def _render_linked_data_explorer(data: AtlasData) -> None:
         graph = _load_rdf_graph_cached(str(ttl_path), ttl_path.stat().st_mtime)
         graph_path = ttl_path
 
-    classes = {
-        "Locations": TA.Location,
-        "Climate Obs.": TA.ClimateObservation,
-        "Candidate Pastures": TA.Pasture,
-        "Corridors/Routes": TA.Route,
-        "Herd Groups": TA.HerdGroup,
-        "Movement Events": TA.MovementEvent,
-        "Suitability Assessments": TA.PastureSuitabilityAssessment,
-        "Datasets": TA.Dataset,
-    }
+    triple_count, class_counts = _rdf_class_counts_cached(str(graph_path), graph_path.stat().st_mtime)
     cols = st.columns(4)
-    for i, (label, cls) in enumerate(classes.items()):
-        cols[i % 4].metric(label, sum(1 for _ in graph.subjects(RDF.type, cls)))
-    st.caption(f"Graph: `{graph_path.relative_to(data.root)}` · **{len(graph):,}** triples")
+    for i, (label, count) in enumerate(class_counts.items()):
+        cols[i % 4].metric(label, count)
+    st.caption(f"Graph: {graph_path.relative_to(data.root)} · **{triple_count:,}** triples")
 
     q_dir = data.root / "queries"
     rq_files = sorted(q_dir.glob("0*.rq")) if q_dir.exists() else []
@@ -252,10 +288,11 @@ def _render_synced_charts_body(
     sidebar_date: str,
     species_filter: list[str],
     sidebar_herd_id: str,
+    session_id: str,
 ) -> None:
-    """Render climate cursor and corridor elevation profile locked to the authoritative timeline state."""
+    """Render charts against this visitor's authoritative timeline state."""
     server = get_asset_server(ROOT)
-    ui_state = server.get_ui_state()
+    ui_state = server.get_ui_state(session_id=session_id)
     auth_date = ui_state.get("date") or sidebar_date
     # Honour explicit herd selection from sidebar or clicked herd from CesiumJS
     if sidebar_herd_id != "All herds":
@@ -272,21 +309,22 @@ def _render_synced_charts_body(
     )
     c1, c2 = st.columns(2)
     with c1:
-        _render_climate_cursor_chart(data, scenario_id, snapshot["date"])
+        _render_climate_cursor_chart(scenario_id, snapshot["date"])
     with c2:
-        _render_elevation_profile(data, snapshot)
+        _render_elevation_profile(snapshot)
 
 
 if hasattr(st, "fragment"):
-    @st.fragment(run_every=1.0)
+    @st.fragment(run_every=4.0)
     def _synced_charts_panel(
         data: AtlasData,
         scenario_id: str,
         sidebar_date: str,
         species_filter: list[str],
         sidebar_herd_id: str,
+        session_id: str,
     ) -> None:
-        _render_synced_charts_body(data, scenario_id, sidebar_date, species_filter, sidebar_herd_id)
+        _render_synced_charts_body(data, scenario_id, sidebar_date, species_filter, sidebar_herd_id, session_id)
 else:
     def _synced_charts_panel(
         data: AtlasData,
@@ -294,12 +332,37 @@ else:
         sidebar_date: str,
         species_filter: list[str],
         sidebar_herd_id: str,
+        session_id: str,
     ) -> None:
-        _render_synced_charts_body(data, scenario_id, sidebar_date, species_filter, sidebar_herd_id)
+        _render_synced_charts_body(data, scenario_id, sidebar_date, species_filter, sidebar_herd_id, session_id)
+
+
+def _select_active_view() -> str:
+    """Lazy top-level navigation: only construct the visitor's active view."""
+    views = [
+        "🌍 3D Spatiotemporal Atlas",
+        "🕸️ Network Analysis",
+        "🔗 Linked Open Data & SPARQL",
+    ]
+    if hasattr(st, "segmented_control"):
+        chosen = st.segmented_control(
+            "Atlas View", options=views, default=views[0],
+            selection_mode="single", label_visibility="collapsed",
+            key="active_atlas_view",
+        )
+        return chosen or views[0]
+    return st.radio(
+        "Atlas View", options=views, index=0, horizontal=True,
+        label_visibility="collapsed", key="active_atlas_view",
+    )
 
 
 def main() -> None:
     data = _load_data(str(ROOT))
+
+    if "_visitor_session_id" not in st.session_state:
+        st.session_state["_visitor_session_id"] = uuid.uuid4().hex[:10]
+    session_id: str = st.session_state["_visitor_session_id"]
 
     with st.sidebar:
         st.header("3D Atlas Controls")
@@ -334,9 +397,9 @@ def main() -> None:
 
         show_layers = {
             "boundary": st.checkbox("PUBLIC · Naryn ADM1 Boundary", value=True),
-            "osm_roads": st.checkbox("PUBLIC · OSM Roads & Tracks (context)", value=True),
-            "osm_water": st.checkbox("PUBLIC · OSM Rivers & Lakes", value=True),
-            "osm_settlements": st.checkbox("PUBLIC · OSM Settlements", value=True),
+            "osm_roads": st.checkbox("PUBLIC · OSM Roads & Tracks (context)", value=False),
+            "osm_water": st.checkbox("PUBLIC · OSM Rivers & Lakes", value=False),
+            "osm_settlements": st.checkbox("PUBLIC · OSM Settlements", value=False),
             "pastures": st.checkbox("SYNTHETIC · Candidate Pastures", value=True),
             "corridors": st.checkbox("SYNTHETIC · Least-Cost Corridors", value=True),
             "trails": st.checkbox("SYNTHETIC · Animated Herd Trails", value=True),
@@ -352,19 +415,16 @@ def main() -> None:
             herd_id=None if selected_herd_id == "All herds" else selected_herd_id,
             scenario_id=scenario_id,
             source="streamlit",
+            session_id=session_id,
         )
 
     st.markdown(
         f"#### Mini Transhumance Research Data Atlas (3D) · Naryn Region, Kyrgyzstan · Scenario: `{scenario_id}`"
     )
 
-    atlas_tab, network_tab, rdf_tab = st.tabs([
-        "🌍 3D Spatiotemporal Atlas",
-        "🕸️ Network Analysis",
-        "🔗 Linked Open Data & SPARQL",
-    ])
+    active_view = _select_active_view()
 
-    with atlas_tab:
+    if active_view == "🌍 3D Spatiotemporal Atlas":
         payload = build_cesium_payload(
             data,
             scenario_id=scenario_id,
@@ -378,16 +438,32 @@ def main() -> None:
             playback_speed=playback_speed,
             cesium_ion_token=os.getenv("CESIUM_ION_ACCESS_TOKEN", ""),
             google_maps_api_key=os.getenv("GOOGLE_MAPS_API_KEY", ""),
+            session_id=session_id,
         )
-        # Unified synchronized 3D globe + live right-hand Selected Herd & State panel
         render_cesium_globe(ROOT, payload, height=690)
 
-        # Synchronized bottom climate cursor + exact corridor elevation profile (polls authoritative Cesium timeline state)
-        _synced_charts_panel(data, scenario_id, selected_date, species_filter, selected_herd_id)
+        # Avoid continuous background reruns by default; visitors can opt into
+        # periodic chart synchronisation while the globe timeline is playing.
+        left, right, _ = st.columns([1.3, 1.5, 3.2])
+        with left:
+            st.button("🔄 Sync charts to timeline", key="btn_sync_charts_now")
+        with right:
+            auto_sync = st.checkbox("Auto-sync charts (4s)", value=False, key="chk_auto_sync_charts")
 
-        _render_scenario_comparison(data, scenario_id, selected_season)
+        if auto_sync:
+            _synced_charts_panel(
+                data, scenario_id, selected_date, species_filter,
+                selected_herd_id, session_id,
+            )
+        else:
+            _render_synced_charts_body(
+                data, scenario_id, selected_date, species_filter,
+                selected_herd_id, session_id,
+            )
 
-    with network_tab:
+        _render_scenario_comparison(scenario_id, selected_season)
+
+    elif active_view == "🕸️ Network Analysis":
         render_network_analysis_tab(
             ROOT,
             basemap=basemap,
@@ -395,7 +471,7 @@ def main() -> None:
             default_scenario=scenario_id,
         )
 
-    with rdf_tab:
+    else:
         st.subheader("RDF Knowledge Graph & Executable SPARQL 1.1")
         _render_linked_data_explorer(data)
 

@@ -5,10 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>3D Mini Transhumance Research Data Atlas — CesiumJS v3.2</title>
   <script>
-    window.CESIUM_BASE_URL = "/cesium/";
+    window.ATLAS_BASE_PATH = window.location.pathname.startsWith("/atlas/") ? "/atlas" : "";
+    window.CESIUM_CDN_BASE = "https://cdn.jsdelivr.net/npm/cesium@1.123.0/Build/Cesium/";
+    window.CESIUM_BASE_URL = window.CESIUM_CDN_BASE;
+    document.write('<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />');
+    document.write('<link href="' + window.CESIUM_CDN_BASE + 'Widgets/widgets.css" rel="stylesheet" />');
+    document.write('<script src="' + window.CESIUM_CDN_BASE + 'Cesium.js"><\/script>');
   </script>
-  <link href="/cesium/Widgets/widgets.css" rel="stylesheet" />
-  <script src="/cesium/Cesium.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #ffffff; color: #0f172a; }
@@ -189,7 +192,8 @@
         <button class="hud-btn" id="btnUnfollow" title="Release tracking & snap straight top-down">🎯 Free Cam</button>
         <button class="hud-btn" id="btnTiltToggle" title="Toggle between Top-Down (-90°) and Oblique 3D (-32°)">📐 3D Tilt</button>
         <select class="hud-select" id="basemapSelect" title="Switch Global Basemap">
-          <option value="esri_satellite">Satellite + Relief (Esri Imagery)</option>
+          <option value="esri_satellite">Satellite (Fast)</option>
+          <option value="esri_satellite_detailed">Satellite + Relief (Detailed)</option>
           <option value="esri_topo">Topographic (Esri World Topo)</option>
           <option value="opentopo">Physical Relief (OpenTopoMap)</option>
           <option value="osm">OpenStreetMap</option>
@@ -362,7 +366,7 @@ class TerrariumTerrainProvider {
     this._tileWidth = 49;
     this._maxLevel = 13;
     this._activeRequests = 0;
-    this._maxConcurrent = 8;
+    this._maxConcurrent = 12;
     this._okCount = 0;
     this._failCount = 0;
     this._canvas = document.createElement("canvas");
@@ -387,7 +391,7 @@ class TerrariumTerrainProvider {
     const eastDeg = Cesium.Math.toDegrees(rect.east);
     const southDeg = Cesium.Math.toDegrees(rect.south);
     const northDeg = Cesium.Math.toDegrees(rect.north);
-    const url = `/proxy/terrarium/${level}/${x}/${y}.png`;
+    const url = `${window.ATLAS_BASE_PATH}/proxy/terrarium/${level}/${x}/${y}.png`;
 
     return fetch(url)
       .then(async (resp) => {
@@ -462,7 +466,7 @@ class TerrariumTerrainProvider {
   const stateId = params.get("state") || "empty";
   let ATLAS_DATA = {};
   try {
-    const res = await fetch(`/payload.json?state=${encodeURIComponent(stateId)}`);
+    const res = await fetch(`${window.ATLAS_BASE_PATH}/payload.json?state=${encodeURIComponent(stateId)}`);
     ATLAS_DATA = await res.json();
   } catch (e) {
     terrainBadge.className = "status-pill pill-err";
@@ -481,11 +485,28 @@ class TerrariumTerrainProvider {
     shouldAnimate: false, skyAtmosphere: new Cesium.SkyAtmosphere(), baseLayer: false,
   });
 
+  // Position the camera before attaching imagery/terrain providers. This prevents
+  // Cesium from requesting tiles for its default world view before flying to Naryn.
+  const initialCameraMode = cfg.cameraMode || "regional_3d";
+  const initialCameraPresets = {
+    global: [75.5, 41.3, 13000000],
+    central_asia: [74.8, 41.2, 2400000],
+    regional_3d: [75.65, 41.38, 460000],
+    son_kul: [75.16, 41.83, 88000],
+    at_bashi: [75.72, 41.06, 118000],
+  };
+  const initialCamera = initialCameraPresets[initialCameraMode] || initialCameraPresets.regional_3d;
+  viewer.camera.setView({
+    destination: Cesium.Cartesian3.fromDegrees(...initialCamera),
+    orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
+  });
+
   viewer.scene.globe.show = true;
   viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#16324f");
   viewer.scene.globe.enableLighting = false;
   viewer.scene.globe.depthTestAgainstTerrain = false; // prevents terrain from slicing pasture/herd markers in half
   viewer.scene.globe.tileCacheSize = 250;
+  viewer.scene.globe.maximumScreenSpaceError = 3.5; // Slightly coarser terrain LOD reduces initial tile requests.
   viewer.scene.highDynamicRange = false;
 
   const initExag = Math.max(1.0, cfg.verticalExaggeration || 1.35);
@@ -502,18 +523,21 @@ class TerrariumTerrainProvider {
   function setBasemap(key) {
     clearImagery();
     if (key === "esri_topo") {
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_topo/{z}/{y}/{x}", maximumLevel: 18 })));
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_topo/{z}/{y}/{x}`, maximumLevel: 18 })));
     } else if (key === "opentopo") {
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/opentopo/{z}/{y}/{x}", maximumLevel: 16 })));
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/opentopo/{z}/{y}/{x}`, maximumLevel: 16 })));
     } else if (key === "osm") {
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/osm/{z}/{y}/{x}", maximumLevel: 19 })));
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/osm/{z}/{y}/{x}`, maximumLevel: 19 })));
     } else {
-      const sat = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_satellite/{z}/{y}/{x}", maximumLevel: 18 }));
+      const sat = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_satellite/{z}/{y}/{x}`, maximumLevel: 18 }));
       sat.contrast = 1.08; sat.saturation = 1.12; activeLayers.push(sat);
-      const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_hillshade/{z}/{y}/{x}", maximumLevel: 16 }));
-      hs.alpha = 0.28; hs.contrast = 1.28; activeLayers.push(hs);
-      const lbl = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_labels/{z}/{y}/{x}", maximumLevel: 15 }));
-      lbl.alpha = 0.86; activeLayers.push(lbl);
+      // Load hillshade and place labels only when the visitor explicitly selects the detailed option.
+      if (key === "esri_satellite_detailed") {
+        const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_hillshade/{z}/{y}/{x}`, maximumLevel: 16 }));
+        hs.alpha = 0.28; hs.contrast = 1.28; activeLayers.push(hs);
+        const lbl = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: `${window.ATLAS_BASE_PATH}/proxy/imagery/esri_labels/{z}/{y}/{x}`, maximumLevel: 15 }));
+        lbl.alpha = 0.86; activeLayers.push(lbl);
+      }
     }
   }
   const basemapSel = document.getElementById("basemapSelect");
@@ -876,10 +900,11 @@ class TerrariumTerrainProvider {
     if (syncKey === lastSyncedKey && !immediate) return;
     const doPost = () => {
       lastSyncedKey = syncKey;
-      fetch("/api/ui_state", {
+      fetch(`${window.ATLAS_BASE_PATH}/api/ui_state`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          session_id: cfg.sessionId || "default",
           date: dateStr,
           herd_id: featuredHerdId,
           scenario_id: cfg.scenarioId || "SCENARIO_BASELINE",
@@ -1082,7 +1107,8 @@ class TerrariumTerrainProvider {
     }
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-  flyToPreset(cfg.cameraMode || "regional_3d");
+  updateTiltButtonState(false);
+  setActivePresetButton(initialCameraMode);
 })();
 </script>
 </body>
