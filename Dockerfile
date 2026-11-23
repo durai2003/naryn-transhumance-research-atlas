@@ -16,7 +16,9 @@ RUN python -m pip install --upgrade pip \
 
 COPY . .
 
-RUN chmod +x /app/deploy/start.sh \
+RUN mkdir -p /var/cache/nginx/atlas \
+    && chown -R www-data:www-data /var/cache/nginx \
+    && chmod +x /app/deploy/start.sh \
     && rm -f /etc/nginx/sites-enabled/default
 
 EXPOSE 10000
