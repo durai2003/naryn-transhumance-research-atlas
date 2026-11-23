@@ -334,9 +334,9 @@ def main() -> None:
 
         show_layers = {
             "boundary": st.checkbox("PUBLIC · Naryn ADM1 Boundary", value=True),
-            "osm_roads": st.checkbox("PUBLIC · OSM Roads & Tracks (context)", value=True),
-            "osm_water": st.checkbox("PUBLIC · OSM Rivers & Lakes", value=True),
-            "osm_settlements": st.checkbox("PUBLIC · OSM Settlements", value=True),
+            "osm_roads": st.checkbox("PUBLIC · OSM Roads & Tracks (context)", value=False),
+            "osm_water": st.checkbox("PUBLIC · OSM Rivers & Lakes", value=False),
+            "osm_settlements": st.checkbox("PUBLIC · OSM Settlements", value=False),
             "pastures": st.checkbox("SYNTHETIC · Candidate Pastures", value=True),
             "corridors": st.checkbox("SYNTHETIC · Least-Cost Corridors", value=True),
             "trails": st.checkbox("SYNTHETIC · Animated Herd Trails", value=True),
