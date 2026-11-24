@@ -167,6 +167,7 @@
       <button class="btn" id="btnAtBashi" title="At-Bashi Top-Down">🏞️ At-Bashi</button>
       <button class="btn" id="btnTilt" title="Toggle Top-Down (-90°) / 3D Tilt (-32°)">📐 3D Tilt</button>
       <select class="sel" id="basemapSel" title="Basemap">
+        <option value="naryn_relief">Naryn Relief (local)</option>
         <option value="esri_satellite">Satellite + Relief</option>
         <option value="esri_topo">Esri Topo</option>
         <option value="opentopo">OpenTopoMap</option>
@@ -572,49 +573,49 @@ function renderElevationSvg(profile) {
   let imageryFallbackApplied = false;
 
   function setBasemap(key, isFallback = false) {
-    for (const layer of activeImagery) {
-      viewer.imageryLayers.remove(layer, true);
-    }
+    for (const layer of activeImagery) viewer.imageryLayers.remove(layer, true);
     activeImagery = [];
-
     if (!isFallback) imageryFallbackApplied = false;
+    if (key === "naryn_relief") return;
 
-    const selectedKey = NETWORK_IMAGERY_URLS[key]
-      ? key
-      : "esri_satellite";
+    const selectedKey = NETWORK_IMAGERY_URLS[key] ? key : "naryn_relief";
+    if (selectedKey === "naryn_relief") return;
 
-    const maximumLevels = {
-      esri_satellite: 18,
-      esri_topo: 18,
-      opentopo: 16,
-      osm: 19,
-    };
-
+    const maximumLevels = { esri_satellite: 18, esri_topo: 18, opentopo: 16, osm: 19 };
     const provider = new Cesium.UrlTemplateImageryProvider({
       url: NETWORK_IMAGERY_URLS[selectedKey],
       maximumLevel: maximumLevels[selectedKey],
     });
-
     provider.errorEvent.addEventListener(() => {
       if (imageryFallbackApplied) return;
       imageryFallbackApplied = true;
-      const fallbackKey = selectedKey === "osm" ? "esri_topo" : "osm";
+      const fallbackKey = "naryn_relief";
       basemapSel.value = fallbackKey;
       setBasemap(fallbackKey, true);
     });
-
     const layer = viewer.imageryLayers.addImageryProvider(provider);
-
     if (selectedKey === "esri_satellite") {
       layer.contrast = 1.06;
       layer.saturation = 1.08;
     }
-
     activeImagery.push(layer);
   }
 
   const basemapSel = document.getElementById("basemapSel");
-  basemapSel.value = cfg.basemap || "osm";
+  const offlineBasemap = DATA.offlineBasemap;
+  if (offlineBasemap && offlineBasemap.url && Array.isArray(offlineBasemap.bounds)) {
+    try {
+      const provider = new Cesium.SingleTileImageryProvider({
+        url: offlineBasemap.url,
+        rectangle: Cesium.Rectangle.fromDegrees(...offlineBasemap.bounds),
+        credit: offlineBasemap.credit || "Naryn relief basemap",
+      });
+      viewer.imageryLayers.addImageryProvider(provider, 0);
+    } catch (error) {
+      console.error("Could not load bundled Naryn basemap:", error);
+    }
+  }
+  basemapSel.value = cfg.basemap || (offlineBasemap ? "naryn_relief" : "osm");
   setBasemap(basemapSel.value);
   basemapSel.onchange = (event) => setBasemap(event.target.value);
 

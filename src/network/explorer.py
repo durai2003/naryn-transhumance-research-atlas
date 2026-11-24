@@ -13,6 +13,7 @@ import pandas as pd
 from shapely.geometry import LineString, MultiLineString
 
 from src.atlas.terrain import export_local_dem_grid
+from src.atlas.offline_basemap import build_offline_basemap
 from src.network.network_loader import Stage1NetworkData
 
 
@@ -527,4 +528,5 @@ def build_network_explorer_payload(
         "edges": edge_records,
         "boundary": boundary_geojson,
         "localDemGrid": export_local_dem_grid(net.root),
+        "offlineBasemap": build_offline_basemap(net.root),
     }

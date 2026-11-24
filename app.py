@@ -459,9 +459,9 @@ def main() -> None:
         )
         basemap = st.selectbox(
             "Global Basemap",
-            ["osm", "esri_satellite", "esri_topo", "opentopo"],
+            ["naryn_relief", "osm", "esri_satellite", "esri_topo", "opentopo"],
             index=0,
-            key="global_basemap_stable",
+            key="global_basemap_local_default",
         )
         vertical_exaggeration = st.slider(
             "Terrain Relief Exaggeration", 1.0, 3.0, 1.35, 0.05
