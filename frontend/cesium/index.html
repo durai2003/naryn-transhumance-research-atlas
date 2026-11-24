@@ -515,14 +515,7 @@ class TerrariumTerrainProvider {
     for (const lyr of activeLayers) viewer.imageryLayers.remove(lyr, true);
     activeLayers = [];
   }
-  const IMAGERY_URLS = IS_INLINE_FRAME ? {
-    esri_satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    esri_hillshade: "https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}",
-    esri_labels: "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-    esri_topo: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
-    opentopo: "https://tile.opentopomap.org/{z}/{x}/{y}.png",
-    osm: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-  } : {
+  const IMAGERY_URLS = {
     esri_satellite: "/proxy/imagery/esri_satellite/{z}/{y}/{x}",
     esri_hillshade: "/proxy/imagery/esri_hillshade/{z}/{y}/{x}",
     esri_labels: "/proxy/imagery/esri_labels/{z}/{y}/{x}",

@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import mimetypes
+import os
 import threading
 import urllib.parse
 from http import HTTPStatus
@@ -258,7 +259,15 @@ class AtlasAssetServer:
                 except Exception as exc:
                     self._send(f"Upstream fetch failed: {exc}".encode("utf-8"), "text/plain", HTTPStatus.BAD_GATEWAY)
 
-        self._httpd = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        bind_host = os.getenv("ATLAS_ASSET_BIND_HOST", "127.0.0.1").strip() or "127.0.0.1"
+        try:
+            bind_port = int(os.getenv("ATLAS_ASSET_PORT", "0"))
+        except ValueError:
+            bind_port = 0
+        if not 0 <= bind_port <= 65535:
+            bind_port = 0
+
+        self._httpd = ThreadingHTTPServer((bind_host, bind_port), Handler)
         self._httpd.daemon_threads = True
         self.port: int = int(self._httpd.server_address[1])
         self._thread = threading.Thread(target=self._httpd.serve_forever, name="AtlasAssetServer", daemon=True)

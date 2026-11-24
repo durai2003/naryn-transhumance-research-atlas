@@ -554,19 +554,12 @@ function renderElevationSvg(profile) {
   viewer.scene.globe.depthTestAgainstTerrain = false;
   viewer.scene.verticalExaggeration = Math.max(1.0, cfg.verticalExaggeration || 1.4);
 
-  const NETWORK_IMAGERY_URLS = IS_INLINE_FRAME
-    ? {
-        esri_satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        esri_topo: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
-        opentopo: "https://tile.opentopomap.org/{z}/{x}/{y}.png",
-        osm: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-      }
-    : {
-        esri_satellite: "/proxy/imagery/esri_satellite/{z}/{y}/{x}",
-        esri_topo: "/proxy/imagery/esri_topo/{z}/{y}/{x}",
-        opentopo: "/proxy/imagery/opentopo/{z}/{y}/{x}",
-        osm: "/proxy/imagery/osm/{z}/{y}/{x}",
-      };
+  const NETWORK_IMAGERY_URLS = {
+    esri_satellite: "/proxy/imagery/esri_satellite/{z}/{y}/{x}",
+    esri_topo: "/proxy/imagery/esri_topo/{z}/{y}/{x}",
+    opentopo: "/proxy/imagery/opentopo/{z}/{x}/{y}.png",
+    osm: "/proxy/imagery/osm/{z}/{y}/{x}",
+  };
 
   let activeImagery = [];
   let imageryFallbackApplied = false;

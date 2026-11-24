@@ -5,7 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates \
+    && apt-get install -y --no-install-recommends ca-certificates nginx gettext-base \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements*.txt ./
@@ -14,5 +14,6 @@ RUN python -m pip install --upgrade pip \
 
 COPY . .
 
-EXPOSE 8501
-CMD ["sh", "-c", "streamlit run app.py --server.port=${PORT:-8501} --server.address=0.0.0.0 --server.headless=true"]
+EXPOSE 10000
+RUN chmod +x /app/deploy/entrypoint.sh
+CMD ["/app/deploy/entrypoint.sh"]
