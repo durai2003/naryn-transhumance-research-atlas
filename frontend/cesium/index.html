@@ -318,6 +318,10 @@
 <script>
 const _INLINE_TEMPLATE_FALLBACK = /*__ATLAS_PAYLOAD_JSON__*/ {};
 const MOVING_STATES = new Set(["departing", "moving", "seasonal_transition", "returning"]);
+const IS_INLINE_FRAME = Boolean(
+  window.__ATLAS_INLINE_MODE__ ||
+  (window.location && (window.location.protocol === "about:" || window.location.origin === "null"))
+);
 
 // High-visibility double-bordered circular marker icon so pasture pins NEVER disappear beneath polylines or terrain!
 const PASTURE_ICON_CACHE = {};
@@ -328,22 +332,18 @@ function makePastureBadgeIcon(fillHex) {
   c.width = sz; c.height = sz;
   const ctx = c.getContext("2d");
   const cx = sz / 2, cy = sz / 2;
-  // Soft drop halo
   ctx.beginPath();
   ctx.arc(cx, cy, 13.5, 0, Math.PI * 2);
   ctx.fillStyle = "rgba(15, 23, 42, 0.72)";
   ctx.fill();
-  // Crisp white outer ring
   ctx.beginPath();
   ctx.arc(cx, cy, 10.8, 0, Math.PI * 2);
   ctx.fillStyle = "#ffffff";
   ctx.fill();
-  // Inner vibrant suitability fill
   ctx.beginPath();
   ctx.arc(cx, cy, 8.2, 0, Math.PI * 2);
   ctx.fillStyle = fillHex;
   ctx.fill();
-  // Center white highlight dot
   ctx.beginPath();
   ctx.arc(cx, cy, 2.3, 0, Math.PI * 2);
   ctx.fillStyle = "#0f172a";
@@ -438,7 +438,7 @@ class TerrariumTerrainProvider {
     const eastDeg = Cesium.Math.toDegrees(rect.east);
     const southDeg = Cesium.Math.toDegrees(rect.south);
     const northDeg = Cesium.Math.toDegrees(rect.north);
-    const url = window.__ATLAS_INLINE_MODE__
+    const url = IS_INLINE_FRAME
       ? `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${level}/${x}/${y}.png`
       : `/proxy/terrarium/${level}/${x}/${y}.png`;
 
@@ -512,6 +512,9 @@ class TerrariumTerrainProvider {
   }
 
   let ATLAS_DATA = window.__ATLAS_PAYLOAD__ || null;
+  if (!ATLAS_DATA && _INLINE_TEMPLATE_FALLBACK && Object.keys(_INLINE_TEMPLATE_FALLBACK).length) {
+    ATLAS_DATA = _INLINE_TEMPLATE_FALLBACK;
+  }
   if (!ATLAS_DATA) {
     const params = new URLSearchParams(window.location.search);
     const stateId = params.get("state");
@@ -551,13 +554,14 @@ class TerrariumTerrainProvider {
   document.getElementById("exagSlider").value = initExag;
   document.getElementById("exagVal").textContent = initExag.toFixed(2) + "×";
 
-  // --- 1. IMAGERY ---
+  // --- 1. IMAGERY (with automatic OpenStreetMap fallback if primary provider errors) ---
   let activeLayers = [];
+  let basemapFallbackApplied = false;
   function clearImagery() {
     for (const lyr of activeLayers) viewer.imageryLayers.remove(lyr, true);
     activeLayers = [];
   }
-  const IMAGERY_URLS = window.__ATLAS_INLINE_MODE__ ? {
+  const IMAGERY_URLS = IS_INLINE_FRAME ? {
     esri_satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     esri_hillshade: "https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}",
     esri_labels: "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
@@ -572,16 +576,38 @@ class TerrariumTerrainProvider {
     opentopo: "/proxy/imagery/opentopo/{z}/{y}/{x}",
     osm: "/proxy/imagery/osm/{z}/{y}/{x}",
   };
+  function attachProviderErrorFallback(provider, key) {
+    if (!provider || !provider.errorEvent || key === "osm") return;
+    provider.errorEvent.addEventListener(() => {
+      if (basemapFallbackApplied) return;
+      basemapFallbackApplied = true;
+      clearImagery();
+      const sel = document.getElementById("basemapSelect");
+      if (sel) sel.value = "osm";
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(
+        new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.osm, maximumLevel: 19 })
+      ));
+    });
+  }
   function setBasemap(key) {
     clearImagery();
+    basemapFallbackApplied = false;
     if (key === "esri_topo") {
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.esri_topo, maximumLevel: 18 })));
+      const p = new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.esri_topo, maximumLevel: 18 });
+      attachProviderErrorFallback(p, key);
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(p));
     } else if (key === "opentopo") {
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.opentopo, maximumLevel: 16 })));
+      const p = new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.opentopo, maximumLevel: 16 });
+      attachProviderErrorFallback(p, key);
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(p));
     } else if (key === "osm") {
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.osm, maximumLevel: 19 })));
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(
+        new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.osm, maximumLevel: 19 })
+      ));
     } else {
-      const sat = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.esri_satellite, maximumLevel: 18 }));
+      const satProv = new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.esri_satellite, maximumLevel: 18 });
+      attachProviderErrorFallback(satProv, key);
+      const sat = viewer.imageryLayers.addImageryProvider(satProv);
       sat.contrast = 1.08; sat.saturation = 1.12; activeLayers.push(sat);
       const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.esri_hillshade, maximumLevel: 16 }));
       hs.alpha = 0.28; hs.contrast = 1.28; activeLayers.push(hs);
@@ -945,7 +971,7 @@ class TerrariumTerrainProvider {
   }
 
   function pushUiStateToServer(dateStr, featuredHerdId, movingCount, totalCount, immediate = false) {
-    if (window.__ATLAS_INLINE_MODE__) return;
+    if (IS_INLINE_FRAME) return;
     const syncKey = `${dateStr}|${featuredHerdId || ""}|${cfg.scenarioId || ""}`;
     if (syncKey === lastSyncedKey && !immediate) return;
     const doPost = () => {
