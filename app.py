@@ -515,15 +515,49 @@ def main() -> None:
         f"#### Mini Transhumance Research Data Atlas (3D) · Naryn Region, Kyrgyzstan · Scenario: `{scenario_id}`"
     )
 
-    atlas_tab, network_tab, rdf_tab = st.tabs(
+    overview_tab, atlas_tab, network_tab, rdf_tab = st.tabs(
         [
+            "📌 Overview",
             "🌍 3D Spatiotemporal Atlas",
             "🕸️ Network Analysis",
             "🔗 Linked Open Data & SPARQL",
         ],
+        default="📌 Overview",
         on_change="rerun",
         key="atlas_navigation",
     )
+
+    # Keep the initial page lightweight. Heavy spatial data is loaded only
+    # after the user opens the corresponding workspace.
+    if overview_tab.open:
+        with overview_tab:
+            st.markdown("### Naryn Transhumance Research Data Atlas")
+            st.caption(
+                "A geospatial research prototype for exploring seasonal livestock "
+                "movement, pasture suitability, connectivity, and linked research data "
+                "in the Naryn Region of Kyrgyzstan."
+            )
+
+            overview_cols = st.columns(3)
+            overview_cols[0].markdown(
+                "**🌍 3D Spatiotemporal Atlas**\n\n"
+                "Explore terrain, satellite imagery, seasonal corridors, candidate "
+                "pastures, and the synthetic herd timeline."
+            )
+            overview_cols[1].markdown(
+                "**🕸️ Network Analysis**\n\n"
+                "Inspect the filtered geographical network, connected components, "
+                "nodes, edges, and route provenance."
+            )
+            overview_cols[2].markdown(
+                "**🔗 Linked Open Data & SPARQL**\n\n"
+                "Explore the RDF research graph, its provenance-aware metrics, "
+                "and packaged SPARQL queries."
+            )
+            st.info(
+                "Choose one of the workspace tabs above. Each workspace loads its "
+                "own datasets only when opened, so the initial page remains lightweight."
+            )
 
     if atlas_tab.open:
         with atlas_tab:
