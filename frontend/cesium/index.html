@@ -549,7 +549,7 @@ class TerrariumTerrainProvider {
   });
 
   viewer.scene.globe.show = true;
-  viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#16324f");
+  viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#9dbbd2");
   viewer.scene.globe.enableLighting = false;
   viewer.scene.globe.depthTestAgainstTerrain = false; // prevents terrain from slicing pasture/herd markers in half
   viewer.scene.globe.tileCacheSize = 250;
@@ -583,21 +583,20 @@ class TerrariumTerrainProvider {
     osm: "/proxy/imagery/osm/{z}/{y}/{x}",
   };
   function attachProviderErrorFallback(provider, key) {
-    if (!provider || !provider.errorEvent || key === "osm") return;
+    if (!provider || !provider.errorEvent) return;
     provider.errorEvent.addEventListener(() => {
       if (basemapFallbackApplied) return;
       basemapFallbackApplied = true;
-      clearImagery();
-      const sel = document.getElementById("basemapSelect");
-      if (sel) sel.value = "osm";
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(
-        new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.osm, maximumLevel: 19 })
-      ));
+      const fallbackKey = key === "osm" ? "esri_topo" : "osm";
+      const select = document.getElementById("basemapSelect");
+      if (select) select.value = fallbackKey;
+      setBasemap(fallbackKey, true);
     });
   }
-  function setBasemap(key) {
+
+  function setBasemap(key, isFallback = false) {
     clearImagery();
-    basemapFallbackApplied = false;
+    if (!isFallback) basemapFallbackApplied = false;
 
     const selectedKey = IMAGERY_URLS[key]
       ? key
@@ -627,7 +626,7 @@ class TerrariumTerrainProvider {
     activeLayers.push(layer);
   }
   const basemapSel = document.getElementById("basemapSelect");
-  basemapSel.value = cfg.basemap || "esri_satellite";
+  basemapSel.value = cfg.basemap || "osm";
   setBasemap(basemapSel.value);
   basemapSel.addEventListener("change", (e) => setBasemap(e.target.value));
 
@@ -635,25 +634,22 @@ class TerrariumTerrainProvider {
   async function initTerrain() {
     if (cfg.cesiumIonToken) {
       try {
-        viewer.terrainProvider = await Cesium.createWorldTerrainAsync({ requestVertexNormals: true, requestWaterMask: true });
+        viewer.terrainProvider = await Cesium.createWorldTerrainAsync({
+          requestVertexNormals: true,
+          requestWaterMask: true,
+        });
         terrainBadge.className = "status-pill pill-ok";
         terrainBadge.textContent = "3D Terrain: Cesium World Terrain";
         return;
-      } catch (e) {}
-    }
-    viewer.terrainProvider = new TerrariumTerrainProvider(localDem, (okCount, failCount) => {
-      if (okCount === 1 || okCount === 10 || okCount === 30) {
-        terrainBadge.className = "status-pill pill-ok";
-        terrainBadge.textContent = localDem
-          ? `3D Terrain: AWS Global (${okCount} tiles) + ${localDem.source}`
-          : `3D Terrain: AWS Global 3D (${okCount} tiles)`;
-      } else if (okCount === 0 && failCount >= 4) {
-        terrainBadge.className = localDem ? "status-pill pill-warn" : "status-pill pill-err";
-        terrainBadge.textContent = localDem ? `3D Terrain: Local ${localDem.source}` : "3D Terrain unreachable";
+      } catch (error) {
+        console.warn("Cesium World Terrain unavailable; using the stable ellipsoid.", error);
       }
-    });
+    }
+
+    // No external elevation-tile dependency in the token-free fallback.
+    viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
     terrainBadge.className = "status-pill pill-ok";
-    terrainBadge.textContent = localDem ? `3D Terrain: AWS Global + ${localDem.source}` : "3D Terrain: AWS Global Elevation";
+    terrainBadge.textContent = "3D Globe: Stable ellipsoid";
   }
   await initTerrain();
 

@@ -598,7 +598,7 @@ function renderElevationSvg(profile) {
     shouldAnimate: false, skyAtmosphere: new Cesium.SkyAtmosphere(), baseLayer: false,
   });
   viewer.scene.globe.show = true;
-  viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#16324f");
+  viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#9dbbd2");
   viewer.scene.globe.enableLighting = false;
   viewer.scene.globe.depthTestAgainstTerrain = false;
   viewer.scene.verticalExaggeration = Math.max(1.0, cfg.verticalExaggeration || 1.4);
@@ -644,14 +644,13 @@ function renderElevationSvg(profile) {
       maximumLevel: maximumLevels[selectedKey],
     });
 
-    if (selectedKey !== "osm") {
-      provider.errorEvent.addEventListener(() => {
-        if (imageryFallbackApplied) return;
-        imageryFallbackApplied = true;
-        basemapSel.value = "osm";
-        setBasemap("osm", true);
-      });
-    }
+    provider.errorEvent.addEventListener(() => {
+      if (imageryFallbackApplied) return;
+      imageryFallbackApplied = true;
+      const fallbackKey = selectedKey === "osm" ? "esri_topo" : "osm";
+      basemapSel.value = fallbackKey;
+      setBasemap(fallbackKey, true);
+    });
 
     const layer = viewer.imageryLayers.addImageryProvider(provider);
 
@@ -664,18 +663,14 @@ function renderElevationSvg(profile) {
   }
 
   const basemapSel = document.getElementById("basemapSel");
-  basemapSel.value = cfg.basemap || "esri_satellite";
+  basemapSel.value = cfg.basemap || "osm";
   setBasemap(basemapSel.value);
   basemapSel.onchange = (event) => setBasemap(event.target.value);
 
-  viewer.terrainProvider = new TerrariumTerrainProvider(localDem, (ok) => {
-    if (ok === 1 || ok === 12) {
-      terrainBadge.className = "pill pill-ok";
-      terrainBadge.textContent = localDem ? `3D Terrain: AWS + ${localDem.source}` : "3D Terrain: AWS Global";
-    }
-  });
+  // Keep the network map independent of unreliable public elevation-tile fetches.
+  viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
   terrainBadge.className = "pill pill-ok";
-  terrainBadge.textContent = localDem ? `3D Terrain: AWS + ${localDem.source}` : "3D Terrain: AWS Global";
+  terrainBadge.textContent = "3D Globe: Stable ellipsoid";
 
   // Draw Naryn ADM1 boundary draped cleanly
   function drawBoundaryRing(coords) {
