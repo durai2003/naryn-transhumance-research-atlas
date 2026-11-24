@@ -8,7 +8,6 @@ from __future__ import annotations
 import os
 import hashlib
 import json
-from collections import Counter
 from itertools import islice
 from pathlib import Path
 
@@ -254,92 +253,89 @@ def _rdf_graph_needs_rebuild(root: Path, graph_path: Path | None) -> bool:
     return False
 
 
+@st.cache_data(show_spinner=False)
+def _load_rdf_summary(root_string: str, report_mtime_ns: int) -> dict:
+    """Read the precomputed RDF summary without parsing the full graph."""
+    del report_mtime_ns
+    report_path = Path(root_string) / "reports" / "stage4_linked_data_report.json"
+    if not report_path.exists():
+        return {}
+    try:
+        return json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
 def _render_linked_data_explorer(root: Path) -> None:
     from src.linked_data.build_graph import build_from_root
 
     root = Path(root).resolve()
     ttl_path = root / "linked_data" / "research_graph.ttl"
     jsonld_path = root / "linked_data" / "research_graph.jsonld"
-    graph_path = next(
-        (path for path in (ttl_path, jsonld_path) if path.exists() and path.stat().st_size > 0),
-        None,
-    )
+    report_path = root / "reports" / "stage4_linked_data_report.json"
+    graph_path = next((p for p in (ttl_path, jsonld_path) if p.exists() and p.stat().st_size > 0), None)
 
     _, button_col = st.columns([4.2, 1.0])
     with button_col:
         manual_rebuild = st.button("Rebuild RDF Graph", key="btn_rebuild_rdf")
 
-    # Graph construction is expensive; opening the tab only reads the existing graph.
     if manual_rebuild:
-        with st.spinner("Building RDF Knowledge Graph..."):
+        with st.spinner("Rebuilding RDF graph from the existing research datasets..."):
             build_from_root(root)
             _load_rdf_graph_cached.clear()
-        graph_path = next(
-            (path for path in (ttl_path, jsonld_path) if path.exists() and path.stat().st_size > 0),
-            None,
-        )
+            _load_rdf_summary.clear()
+        graph_path = next((p for p in (ttl_path, jsonld_path) if p.exists() and p.stat().st_size > 0), None)
+
+    report = _load_rdf_summary(str(root), report_path.stat().st_mtime_ns if report_path.exists() else 0)
+    counts = report.get("counts", {}) if isinstance(report, dict) else {}
+    summary_fields = [
+        ("Locations", "locations"),
+        ("Climate Obs.", "climate_observations"),
+        ("Candidate Pastures", "pastures"),
+        ("Corridors / Routes", "routes"),
+        ("Herd Groups", "herd_groups"),
+        ("Movement Events", "movement_events"),
+        ("Suitability", "suitability_assessments"),
+        ("Datasets", "datasets"),
+    ]
+    cols = st.columns(4)
+    for i, (label, key) in enumerate(summary_fields):
+        value = counts.get(key)
+        cols[i % 4].metric(label, f"{value:,}" if isinstance(value, (int, float)) else "—")
 
     if graph_path is None:
-        st.info(
-            "RDF graph is not available yet. Click **Rebuild RDF Graph** "
-            "to generate it from the local research datasets."
-        )
+        st.info("The RDF graph file is missing. Click **Rebuild RDF Graph** to recreate it.")
         return
 
-    if _rdf_graph_needs_rebuild(root, graph_path):
-        st.warning(
-            "The source datasets are newer than this graph. The existing graph is still available; "
-            "click **Rebuild RDF Graph** when you want to refresh it."
-        )
-
-    graph = _load_rdf_graph_cached(str(graph_path), graph_path.stat().st_mtime)
-
-    classes = {
-        "Locations": TA.Location,
-        "Climate Obs.": TA.ClimateObservation,
-        "Candidate Pastures": TA.Pasture,
-        "Corridors/Routes": TA.Route,
-        "Herd Groups": TA.HerdGroup,
-        "Movement Events": TA.MovementEvent,
-        "Suitability Assessments": TA.PastureSuitabilityAssessment,
-        "Datasets": TA.Dataset,
-    }
-
-    type_counts = Counter(graph.objects(None, RDF.type))
-    cols = st.columns(4)
-    for i, (label, cls) in enumerate(classes.items()):
-        cols[i % 4].metric(label, type_counts.get(cls, 0))
-
-    st.caption(f"Graph: `{graph_path.relative_to(root)}` · **{len(graph):,}** triples")
+    if report:
+        st.caption(f"Existing RDF summary · **{counts.get('triples', '—')}** triples · Graph: `{graph_path.relative_to(root)}`")
+    else:
+        st.caption(f"Graph file: `{graph_path.relative_to(root)}`)
 
     query_dir = root / "queries"
     query_files = sorted(query_dir.glob("0*.rq")) if query_dir.exists() else []
-    if query_files:
-        chosen = st.selectbox(
-            "Execute packaged SPARQL 1.1 query",
-            [path.name for path in query_files],
-        )
-        query_text = (query_dir / chosen).read_text(encoding="utf-8")
-        st.code(query_text, language="sparql")
+    if not query_files:
+        st.info("No packaged SPARQL query files were found.")
+        return
 
-        if st.button("Run SPARQL query"):
+    chosen = st.selectbox("Execute packaged SPARQL 1.1 query", [p.name for p in query_files])
+    query_text = (query_dir / chosen).read_text(encoding="utf-8")
+    st.code(query_text, language="sparql")
+
+    if st.button("Run SPARQL query"):
+        with st.spinner("Loading the RDF graph and executing the query..."):
+            graph = _load_rdf_graph_cached(str(graph_path), graph_path.stat().st_mtime)
             result = graph.query(query_text)
             variables = list(result.vars or [])
             rows = [
                 {
-                    str(variable): (
-                        str(row[variable]) if row[variable] is not None else None
-                    )
+                    str(variable): str(row[variable]) if row[variable] is not None else None
                     for variable in variables
                 }
                 for row in islice(result, 100)
             ]
-            st.caption(f"Showing the first {len(rows)} result row(s), up to 100.")
-            st.dataframe(
-                pd.DataFrame(rows),
-                use_container_width=True,
-                hide_index=True,
-            )
+        st.caption(f"Showing the first {len(rows)} result row(s), up to 100.")
+        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
 
 def _render_synced_charts_body(
@@ -373,25 +369,15 @@ def _render_synced_charts_body(
         _render_elevation_profile(data, snapshot)
 
 
-if hasattr(st, "fragment"):
-    @st.fragment(run_every=3.0)
-    def _synced_charts_panel(
-        data: AtlasData,
-        scenario_id: str,
-        sidebar_date: str,
-        species_filter: list[str],
-        sidebar_herd_id: str,
-    ) -> None:
-        _render_synced_charts_body(data, scenario_id, sidebar_date, species_filter, sidebar_herd_id)
-else:
-    def _synced_charts_panel(
-        data: AtlasData,
-        scenario_id: str,
-        sidebar_date: str,
-        species_filter: list[str],
-        sidebar_herd_id: str,
-    ) -> None:
-        _render_synced_charts_body(data, scenario_id, sidebar_date, species_filter, sidebar_herd_id)
+def _synced_charts_panel(
+    data: AtlasData,
+    scenario_id: str,
+    sidebar_date: str,
+    species_filter: list[str],
+    sidebar_herd_id: str,
+) -> None:
+    """Render charts during normal app runs, without periodic background reruns."""
+    _render_synced_charts_body(data, scenario_id, sidebar_date, species_filter, sidebar_herd_id)
 
 
 def main() -> None:
@@ -473,8 +459,9 @@ def main() -> None:
         )
         basemap = st.selectbox(
             "Global Basemap",
-            ["esri_satellite", "esri_topo", "opentopo", "osm"],
+            ["osm", "esri_satellite", "esri_topo", "opentopo"],
             index=0,
+            key="global_basemap_stable",
         )
         vertical_exaggeration = st.slider(
             "Terrain Relief Exaggeration", 1.0, 3.0, 1.35, 0.05
