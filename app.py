@@ -310,7 +310,7 @@ def _render_linked_data_explorer(root: Path) -> None:
     if report:
         st.caption(f"Existing RDF summary · **{counts.get('triples', '—')}** triples · Graph: `{graph_path.relative_to(root)}`")
     else:
-        st.caption(f"Graph file: `{graph_path.relative_to(root)}`)
+        st.caption(f"Graph file: `{graph_path.relative_to(root)}`")
 
     query_dir = root / "queries"
     query_files = sorted(query_dir.glob("0*.rq")) if query_dir.exists() else []
