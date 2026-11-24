@@ -285,7 +285,8 @@ def _load_osm_structured(root: Path) -> tuple[dict[str, gpd.GeoDataFrame], dict[
         if layer_name not in available:
             continue
         try:
-            gdf = gpd.read_file(path, layer=layer_name)
+            # Read only the layer budget; don't load the complete GeoPackage layer into RAM.
+            gdf = gpd.read_file(path, layer=layer_name, rows=slice(0, limit))
             if gdf.empty or gdf.crs is None:
                 continue
             gdf = gdf.to_crs("EPSG:4326")

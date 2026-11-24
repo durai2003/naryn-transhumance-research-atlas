@@ -259,11 +259,11 @@ def _normalize_positions(pos_map: dict[str, tuple[float, float]]) -> dict[str, l
 
 
 def compute_graph_layouts(filtered: FilteredNetwork) -> dict[str, dict[str, list[float]]]:
-    """Compute 4 deterministic normalized [0, 1] x [0, 1] layouts for the Abstract Graph Explorer."""
+    """Compute the two layouts used by the embedded Geographic / Force Graph Explorer."""
     G = filtered.graph
     nodes_gdf = filtered.nodes_gdf
     if G.number_of_nodes() == 0 or nodes_gdf.empty:
-        return {"layered_seasonal": {}, "geographic": {}, "spring": {}, "kamada_kawai": {}}
+        return {"geographic": {}, "spring": {}}
 
     # 1. Geographic XY (projected lon/lat with North at top -> smaller canvas y)
     geo_raw: dict[str, tuple[float, float]] = {}
@@ -272,75 +272,28 @@ def compute_graph_layouts(filtered: FilteredNetwork) -> dict[str, dict[str, list
         geo_raw[nid] = (float(row["longitude"]), -float(row["latitude"]))
     geo_layout = _normalize_positions(geo_raw)
 
-    # 2. Seasonal Layered layout (structured columns reflecting transhumance logic)
-    # Column order: Settlement -> Winter -> Spring -> Pass/Rest -> Summer -> Autumn -> Water
-    col_x = {
-        "settlement": 0.08,
-        "winter_pasture": 0.23,
-        "spring_pasture": 0.39,
-        "resting_point": 0.52,
-        "mountain_pass": 0.56,
-        "summer_pasture": 0.70,
-        "autumn_pasture": 0.84,
-        "water_point": 0.94,
-    }
-    layered: dict[str, list[float]] = {}
-    for ntype, grp in nodes_gdf.groupby("node_type"):
-        # Sort vertically by latitude descending so north-to-south geography is preserved within each column!
-        grp_s = grp.sort_values(["latitude", "longitude"], ascending=[False, True]).reset_index(drop=True)
-        n = len(grp_s)
-        x_base = col_x.get(str(ntype), 0.5)
-        for i, row in grp_s.iterrows():
-            y = 0.5 if n == 1 else (0.08 + 0.84 * (i / max(n - 1, 1)))
-            # Gentle horizontal stagger for large columns so labels never collide
-            x_jitter = ((i % 2) - 0.5) * 0.032 if n > 12 else 0.0
-            layered[str(row["node_id"])] = [round(float(np.clip(x_base + x_jitter, 0.05, 0.96)), 4), round(float(y), 4)]
-
-    # Simplify to undirected simple graph for spring & kamada_kawai
+    # 2. Deterministic Force / Spring layout
     G_simple = nx.Graph()
-    for n in G.nodes():
-        G_simple.add_node(n)
-    for u, v, d in G.edges(data=True):
-        if u != v and not G_simple.has_edge(u, v):
-            G_simple.add_edge(u, v, weight=1.0)
+    for node_id in G.nodes():
+        G_simple.add_node(node_id)
+    for source, target in G.edges():
+        if source != target and not G_simple.has_edge(source, target):
+            G_simple.add_edge(source, target, weight=1.0)
 
-    # 3. Spring layout (deterministic seed=42)
     if G_simple.number_of_nodes() == 1:
         only = next(iter(G_simple.nodes()))
         spring_layout = {only: [0.5, 0.5]}
     else:
         k_val = 1.6 / math.sqrt(max(G_simple.number_of_nodes(), 2))
-        sp_raw = nx.spring_layout(G_simple, k=k_val, iterations=60, seed=42)
-        spring_layout = _normalize_positions({str(k): (float(v[0]), float(v[1])) for k, v in sp_raw.items()})
-
-    # 4. Kamada-Kawai layout (packed cleanly per connected component so disconnected graphs never pile up)
-    kk_raw: dict[str, tuple[float, float]] = {}
-    comps = sorted((list(c) for c in nx.connected_components(G_simple)), key=lambda c: (-len(c), c[0]))
-    x_cursor = 0.0
-    for comp in comps:
-        if len(comp) == 1:
-            kk_raw[str(comp[0])] = (x_cursor, 0.0)
-            x_cursor += 0.9
-        elif len(comp) == 2:
-            kk_raw[str(comp[0])] = (x_cursor, -0.35)
-            kk_raw[str(comp[1])] = (x_cursor, 0.35)
-            x_cursor += 1.0
-        else:
-            sub = G_simple.subgraph(comp)
-            sub_pos = nx.kamada_kawai_layout(sub)
-            sxs = [float(p[0]) for p in sub_pos.values()]
-            width = max(max(sxs) - min(sxs), 0.6)
-            scale = max(1.0, math.sqrt(len(comp)) * 0.45)
-            for nid, xy in sub_pos.items():
-                kk_raw[str(nid)] = (x_cursor + (float(xy[0]) - min(sxs)) * scale, float(xy[1]) * scale)
-            x_cursor += width * scale + 1.1
-    kk_layout = _normalize_positions(kk_raw)
+        spring_raw = nx.spring_layout(G_simple, k=k_val, iterations=20, seed=42)
+        spring_layout = _normalize_positions({
+            str(node_id): (float(pos[0]), float(pos[1]))
+            for node_id, pos in spring_raw.items()
+        })
 
     return {
-        "layered_seasonal": layered,
         "geographic": geo_layout,
         "spring": spring_layout,
-        "kamada_kawai": kk_layout,
     }
 
 
