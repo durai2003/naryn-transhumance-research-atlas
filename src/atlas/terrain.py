@@ -248,29 +248,111 @@ def export_local_dem_grid(
     width: int = 240,
     height: int = 144,
 ) -> dict[str, Any] | None:
-    """Return a cached, compact base64 elevation grid for CesiumJS."""
-    status = find_local_dem(Path(root).resolve())
+    """Export a compact Cesium height grid from Copernicus DEM or the existing Naryn proxy."""
+    root = Path(root).resolve()
+    status = find_local_dem(root)
 
-    if (
-        not status.has_local_dem
-        or status.dem_path is None
-        or not HAS_RASTERIO
-    ):
+    if status.has_local_dem and status.dem_path is not None and HAS_RASTERIO:
+        try:
+            modified_ns = status.dem_path.stat().st_mtime_ns
+        except OSError:
+            return None
+
+        return _export_local_dem_grid_cached(
+            str(status.dem_path),
+            modified_ns,
+            status.source_name,
+            status.resolution_desc,
+            width,
+            height,
+        )
+
+    # The project already defines an analytical Tian Shan relief proxy for cases where
+    # Copernicus DEM has not been downloaded. Export it inside the actual Naryn boundary
+    # so the default globe can still show regional relief without remote tile requests.
+    boundary_candidates = [
+        root / "data/processed/vectors/naryn_adm1_clean.geojson",
+        root / "data/raw/boundaries/naryn_adm1.geojson",
+    ]
+    boundary_path = next(
+        (path for path in boundary_candidates if path.exists() and path.stat().st_size > 0),
+        None,
+    )
+    if boundary_path is None:
         return None
 
     try:
-        modified_ns = status.dem_path.stat().st_mtime_ns
+        boundary_mtime_ns = boundary_path.stat().st_mtime_ns
     except OSError:
         return None
 
-    return _export_local_dem_grid_cached(
-        str(status.dem_path),
-        modified_ns,
+    return _export_proxy_dem_grid_cached(
+        str(boundary_path),
+        boundary_mtime_ns,
         status.source_name,
         status.resolution_desc,
         width,
         height,
     )
+
+
+@lru_cache(maxsize=8)
+def _export_proxy_dem_grid_cached(
+    boundary_path_str: str,
+    boundary_mtime_ns: int,
+    source_name: str,
+    resolution_desc: str,
+    width: int,
+    height: int,
+) -> dict[str, Any] | None:
+    """Generate and cache the clearly labelled analytical Naryn relief proxy."""
+    del boundary_mtime_ns
+    import base64
+
+    try:
+        boundary = gpd.read_file(boundary_path_str)
+        if boundary.empty or boundary.crs is None:
+            return None
+        boundary = boundary.to_crs("EPSG:4326")
+        west, south, east, north = map(float, boundary.total_bounds)
+
+        # A small margin prevents the relief from ending exactly at the administrative border.
+        lon_pad = max((east - west) * 0.015, 0.025)
+        lat_pad = max((north - south) * 0.015, 0.025)
+        west -= lon_pad
+        east += lon_pad
+        south -= lat_pad
+        north += lat_pad
+
+        longitudes = np.linspace(west, east, width, dtype=np.float32)
+        latitudes = np.linspace(north, south, height, dtype=np.float32)
+        lon_grid, lat_grid = np.meshgrid(longitudes, latitudes)
+        elevations = _tian_shan_proxy_elevation(lon_grid, lat_grid)
+
+        encoded = np.clip(
+            np.round((elevations + 500.0) / 0.25),
+            1,
+            65535,
+        ).astype("<u2")
+        data_b64 = base64.b64encode(encoded.tobytes()).decode("ascii")
+
+        return {
+            "source": source_name,
+            "resolution": resolution_desc,
+            "width": width,
+            "height": height,
+            "bounds": [
+                round(west, 5),
+                round(south, 5),
+                round(east, 5),
+                round(north, 5),
+            ],
+            "offset_m": -500.0,
+            "scale_m": 0.25,
+            "data_b64_u16": data_b64,
+        }
+    except Exception:
+        return None
 
 
 @lru_cache(maxsize=8)

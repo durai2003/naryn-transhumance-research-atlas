@@ -402,7 +402,7 @@ class TerrariumTerrainProvider {
     this.tilingScheme = new Cesium.WebMercatorTilingScheme();
     this.errorEvent = new Cesium.Event();
     this.credit = new Cesium.Credit(
-      localDem ? `AWS Open Data Terrarium + ${localDem.source}` : "AWS Open Data Terrarium"
+      localDem ? localDem.source : "Ellipsoid terrain"
     );
     this.hasWaterMask = false;
     this.hasVertexNormals = false;
@@ -411,15 +411,7 @@ class TerrariumTerrainProvider {
     this._localDem = localDem;
     this._onStatus = onStatus;
     this._tileWidth = 49;
-    this._maxLevel = 13;
-    this._activeRequests = 0;
-    this._maxConcurrent = 8;
-    this._okCount = 0;
-    this._failCount = 0;
-    this._canvas = document.createElement("canvas");
-    this._canvas.width = this._tileWidth;
-    this._canvas.height = this._tileWidth;
-    this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
+    this._maxLevel = 12;
     this._levelZeroError = Cesium.TerrainProvider.getEstimatedLevelZeroGeometricErrorForAHeightmap(
       this.tilingScheme.ellipsoid,
       this._tileWidth,
@@ -429,83 +421,39 @@ class TerrariumTerrainProvider {
   getLevelMaximumGeometricError(level) { return this._levelZeroError / (1 << level); }
   getTileDataAvailable(x, y, level) { return level <= this._maxLevel; }
   loadTileDataAvailability() { return undefined; }
+
   requestTileGeometry(x, y, level) {
-    if (level > this._maxLevel || this._activeRequests >= this._maxConcurrent) return undefined;
-    this._activeRequests++;
     const dim = this._tileWidth;
-    const rect = this.tilingScheme.tileXYToRectangle(x, y, level);
-    const westDeg = Cesium.Math.toDegrees(rect.west);
-    const eastDeg = Cesium.Math.toDegrees(rect.east);
-    const southDeg = Cesium.Math.toDegrees(rect.south);
-    const northDeg = Cesium.Math.toDegrees(rect.north);
-    const url = IS_INLINE_FRAME
-      ? `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${level}/${x}/${y}.png`
-      : `/proxy/terrarium/${level}/${x}/${y}.png`;
+    const rectangle = this.tilingScheme.tileXYToRectangle(x, y, level);
+    const west = Cesium.Math.toDegrees(rectangle.west);
+    const east = Cesium.Math.toDegrees(rectangle.east);
+    const south = Cesium.Math.toDegrees(rectangle.south);
+    const north = Cesium.Math.toDegrees(rectangle.north);
+    const heights = new Float32Array(dim * dim);
+    const grid = this._localDem;
 
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+    if (
+      grid &&
+      east >= grid.west && west <= grid.east &&
+      north >= grid.south && south <= grid.north
+    ) {
+      for (let row = 0; row < dim; row++) {
+        const latitude = north - (row / (dim - 1)) * (north - south);
+        for (let col = 0; col < dim; col++) {
+          const longitude = west + (col / (dim - 1)) * (east - west);
+          const sample = sampleLocalDem(grid, longitude, latitude);
+          if (sample) heights[row * dim + col] = sample.elev;
+        }
+      }
+    }
 
-    return fetch(url, {
-      mode: "cors",
-      signal: controller.signal,
-    }).then(async (resp) => {
-        const heights = new Float32Array(dim * dim);
-        let gotRemote = false;
-        if (resp.ok) {
-          const blob = await resp.blob();
-          const bmp = await createImageBitmap(blob);
-          this._ctx.clearRect(0, 0, dim, dim);
-          this._ctx.drawImage(bmp, 0, 0, dim, dim);
-          bmp.close();
-          const img = this._ctx.getImageData(0, 0, dim, dim).data;
-          for (let i = 0, p = 0; i < heights.length; i++, p += 4) {
-            const h = (img[p] * 256.0 + img[p + 1] + img[p + 2] / 256.0) - 32768.0;
-            heights[i] = Number.isFinite(h) ? Math.max(-500.0, Math.min(9000.0, h)) : 0.0;
-          }
-          gotRemote = true;
-          this._okCount++;
-        } else {
-          this._failCount++;
-        }
-        const ld = this._localDem;
-        if (ld && !gotRemote && eastDeg >= ld.west && westDeg <= ld.east && northDeg >= ld.south && southDeg <= ld.north) {
-          for (let row = 0; row < dim; row++) {
-            const latDeg = northDeg - (row / (dim - 1)) * (northDeg - southDeg);
-            for (let col = 0; col < dim; col++) {
-              const lonDeg = westDeg + (col / (dim - 1)) * (eastDeg - westDeg);
-              const s = sampleLocalDem(ld, lonDeg, latDeg);
-              if (s) heights[row * dim + col] = s.elev;
-            }
-          }
-        }
-        if (this._onStatus) this._onStatus(this._okCount, this._failCount);
-        return new Cesium.HeightmapTerrainData({
-          buffer: heights, width: dim, height: dim, childTileMask: level < this._maxLevel ? 15 : 0,
-        });
-      })
-      .catch(() => {
-        this._failCount++;
-        const heights = new Float32Array(dim * dim);
-        const ld = this._localDem;
-        if (ld && eastDeg >= ld.west && westDeg <= ld.east && northDeg >= ld.south && southDeg <= ld.north) {
-          for (let row = 0; row < dim; row++) {
-            const latDeg = northDeg - (row / (dim - 1)) * (northDeg - southDeg);
-            for (let col = 0; col < dim; col++) {
-              const lonDeg = westDeg + (col / (dim - 1)) * (eastDeg - westDeg);
-              const s = sampleLocalDem(ld, lonDeg, latDeg);
-              if (s) heights[row * dim + col] = s.elev;
-            }
-          }
-        }
-        if (this._onStatus) this._onStatus(this._okCount, this._failCount);
-        return new Cesium.HeightmapTerrainData({
-          buffer: heights, width: dim, height: dim, childTileMask: level < this._maxLevel ? 15 : 0,
-        });
-      })
-      .finally(() => {
-        window.clearTimeout(timeoutId);
-        this._activeRequests = Math.max(0, this._activeRequests - 1);
-      });
+    if (this._onStatus) this._onStatus(grid ? 1 : 0, 0);
+    return Promise.resolve(new Cesium.HeightmapTerrainData({
+      buffer: heights,
+      width: dim,
+      height: dim,
+      childTileMask: level < this._maxLevel ? 15 : 0,
+    }));
   }
 }
 
@@ -642,14 +590,19 @@ class TerrariumTerrainProvider {
         terrainBadge.textContent = "3D Terrain: Cesium World Terrain";
         return;
       } catch (error) {
-        console.warn("Cesium World Terrain unavailable; using the stable ellipsoid.", error);
+        console.warn("Cesium World Terrain unavailable; using the bundled Naryn relief grid.", error);
       }
     }
 
-    // No external elevation-tile dependency in the token-free fallback.
-    viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
-    terrainBadge.className = "status-pill pill-ok";
-    terrainBadge.textContent = "3D Globe: Stable ellipsoid";
+    if (localDem) {
+      viewer.terrainProvider = new TerrariumTerrainProvider(localDem);
+      terrainBadge.className = "status-pill pill-ok";
+      terrainBadge.textContent = "3D Terrain: " + localDem.source;
+    } else {
+      viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
+      terrainBadge.className = "status-pill pill-warn";
+      terrainBadge.textContent = "3D Globe: Naryn relief grid unavailable";
+    }
   }
   await initTerrain();
 

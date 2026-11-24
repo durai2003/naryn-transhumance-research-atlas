@@ -290,7 +290,9 @@ class TerrariumTerrainProvider {
   constructor(localDem, onStatus) {
     this.tilingScheme = new Cesium.WebMercatorTilingScheme();
     this.errorEvent = new Cesium.Event();
-    this.credit = new Cesium.Credit("AWS Terrarium + Copernicus DEM");
+    this.credit = new Cesium.Credit(
+      localDem ? localDem.source : "Ellipsoid terrain"
+    );
     this.hasWaterMask = false;
     this.hasVertexNormals = false;
     this.availability = undefined;
@@ -298,100 +300,49 @@ class TerrariumTerrainProvider {
     this._localDem = localDem;
     this._onStatus = onStatus;
     this._tileWidth = 41;
-    this._maxLevel = 13;
-    this._active = 0;
-    this._ok = 0;
-    this._canvas = document.createElement("canvas");
-    this._canvas.width = this._tileWidth;
-    this._canvas.height = this._tileWidth;
-    this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
-    this._l0 = Cesium.TerrainProvider.getEstimatedLevelZeroGeometricErrorForAHeightmap(
-      this.tilingScheme.ellipsoid, this._tileWidth, this.tilingScheme.getNumberOfXTilesAtLevel(0)
+    this._maxLevel = 12;
+    this._levelZeroError = Cesium.TerrainProvider.getEstimatedLevelZeroGeometricErrorForAHeightmap(
+      this.tilingScheme.ellipsoid,
+      this._tileWidth,
+      this.tilingScheme.getNumberOfXTilesAtLevel(0)
     );
   }
-  getLevelMaximumGeometricError(level) { return this._l0 / (1 << level); }
+  getLevelMaximumGeometricError(level) { return this._levelZeroError / (1 << level); }
   getTileDataAvailable(x, y, level) { return level <= this._maxLevel; }
   loadTileDataAvailability() { return undefined; }
+
   requestTileGeometry(x, y, level) {
-    if (level > this._maxLevel || this._active >= 8) return undefined;
-    this._active++;
     const dim = this._tileWidth;
-    const rect = this.tilingScheme.tileXYToRectangle(x, y, level);
-    const west = Cesium.Math.toDegrees(rect.west), east = Cesium.Math.toDegrees(rect.east);
-    const south = Cesium.Math.toDegrees(rect.south), north = Cesium.Math.toDegrees(rect.north);
-    const terrainUrl = IS_INLINE_FRAME
-      ? `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${level}/${x}/${y}.png`
-      : `/proxy/terrarium/${level}/${x}/${y}.png`;
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+    const rectangle = this.tilingScheme.tileXYToRectangle(x, y, level);
+    const west = Cesium.Math.toDegrees(rectangle.west);
+    const east = Cesium.Math.toDegrees(rectangle.east);
+    const south = Cesium.Math.toDegrees(rectangle.south);
+    const north = Cesium.Math.toDegrees(rectangle.north);
+    const heights = new Float32Array(dim * dim);
+    const grid = this._localDem;
 
-    return fetch(terrainUrl, {
-      mode: "cors",
-      signal: controller.signal,
-    }).then(async (resp) => {
-        const heights = new Float32Array(dim * dim);
-        let ok = false;
-        if (resp.ok) {
-          const bmp = await createImageBitmap(await resp.blob());
-          this._ctx.clearRect(0, 0, dim, dim);
-          this._ctx.drawImage(bmp, 0, 0, dim, dim);
-          bmp.close();
-          const img = this._ctx.getImageData(0, 0, dim, dim).data;
-          for (let i = 0, p = 0; i < heights.length; i++, p += 4) {
-            const h = (img[p] * 256.0 + img[p + 1] + img[p + 2] / 256.0) - 32768.0;
-            heights[i] = Number.isFinite(h) ? Math.max(-500, Math.min(9000, h)) : 0;
-          }
-          ok = true;
-          this._ok++;
+    if (
+      grid &&
+      east >= grid.west && west <= grid.east &&
+      north >= grid.south && south <= grid.north
+    ) {
+      for (let row = 0; row < dim; row++) {
+        const latitude = north - (row / (dim - 1)) * (north - south);
+        for (let col = 0; col < dim; col++) {
+          const longitude = west + (col / (dim - 1)) * (east - west);
+          const sample = sampleLocalDem(grid, longitude, latitude);
+          if (sample !== null) heights[row * dim + col] = sample;
         }
-        if (!ok && this._localDem && east >= this._localDem.west && west <= this._localDem.east && north >= this._localDem.south && south <= this._localDem.north) {
-          for (let r = 0; r < dim; r++) {
-            const lat = north - (r / (dim - 1)) * (north - south);
-            for (let c = 0; c < dim; c++) {
-              const lon = west + (c / (dim - 1)) * (east - west);
-              const e = sampleLocalDem(this._localDem, lon, lat);
-              if (e !== null) heights[r * dim + c] = e;
-            }
-          }
-        }
-        if (this._onStatus) this._onStatus(this._ok);
-        return new Cesium.HeightmapTerrainData({ buffer: heights, width: dim, height: dim, childTileMask: level < this._maxLevel ? 15 : 0 });
-      })
-      .catch(() => {
-        const heights = new Float32Array(dim * dim);
-        const ld = this._localDem;
+      }
+    }
 
-        if (
-          ld &&
-          east >= ld.west && west <= ld.east &&
-          north >= ld.south && south <= ld.north
-        ) {
-          for (let row = 0; row < dim; row++) {
-            const lat = north - (row / (dim - 1)) * (north - south);
-
-            for (let col = 0; col < dim; col++) {
-              const lon = west + (col / (dim - 1)) * (east - west);
-              const elevation = sampleLocalDem(ld, lon, lat);
-
-              if (elevation !== null) {
-                heights[row * dim + col] = elevation;
-              }
-            }
-          }
-        }
-
-        if (this._onStatus) this._onStatus(this._ok);
-        return new Cesium.HeightmapTerrainData({
-          buffer: heights,
-          width: dim,
-          height: dim,
-          childTileMask: 0,
-        });
-      })
-      .finally(() => {
-        window.clearTimeout(timeoutId);
-        this._active = Math.max(0, this._active - 1);
-      });
+    if (this._onStatus) this._onStatus(grid ? 1 : 0);
+    return Promise.resolve(new Cesium.HeightmapTerrainData({
+      buffer: heights,
+      width: dim,
+      height: dim,
+      childTileMask: level < this._maxLevel ? 15 : 0,
+    }));
   }
 }
 
@@ -667,10 +618,21 @@ function renderElevationSvg(profile) {
   setBasemap(basemapSel.value);
   basemapSel.onchange = (event) => setBasemap(event.target.value);
 
-  // Keep the network map independent of unreliable public elevation-tile fetches.
-  viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
-  terrainBadge.className = "pill pill-ok";
-  terrainBadge.textContent = "3D Globe: Stable ellipsoid";
+  // Use the same bundled Naryn relief grid as the 3D Atlas; no remote terrain calls.
+  if (localDem) {
+    viewer.terrainProvider = new TerrariumTerrainProvider(localDem, (ok) => {
+      if (ok) {
+        terrainBadge.className = "pill pill-ok";
+        terrainBadge.textContent = "3D Terrain: " + localDem.source;
+      }
+    });
+    terrainBadge.className = "pill pill-ok";
+    terrainBadge.textContent = "3D Terrain: " + localDem.source;
+  } else {
+    viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
+    terrainBadge.className = "pill pill-warn";
+    terrainBadge.textContent = "3D Globe: Naryn relief grid unavailable";
+  }
 
   // Draw Naryn ADM1 boundary draped cleanly
   function drawBoundaryRing(coords) {
