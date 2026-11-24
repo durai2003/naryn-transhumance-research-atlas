@@ -25,7 +25,7 @@ def _load_stage1_cached(root_string: str) -> Stage1NetworkData:
     return load_stage1_network(Path(root_string))
 
 
-@st.cache_resource(show_spinner=False)
+@st.cache_resource(show_spinner=False, max_entries=8)
 def _cached_network_payload(
     cache_key: str,
     _net: Stage1NetworkData,
@@ -217,7 +217,7 @@ def render_network_analysis_tab(
             selected_edge_id,
         ),
     )
-    render_network_explorer(root, payload, height=780)
+    render_network_explorer(root, payload, height=780, cache_key=payload_cache_key)
 
     # --- STREAMLIT DETAILED INSPECTOR & COMPONENT SUMMARY BELOW ---
     st.divider()

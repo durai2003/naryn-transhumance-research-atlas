@@ -6,6 +6,8 @@ Launch from repository root:
 from __future__ import annotations
 
 import os
+import hashlib
+import json
 from collections import Counter
 from itertools import islice
 from pathlib import Path
@@ -81,6 +83,41 @@ def _load_sidebar_tables(root_string: str):
     )
     synthetic_herds = read_table(root / "data/synthetic/herds.csv")
     return scenario_climate, synthetic_herds
+
+
+
+@st.cache_resource(show_spinner=False, max_entries=8)
+def _cached_cesium_payload(
+    root_string: str,
+    scenario_id: str,
+    selected_date: str,
+    species_filter: tuple[str, ...],
+    selected_herd_id: str,
+    camera_mode: str,
+    basemap: str,
+    vertical_exaggeration: float,
+    show_layers_items: tuple[tuple[str, bool], ...],
+    playback_speed: int,
+    cesium_ion_token: str,
+    google_maps_api_key: str,
+    _data: AtlasData,
+) -> dict:
+    """Keep each map-state payload in memory instead of rebuilding it on reruns."""
+    del root_string
+    return build_cesium_payload(
+        _data,
+        scenario_id=scenario_id,
+        selected_date=selected_date,
+        species_filter=list(species_filter),
+        selected_herd_id=selected_herd_id,
+        camera_mode=camera_mode,
+        basemap=basemap,
+        vertical_exaggeration=vertical_exaggeration,
+        show_layers=dict(show_layers_items),
+        playback_speed=playback_speed,
+        cesium_ion_token=cesium_ion_token,
+        google_maps_api_key=google_maps_api_key,
+    )
 
 
 def _render_climate_cursor_chart(data: AtlasData, scenario_id: str, authoritative_date: str) -> None:
@@ -492,22 +529,50 @@ def main() -> None:
         with atlas_tab:
             with st.spinner("Loading 3D spatial datasets and preparing the atlas..."):
                 data = _load_data(str(ROOT))
-                payload = build_cesium_payload(
+                cesium_ion_token = os.getenv("CESIUM_ION_ACCESS_TOKEN", "")
+                google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY", "")
+                show_layers_items = tuple(sorted(show_layers.items()))
+
+                payload_key_data = {
+                    "root": str(ROOT),
+                    "scenario_id": scenario_id,
+                    "selected_date": selected_date,
+                    "species_filter": tuple(species_filter),
+                    "selected_herd_id": selected_herd_id,
+                    "camera_mode": camera_mode,
+                    "basemap": basemap,
+                    "vertical_exaggeration": vertical_exaggeration,
+                    "show_layers": show_layers_items,
+                    "playback_speed": playback_speed,
+                    "cesium_ion_token": cesium_ion_token,
+                    "google_maps_api_key": google_maps_api_key,
+                }
+                payload_cache_key = hashlib.sha256(
+                    json.dumps(payload_key_data, sort_keys=True).encode("utf-8")
+                ).hexdigest()
+
+                payload = _cached_cesium_payload(
+                    str(ROOT),
+                    scenario_id,
+                    selected_date,
+                    tuple(species_filter),
+                    selected_herd_id,
+                    camera_mode,
+                    basemap,
+                    vertical_exaggeration,
+                    show_layers_items,
+                    playback_speed,
+                    cesium_ion_token,
+                    google_maps_api_key,
                     data,
-                    scenario_id=scenario_id,
-                    selected_date=selected_date,
-                    species_filter=species_filter,
-                    selected_herd_id=selected_herd_id,
-                    camera_mode=camera_mode,
-                    basemap=basemap,
-                    vertical_exaggeration=vertical_exaggeration,
-                    show_layers=show_layers,
-                    playback_speed=playback_speed,
-                    cesium_ion_token=os.getenv("CESIUM_ION_ACCESS_TOKEN", ""),
-                    google_maps_api_key=os.getenv("GOOGLE_MAPS_API_KEY", ""),
                 )
 
-            render_cesium_globe(ROOT, payload, height=690)
+            render_cesium_globe(
+                ROOT,
+                payload,
+                height=690,
+                cache_key=payload_cache_key,
+            )
             _synced_charts_panel(
                 data,
                 scenario_id,

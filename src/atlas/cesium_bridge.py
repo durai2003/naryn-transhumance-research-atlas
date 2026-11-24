@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -13,6 +14,21 @@ import streamlit.components.v1 as components
 from src.atlas.cesium_server import get_asset_server
 
 CESIUM_CDN = "https://cdn.jsdelivr.net/npm/cesium@1.123.0/Build/Cesium/"
+
+
+
+@st.cache_resource(show_spinner=False, max_entries=8)
+def _cached_inline_html(
+    template_path: str,
+    template_mtime_ns: int,
+    payload_cache_key: str,
+    global_var: str,
+    _payload: dict[str, Any],
+) -> str:
+    """Build the large inline document once for each template and payload state."""
+    del template_mtime_ns, payload_cache_key
+    template_html = Path(template_path).read_text(encoding="utf-8")
+    return build_inline_html(template_html, _payload, global_var=global_var)
 
 
 def use_local_asset_server() -> bool:
@@ -61,7 +77,13 @@ def _find_template(root: Path, primary_rel: str, fallback_rel: str) -> Path | No
     return None
 
 
-def render_cesium_globe(root: Path, payload: dict[str, Any], *, height: int = 690) -> None:
+def render_cesium_globe(
+    root: Path,
+    payload: dict[str, Any],
+    *,
+    height: int = 690,
+    cache_key: str | None = None,
+) -> None:
     root_path = Path(root).resolve()
     tp = _find_template(root_path, "frontend/cesium/index.html", "frontend/frontend/cesium/index.html")
     if tp is None:
@@ -72,10 +94,26 @@ def render_cesium_globe(root: Path, payload: dict[str, Any], *, height: int = 69
         sid = srv.register_payload(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
         components.iframe(srv.iframe_url(sid), height=height, scrolling=False)
         return
-    components.html(build_inline_html(tp.read_text(encoding="utf-8"), payload, global_var="__ATLAS_PAYLOAD__"), height=height, scrolling=False)
+    if cache_key is None:
+        payload_json = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        cache_key = hashlib.sha256(payload_json.encode("utf-8")).hexdigest()
+    html = _cached_inline_html(
+        str(tp),
+        tp.stat().st_mtime_ns,
+        cache_key,
+        "__ATLAS_PAYLOAD__",
+        payload,
+    )
+    components.html(html, height=height, scrolling=False)
 
 
-def render_network_explorer(root: Path, payload: dict[str, Any], *, height: int = 760) -> None:
+def render_network_explorer(
+    root: Path,
+    payload: dict[str, Any],
+    *,
+    height: int = 760,
+    cache_key: str | None = None,
+) -> None:
     root_path = Path(root).resolve()
     tp = _find_template(root_path, "frontend/network/explorer.html", "frontend/frontend/network/explorer.html")
     if tp is None:
@@ -86,4 +124,14 @@ def render_network_explorer(root: Path, payload: dict[str, Any], *, height: int 
         sid = srv.register_network_payload(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
         components.iframe(srv.network_iframe_url(sid), height=height, scrolling=False)
         return
-    components.html(build_inline_html(tp.read_text(encoding="utf-8"), payload, global_var="__NETWORK_PAYLOAD__"), height=height, scrolling=False)
+    if cache_key is None:
+        payload_json = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        cache_key = hashlib.sha256(payload_json.encode("utf-8")).hexdigest()
+    html = _cached_inline_html(
+        str(tp),
+        tp.stat().st_mtime_ns,
+        cache_key,
+        "__NETWORK_PAYLOAD__",
+        payload,
+    )
+    components.html(html, height=height, scrolling=False)
