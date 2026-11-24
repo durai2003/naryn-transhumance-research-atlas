@@ -247,17 +247,6 @@
 <script>
 const COMP_PALETTE = ["#38bdf8", "#4ade80", "#facc15", "#fb923c", "#f472b6", "#a78bfa", "#2dd4bf", "#f87171"];
 
-const IS_INLINE_FRAME = Boolean(
-  window.__ATLAS_INLINE_MODE__ ||
-  (
-    window.location &&
-    (
-      window.location.protocol === "about:" ||
-      window.location.origin === "null"
-    )
-  )
-);
-
 function decodeLocalDemGrid(raw) {
   if (!raw || !raw.data_b64_u16) return null;
   try {
@@ -290,9 +279,7 @@ class TerrariumTerrainProvider {
   constructor(localDem, onStatus) {
     this.tilingScheme = new Cesium.WebMercatorTilingScheme();
     this.errorEvent = new Cesium.Event();
-    this.credit = new Cesium.Credit(
-      localDem ? localDem.source : "Ellipsoid terrain"
-    );
+    this.credit = new Cesium.Credit("AWS Terrarium + Copernicus DEM");
     this.hasWaterMask = false;
     this.hasVertexNormals = false;
     this.availability = undefined;
@@ -300,49 +287,59 @@ class TerrariumTerrainProvider {
     this._localDem = localDem;
     this._onStatus = onStatus;
     this._tileWidth = 41;
-    this._maxLevel = 12;
-    this._levelZeroError = Cesium.TerrainProvider.getEstimatedLevelZeroGeometricErrorForAHeightmap(
-      this.tilingScheme.ellipsoid,
-      this._tileWidth,
-      this.tilingScheme.getNumberOfXTilesAtLevel(0)
+    this._maxLevel = 13;
+    this._active = 0;
+    this._ok = 0;
+    this._canvas = document.createElement("canvas");
+    this._canvas.width = this._tileWidth;
+    this._canvas.height = this._tileWidth;
+    this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
+    this._l0 = Cesium.TerrainProvider.getEstimatedLevelZeroGeometricErrorForAHeightmap(
+      this.tilingScheme.ellipsoid, this._tileWidth, this.tilingScheme.getNumberOfXTilesAtLevel(0)
     );
   }
-  getLevelMaximumGeometricError(level) { return this._levelZeroError / (1 << level); }
+  getLevelMaximumGeometricError(level) { return this._l0 / (1 << level); }
   getTileDataAvailable(x, y, level) { return level <= this._maxLevel; }
   loadTileDataAvailability() { return undefined; }
-
   requestTileGeometry(x, y, level) {
+    if (level > this._maxLevel || this._active >= 8) return undefined;
+    this._active++;
     const dim = this._tileWidth;
-    const rectangle = this.tilingScheme.tileXYToRectangle(x, y, level);
-    const west = Cesium.Math.toDegrees(rectangle.west);
-    const east = Cesium.Math.toDegrees(rectangle.east);
-    const south = Cesium.Math.toDegrees(rectangle.south);
-    const north = Cesium.Math.toDegrees(rectangle.north);
-    const heights = new Float32Array(dim * dim);
-    const grid = this._localDem;
-
-    if (
-      grid &&
-      east >= grid.west && west <= grid.east &&
-      north >= grid.south && south <= grid.north
-    ) {
-      for (let row = 0; row < dim; row++) {
-        const latitude = north - (row / (dim - 1)) * (north - south);
-        for (let col = 0; col < dim; col++) {
-          const longitude = west + (col / (dim - 1)) * (east - west);
-          const sample = sampleLocalDem(grid, longitude, latitude);
-          if (sample !== null) heights[row * dim + col] = sample;
+    const rect = this.tilingScheme.tileXYToRectangle(x, y, level);
+    const west = Cesium.Math.toDegrees(rect.west), east = Cesium.Math.toDegrees(rect.east);
+    const south = Cesium.Math.toDegrees(rect.south), north = Cesium.Math.toDegrees(rect.north);
+    return fetch(`/proxy/terrarium/${level}/${x}/${y}.png`)
+      .then(async (resp) => {
+        const heights = new Float32Array(dim * dim);
+        let ok = false;
+        if (resp.ok) {
+          const bmp = await createImageBitmap(await resp.blob());
+          this._ctx.clearRect(0, 0, dim, dim);
+          this._ctx.drawImage(bmp, 0, 0, dim, dim);
+          bmp.close();
+          const img = this._ctx.getImageData(0, 0, dim, dim).data;
+          for (let i = 0, p = 0; i < heights.length; i++, p += 4) {
+            const h = (img[p] * 256.0 + img[p + 1] + img[p + 2] / 256.0) - 32768.0;
+            heights[i] = Number.isFinite(h) ? Math.max(-500, Math.min(9000, h)) : 0;
+          }
+          ok = true;
+          this._ok++;
         }
-      }
-    }
-
-    if (this._onStatus) this._onStatus(grid ? 1 : 0);
-    return Promise.resolve(new Cesium.HeightmapTerrainData({
-      buffer: heights,
-      width: dim,
-      height: dim,
-      childTileMask: level < this._maxLevel ? 15 : 0,
-    }));
+        if (!ok && this._localDem && east >= this._localDem.west && west <= this._localDem.east && north >= this._localDem.south && south <= this._localDem.north) {
+          for (let r = 0; r < dim; r++) {
+            const lat = north - (r / (dim - 1)) * (north - south);
+            for (let c = 0; c < dim; c++) {
+              const lon = west + (c / (dim - 1)) * (east - west);
+              const e = sampleLocalDem(this._localDem, lon, lat);
+              if (e !== null) heights[r * dim + c] = e;
+            }
+          }
+        }
+        if (this._onStatus) this._onStatus(this._ok);
+        return new Cesium.HeightmapTerrainData({ buffer: heights, width: dim, height: dim, childTileMask: level < this._maxLevel ? 15 : 0 });
+      })
+      .catch(() => new Cesium.HeightmapTerrainData({ buffer: new Float32Array(dim * dim), width: dim, height: dim, childTileMask: 0 }))
+      .finally(() => { this._active = Math.max(0, this._active - 1); });
   }
 }
 
@@ -486,35 +483,19 @@ function renderElevationSvg(profile) {
   const params = new URLSearchParams(window.location.search);
   const stateId = params.get("state") || "empty";
   let DATA = window.__NETWORK_PAYLOAD__ || null;
-
   try {
-    // Streamlit inline mode injects the payload into this document.
-    // Retain the endpoint fallback for the optional local asset-server mode.
     if (!DATA) {
-      const response = await fetch(
-        `/network/payload.json?state=${encodeURIComponent(stateId)}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      DATA = await response.json();
+      const resp = await fetch(`/network/payload.json?state=${encodeURIComponent(stateId)}`);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      DATA = await resp.json();
     }
-
-    if (
-      !DATA ||
-      typeof DATA !== "object" ||
-      !Array.isArray(DATA.nodes) ||
-      !Array.isArray(DATA.edges)
-    ) {
-      throw new Error("Network payload has an invalid structure");
+    if (!DATA || !Array.isArray(DATA.nodes) || !Array.isArray(DATA.edges)) {
+      throw new Error("Invalid Stage 2 network payload");
     }
   } catch (err) {
     terrainBadge.className = "pill pill-der";
-    terrainBadge.textContent = `Network payload error: ${err.message}`;
-    countsBadge.textContent = "Network data unavailable";
-    console.error("Stage 2 network payload loading failed:", err);
+    terrainBadge.textContent = `Failed to load Stage 2 network payload: ${err.message}`;
+    console.error("Stage 2 network payload error:", err);
     return;
   }
 
@@ -549,83 +530,43 @@ function renderElevationSvg(profile) {
     shouldAnimate: false, skyAtmosphere: new Cesium.SkyAtmosphere(), baseLayer: false,
   });
   viewer.scene.globe.show = true;
-  viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#9dbbd2");
+  viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#16324f");
   viewer.scene.globe.enableLighting = false;
   viewer.scene.globe.depthTestAgainstTerrain = false;
   viewer.scene.verticalExaggeration = Math.max(1.0, cfg.verticalExaggeration || 1.4);
 
-  const NETWORK_IMAGERY_URLS = {
-    esri_satellite: "/proxy/imagery/esri_satellite/{z}/{y}/{x}",
-    esri_topo: "/proxy/imagery/esri_topo/{z}/{y}/{x}",
-    opentopo: "/proxy/imagery/opentopo/{z}/{x}/{y}.png",
-    osm: "/proxy/imagery/osm/{z}/{y}/{x}",
-  };
-
   let activeImagery = [];
-  let imageryFallbackApplied = false;
-
-  function setBasemap(key, isFallback = false) {
-    for (const layer of activeImagery) {
-      viewer.imageryLayers.remove(layer, true);
-    }
+  function setBasemap(key) {
+    for (const l of activeImagery) viewer.imageryLayers.remove(l, true);
     activeImagery = [];
-
-    if (!isFallback) imageryFallbackApplied = false;
-
-    const selectedKey = NETWORK_IMAGERY_URLS[key]
-      ? key
-      : "esri_satellite";
-
-    const maximumLevels = {
-      esri_satellite: 18,
-      esri_topo: 18,
-      opentopo: 16,
-      osm: 19,
-    };
-
-    const provider = new Cesium.UrlTemplateImageryProvider({
-      url: NETWORK_IMAGERY_URLS[selectedKey],
-      maximumLevel: maximumLevels[selectedKey],
-    });
-
-    provider.errorEvent.addEventListener(() => {
-      if (imageryFallbackApplied) return;
-      imageryFallbackApplied = true;
-      const fallbackKey = selectedKey === "osm" ? "esri_topo" : "osm";
-      basemapSel.value = fallbackKey;
-      setBasemap(fallbackKey, true);
-    });
-
-    const layer = viewer.imageryLayers.addImageryProvider(provider);
-
-    if (selectedKey === "esri_satellite") {
-      layer.contrast = 1.06;
-      layer.saturation = 1.08;
+    if (key === "esri_topo") {
+      activeImagery.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_topo/{z}/{y}/{x}", maximumLevel: 18 })));
+    } else if (key === "opentopo") {
+      activeImagery.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/opentopo/{z}/{y}/{x}", maximumLevel: 16 })));
+    } else if (key === "osm") {
+      activeImagery.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/osm/{z}/{y}/{x}", maximumLevel: 19 })));
+    } else {
+      const sat = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_satellite/{z}/{y}/{x}", maximumLevel: 18 }));
+      sat.contrast = 1.06; sat.saturation = 1.08; activeImagery.push(sat);
+      const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_hillshade/{z}/{y}/{x}", maximumLevel: 16 }));
+      hs.alpha = 0.28; activeImagery.push(hs);
+      const lbl = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_labels/{z}/{y}/{x}", maximumLevel: 15 }));
+      lbl.alpha = 0.85; activeImagery.push(lbl);
     }
-
-    activeImagery.push(layer);
   }
-
   const basemapSel = document.getElementById("basemapSel");
-  basemapSel.value = cfg.basemap || "osm";
+  basemapSel.value = cfg.basemap || "esri_satellite";
   setBasemap(basemapSel.value);
-  basemapSel.onchange = (event) => setBasemap(event.target.value);
+  basemapSel.onchange = (e) => setBasemap(e.target.value);
 
-  // Use the same bundled Naryn relief grid as the 3D Atlas; no remote terrain calls.
-  if (localDem) {
-    viewer.terrainProvider = new TerrariumTerrainProvider(localDem, (ok) => {
-      if (ok) {
-        terrainBadge.className = "pill pill-ok";
-        terrainBadge.textContent = "3D Terrain: " + localDem.source;
-      }
-    });
-    terrainBadge.className = "pill pill-ok";
-    terrainBadge.textContent = "3D Terrain: " + localDem.source;
-  } else {
-    viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
-    terrainBadge.className = "pill pill-warn";
-    terrainBadge.textContent = "3D Globe: Naryn relief grid unavailable";
-  }
+  viewer.terrainProvider = new TerrariumTerrainProvider(localDem, (ok) => {
+    if (ok === 1 || ok === 12) {
+      terrainBadge.className = "pill pill-ok";
+      terrainBadge.textContent = localDem ? `3D Terrain: AWS + ${localDem.source}` : "3D Terrain: AWS Global";
+    }
+  });
+  terrainBadge.className = "pill pill-ok";
+  terrainBadge.textContent = localDem ? `3D Terrain: AWS + ${localDem.source}` : "3D Terrain: AWS Global";
 
   // Draw Naryn ADM1 boundary draped cleanly
   function drawBoundaryRing(coords) {
