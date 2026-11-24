@@ -17,7 +17,7 @@ CESIUM_CDN = "https://cdn.jsdelivr.net/npm/cesium@1.123.0/Build/Cesium/"
 
 
 
-@st.cache_resource(show_spinner=False, max_entries=8)
+@st.cache_resource(show_spinner=False, max_entries=2)
 def _cached_inline_html(
     template_path: str,
     template_mtime_ns: int,

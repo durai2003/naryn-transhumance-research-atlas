@@ -86,7 +86,7 @@ def _load_sidebar_tables(root_string: str):
 
 
 
-@st.cache_resource(show_spinner=False, max_entries=8)
+@st.cache_resource(show_spinner=False, max_entries=2)
 def _cached_cesium_payload(
     root_string: str,
     scenario_id: str,
