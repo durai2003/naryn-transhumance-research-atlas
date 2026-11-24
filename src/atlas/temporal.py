@@ -10,7 +10,6 @@ import pandas as pd
 
 from src.atlas.data_access import AtlasData
 from src.atlas.terrain import export_local_dem_grid
-from src.atlas.offline_basemap import build_offline_basemap
 
 MOVING_STATES = frozenset({"departing", "moving", "seasonal_transition", "returning"})
 
@@ -562,5 +561,4 @@ def build_cesium_payload(
         "events": events_payload,
         "climate": clim_series,
         "localDemGrid": export_local_dem_grid(data.root),
-        "offlineBasemap": build_offline_basemap(data.root),
     }

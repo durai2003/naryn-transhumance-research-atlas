@@ -126,10 +126,12 @@ def render_network_analysis_tab(
     with f_row2[2]:
         initial_layout = st.selectbox(
             "Default Graph Layout",
-            options=["geographic", "spring"],
+            options=["layered_seasonal", "geographic", "spring", "kamada_kawai"],
             format_func=lambda k: {
+                "layered_seasonal": "Seasonal Layered",
                 "geographic": "Geographic XY",
                 "spring": "Force / Spring",
+                "kamada_kawai": "Kamada-Kawai",
             }.get(k, k),
             key="s2_layout",
         )

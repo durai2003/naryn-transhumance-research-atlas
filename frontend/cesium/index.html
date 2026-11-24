@@ -240,7 +240,6 @@
         <button class="hud-btn" id="btnUnfollow" title="Release tracking & snap straight top-down">🎯 Free Cam</button>
         <button class="hud-btn" id="btnTiltToggle" title="Toggle between Top-Down (-90°) and Oblique 3D (-32°)">📐 3D Tilt</button>
         <select class="hud-select" id="basemapSelect" title="Switch Global Basemap">
-          <option value="naryn_relief">Naryn Relief (local)</option>
           <option value="esri_satellite">Satellite + Relief (Esri Imagery)</option>
           <option value="esri_topo">Topographic (Esri World Topo)</option>
           <option value="opentopo">Physical Relief (OpenTopoMap)</option>
@@ -536,7 +535,7 @@ class TerrariumTerrainProvider {
     provider.errorEvent.addEventListener(() => {
       if (basemapFallbackApplied) return;
       basemapFallbackApplied = true;
-      const fallbackKey = "naryn_relief";
+      const fallbackKey = key === "osm" ? "esri_topo" : "osm";
       const select = document.getElementById("basemapSelect");
       if (select) select.value = fallbackKey;
       setBasemap(fallbackKey, true);
@@ -546,39 +545,36 @@ class TerrariumTerrainProvider {
   function setBasemap(key, isFallback = false) {
     clearImagery();
     if (!isFallback) basemapFallbackApplied = false;
-    if (key === "naryn_relief") return;
 
-    const selectedKey = IMAGERY_URLS[key] ? key : "naryn_relief";
-    if (selectedKey === "naryn_relief") return;
+    const selectedKey = IMAGERY_URLS[key]
+      ? key
+      : "esri_satellite";
 
-    const maximumLevels = { esri_satellite: 18, esri_topo: 18, opentopo: 16, osm: 19 };
+    const maximumLevels = {
+      esri_satellite: 18,
+      esri_topo: 18,
+      opentopo: 16,
+      osm: 19,
+    };
+
     const provider = new Cesium.UrlTemplateImageryProvider({
       url: IMAGERY_URLS[selectedKey],
       maximumLevel: maximumLevels[selectedKey],
     });
+
     attachProviderErrorFallback(provider, selectedKey);
+
     const layer = viewer.imageryLayers.addImageryProvider(provider);
+
     if (selectedKey === "esri_satellite") {
       layer.contrast = 1.08;
       layer.saturation = 1.12;
     }
+
     activeLayers.push(layer);
   }
   const basemapSel = document.getElementById("basemapSelect");
-  const offlineBasemap = ATLAS_DATA.offlineBasemap;
-  if (offlineBasemap && offlineBasemap.url && Array.isArray(offlineBasemap.bounds)) {
-    try {
-      const provider = new Cesium.SingleTileImageryProvider({
-        url: offlineBasemap.url,
-        rectangle: Cesium.Rectangle.fromDegrees(...offlineBasemap.bounds),
-        credit: offlineBasemap.credit || "Naryn relief basemap",
-      });
-      viewer.imageryLayers.addImageryProvider(provider, 0);
-    } catch (error) {
-      console.error("Could not load bundled Naryn basemap:", error);
-    }
-  }
-  basemapSel.value = cfg.basemap || (offlineBasemap ? "naryn_relief" : "osm");
+  basemapSel.value = cfg.basemap || "osm";
   setBasemap(basemapSel.value);
   basemapSel.addEventListener("change", (e) => setBasemap(e.target.value));
 
