@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import math
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -247,35 +248,76 @@ def export_local_dem_grid(
     width: int = 240,
     height: int = 144,
 ) -> dict[str, Any] | None:
-    """Export a compact base64 uint16 elevation grid from local Copernicus DEM for CesiumJS.
+    """Return a cached, compact base64 elevation grid for CesiumJS."""
+    status = find_local_dem(Path(root).resolve())
 
-    Encoding: elevation_m = raw_uint16 * 0.25 - 500.0 (0.25 m vertical resolution,
-    covers -500 m to 15,883 m). Value 0 marks nodata/outside-DEM so Cesium seamlessly
-    falls back to global AWS Terrarium 3D elevation outside the clipped DEM footprint.
-    """
+    if (
+        not status.has_local_dem
+        or status.dem_path is None
+        or not HAS_RASTERIO
+    ):
+        return None
+
+    try:
+        modified_ns = status.dem_path.stat().st_mtime_ns
+    except OSError:
+        return None
+
+    return _export_local_dem_grid_cached(
+        str(status.dem_path),
+        modified_ns,
+        status.source_name,
+        status.resolution_desc,
+        width,
+        height,
+    )
+
+
+@lru_cache(maxsize=8)
+def _export_local_dem_grid_cached(
+    dem_path_str: str,
+    modified_ns: int,
+    source_name: str,
+    resolution_desc: str,
+    width: int,
+    height: int,
+) -> dict[str, Any] | None:
+    """Reproject and encode a DEM once per file version and output grid size."""
+    del modified_ns
+
     import base64
 
-    status = find_local_dem(root)
-    if not status.has_local_dem or status.dem_path is None or not HAS_RASTERIO:
-        return None
     try:
+        from affine import Affine
         from rasterio.enums import Resampling
         from rasterio.warp import calculate_default_transform, reproject
 
-        with rasterio.open(status.dem_path) as src:
+        with rasterio.open(dem_path_str) as src:
             if src.crs is None:
                 return None
-            dst_transform, dst_w, dst_h = calculate_default_transform(
-                src.crs, "EPSG:4326", src.width, src.height, *src.bounds
+
+            dst_transform, dst_width, dst_height = calculate_default_transform(
+                src.crs,
+                "EPSG:4326",
+                src.width,
+                src.height,
+                *src.bounds,
             )
-            from affine import Affine
-            scale_x = dst_w / float(width)
-            scale_y = dst_h / float(height)
-            out_transform = dst_transform * Affine.scale(scale_x, scale_y)
-            dest = np.full((height, width), -9999.0, dtype=np.float32)
+
+            out_transform = dst_transform * Affine.scale(
+                dst_width / float(width),
+                dst_height / float(height),
+            )
+
+            destination = np.full(
+                (height, width),
+                -9999.0,
+                dtype=np.float32,
+            )
+
             reproject(
                 source=rasterio.band(src, 1),
-                destination=dest,
+                destination=destination,
                 src_transform=src.transform,
                 src_crs=src.crs,
                 src_nodata=src.nodata,
@@ -284,24 +326,44 @@ def export_local_dem_grid(
                 dst_nodata=-9999.0,
                 resampling=Resampling.bilinear,
             )
+
             west = float(out_transform.c)
             north = float(out_transform.f)
             east = float(west + out_transform.a * width)
             south = float(north + out_transform.e * height)
 
-            valid = np.isfinite(dest) & (dest > -450.0) & (dest < 9000.0)
+            valid = (
+                np.isfinite(destination)
+                & (destination > -450.0)
+                & (destination < 9000.0)
+            )
+
             encoded = np.zeros((height, width), dtype="<u2")
-            encoded[valid] = np.clip(np.round((dest[valid] + 500.0) / 0.25), 1, 65535).astype("<u2")
-            b64 = base64.b64encode(encoded.tobytes()).decode("ascii")
+            encoded[valid] = np.clip(
+                np.round((destination[valid] + 500.0) / 0.25),
+                1,
+                65535,
+            ).astype("<u2")
+
+            data_b64 = base64.b64encode(
+                encoded.tobytes()
+            ).decode("ascii")
+
             return {
-                "source": status.source_name,
-                "resolution": status.resolution_desc,
+                "source": source_name,
+                "resolution": resolution_desc,
                 "width": width,
                 "height": height,
-                "bounds": [round(west, 5), round(south, 5), round(east, 5), round(north, 5)],
+                "bounds": [
+                    round(west, 5),
+                    round(south, 5),
+                    round(east, 5),
+                    round(north, 5),
+                ],
                 "offset_m": -500.0,
                 "scale_m": 0.25,
-                "data_b64_u16": b64,
+                "data_b64_u16": data_b64,
             }
+
     except Exception:
         return None

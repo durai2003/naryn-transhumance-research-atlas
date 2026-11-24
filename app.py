@@ -6,6 +6,8 @@ Launch from repository root:
 from __future__ import annotations
 
 import os
+from collections import Counter
+from itertools import islice
 from pathlib import Path
 
 import pandas as pd
@@ -47,9 +49,38 @@ st.markdown(
 )
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_resource(show_spinner=False)
 def _load_data(root_string: str) -> AtlasData:
+    """Load large geospatial tables once and share the read-only object across reruns."""
     return load_atlas_data(Path(root_string))
+
+
+@st.cache_resource(show_spinner=False)
+def _load_sidebar_tables(root_string: str):
+    """Load only the small simulation tables required by the sidebar."""
+    root = Path(root_string)
+
+    def read_table(csv_path: Path, parquet_path: Path | None = None) -> pd.DataFrame:
+        if parquet_path is not None and parquet_path.exists():
+            try:
+                return pd.read_parquet(parquet_path)
+            except Exception:
+                pass
+
+        if csv_path.exists() and csv_path.stat().st_size > 0:
+            try:
+                return pd.read_csv(csv_path)
+            except (pd.errors.EmptyDataError, OSError, UnicodeDecodeError):
+                pass
+
+        return pd.DataFrame()
+
+    scenario_climate = read_table(
+        root / "data/synthetic/scenario_climate.csv",
+        root / "data/synthetic/scenario_climate.parquet",
+    )
+    synthetic_herds = read_table(root / "data/synthetic/herds.csv")
+    return scenario_climate, synthetic_herds
 
 
 def _render_climate_cursor_chart(data: AtlasData, scenario_id: str, authoritative_date: str) -> None:
@@ -186,41 +217,45 @@ def _rdf_graph_needs_rebuild(root: Path, graph_path: Path | None) -> bool:
     return False
 
 
-def _render_linked_data_explorer(data: AtlasData) -> None:
+def _render_linked_data_explorer(root: Path) -> None:
     from src.linked_data.build_graph import build_from_root
 
-    ttl_path = data.root / "linked_data" / "research_graph.ttl"
-    graph_path = ttl_path if ttl_path.exists() else data.graph_path
+    root = Path(root).resolve()
+    ttl_path = root / "linked_data" / "research_graph.ttl"
+    jsonld_path = root / "linked_data" / "research_graph.jsonld"
+    graph_path = next(
+        (path for path in (ttl_path, jsonld_path) if path.exists() and path.stat().st_size > 0),
+        None,
+    )
 
-    c_hdr, c_btn = st.columns([4.2, 1.0])
-    with c_btn:
+    _, button_col = st.columns([4.2, 1.0])
+    with button_col:
         manual_rebuild = st.button("Rebuild RDF Graph", key="btn_rebuild_rdf")
 
-    # Auto-rebuild if synthetic simulation files exist and graph is missing or older, or user clicked Rebuild
-    if manual_rebuild or _rdf_graph_needs_rebuild(data.root, graph_path):
-        with st.spinner("Building RDF Knowledge Graph (pastures, corridors, herds, events & suitability)…"):
-            build_from_root(data.root)
+    # Graph construction is expensive; opening the tab only reads the existing graph.
+    if manual_rebuild:
+        with st.spinner("Building RDF Knowledge Graph..."):
+            build_from_root(root)
             _load_rdf_graph_cached.clear()
-        graph_path = ttl_path if ttl_path.exists() else data.graph_path
+        graph_path = next(
+            (path for path in (ttl_path, jsonld_path) if path.exists() and path.stat().st_size > 0),
+            None,
+        )
 
-    if graph_path is None or not graph_path.exists():
-        st.info("RDF graph not built yet. Click **Rebuild RDF Graph** or run `python3 scripts/run_linked_data.py --root .`.")
+    if graph_path is None:
+        st.info(
+            "RDF graph is not available yet. Click **Rebuild RDF Graph** "
+            "to generate it from the local research datasets."
+        )
         return
 
-    graph = _load_rdf_graph_cached(str(graph_path), graph_path.stat().st_mtime)
+    if _rdf_graph_needs_rebuild(root, graph_path):
+        st.warning(
+            "The source datasets are newer than this graph. The existing graph is still available; "
+            "click **Rebuild RDF Graph** when you want to refresh it."
+        )
 
-    # Also auto-rebuild once if an older pre-simulation TTL is still loaded (0 pastures/herds/events while synthetic files exist)
-    has_syn = (data.root / "data/synthetic/pastures.geojson").exists() and (data.root / "data/synthetic/herds.csv").exists()
-    pasture_cnt = sum(1 for _ in graph.subjects(RDF.type, TA.Pasture))
-    herd_cnt = sum(1 for _ in graph.subjects(RDF.type, TA.HerdGroup))
-    event_cnt = sum(1 for _ in graph.subjects(RDF.type, TA.MovementEvent))
-    if has_syn and (pasture_cnt == 0 or herd_cnt == 0 or event_cnt == 0) and not st.session_state.get("_rdf_auto_rebuilt"):
-        st.session_state["_rdf_auto_rebuilt"] = True
-        with st.spinner("Updating stale RDF graph with candidate pastures, herds & movement events…"):
-            build_from_root(data.root)
-            _load_rdf_graph_cached.clear()
-        graph = _load_rdf_graph_cached(str(ttl_path), ttl_path.stat().st_mtime)
-        graph_path = ttl_path
+    graph = _load_rdf_graph_cached(str(graph_path), graph_path.stat().st_mtime)
 
     classes = {
         "Locations": TA.Location,
@@ -232,22 +267,42 @@ def _render_linked_data_explorer(data: AtlasData) -> None:
         "Suitability Assessments": TA.PastureSuitabilityAssessment,
         "Datasets": TA.Dataset,
     }
+
+    type_counts = Counter(graph.objects(None, RDF.type))
     cols = st.columns(4)
     for i, (label, cls) in enumerate(classes.items()):
-        cols[i % 4].metric(label, sum(1 for _ in graph.subjects(RDF.type, cls)))
-    st.caption(f"Graph: `{graph_path.relative_to(data.root)}` · **{len(graph):,}** triples")
+        cols[i % 4].metric(label, type_counts.get(cls, 0))
 
-    q_dir = data.root / "queries"
-    rq_files = sorted(q_dir.glob("0*.rq")) if q_dir.exists() else []
-    if rq_files:
-        chosen = st.selectbox("Execute packaged SPARQL 1.1 query", [p.name for p in rq_files])
-        q_text = (q_dir / chosen).read_text(encoding="utf-8")
-        st.code(q_text, language="sparql")
+    st.caption(f"Graph: `{graph_path.relative_to(root)}` · **{len(graph):,}** triples")
+
+    query_dir = root / "queries"
+    query_files = sorted(query_dir.glob("0*.rq")) if query_dir.exists() else []
+    if query_files:
+        chosen = st.selectbox(
+            "Execute packaged SPARQL 1.1 query",
+            [path.name for path in query_files],
+        )
+        query_text = (query_dir / chosen).read_text(encoding="utf-8")
+        st.code(query_text, language="sparql")
+
         if st.button("Run SPARQL query"):
-            res = graph.query(q_text)
-            rows = [{str(v): (str(r[v]) if r[v] is not None else None) for v in res.vars} for r in res]
-            st.caption(f"Returned {len(rows)} rows (showing up to 100).")
-            st.dataframe(pd.DataFrame(rows[:100]), use_container_width=True, hide_index=True)
+            result = graph.query(query_text)
+            variables = list(result.vars or [])
+            rows = [
+                {
+                    str(variable): (
+                        str(row[variable]) if row[variable] is not None else None
+                    )
+                    for variable in variables
+                }
+                for row in islice(result, 100)
+            ]
+            st.caption(f"Showing the first {len(rows)} result row(s), up to 100.")
+            st.dataframe(
+                pd.DataFrame(rows),
+                use_container_width=True,
+                hide_index=True,
+            )
 
 
 def _render_synced_charts_body(
@@ -282,7 +337,7 @@ def _render_synced_charts_body(
 
 
 if hasattr(st, "fragment"):
-    @st.fragment(run_every=1.0)
+    @st.fragment(run_every=3.0)
     def _synced_charts_panel(
         data: AtlasData,
         scenario_id: str,
@@ -303,37 +358,90 @@ else:
 
 
 def main() -> None:
-    data = _load_data(str(ROOT))
+    # Keep the first paint lightweight: only the two small sidebar tables load initially.
+    scenario_climate, synthetic_herds = _load_sidebar_tables(str(ROOT))
 
     with st.sidebar:
         st.header("3D Atlas Controls")
+
         scenario_options = (
-            sorted(data.scenario_climate["scenario_id"].unique().tolist())
-            if not data.scenario_climate.empty
-            else ["SCENARIO_BASELINE", "SCENARIO_WARMER_DRIER", "SCENARIO_EARLY_SNOW"]
+            sorted(
+                scenario_climate["scenario_id"].dropna().astype(str).unique().tolist()
+            )
+            if not scenario_climate.empty
+            else [
+                "SCENARIO_BASELINE",
+                "SCENARIO_WARMER_DRIER",
+                "SCENARIO_EARLY_SNOW",
+            ]
         )
-        scenario_id = st.selectbox("Climate Scenario", scenario_options, index=0)
+        scenario_id = st.selectbox(
+            "Climate Scenario",
+            scenario_options,
+            index=0,
+        )
 
         available_dates = (
-            sorted(data.scenario_climate.loc[data.scenario_climate["scenario_id"] == scenario_id, "date_str"].unique().tolist())
-            if not data.scenario_climate.empty
+            sorted(
+                scenario_climate.loc[
+                    scenario_climate["scenario_id"] == scenario_id,
+                    "date_str",
+                ].dropna().astype(str).unique().tolist()
+            )
+            if not scenario_climate.empty
             else ["2024-07-02"]
         )
+        if not available_dates:
+            available_dates = ["2024-07-02"]
+
         default_idx = min(len(available_dates) // 2, len(available_dates) - 1)
-        selected_date = st.select_slider("Synchronized Simulation Date", options=available_dates, value=available_dates[default_idx])
+        selected_date = st.select_slider(
+            "Synchronized Simulation Date",
+            options=available_dates,
+            value=available_dates[default_idx],
+        )
 
-        selected_season = st.selectbox("Suitability Season View", ["summer", "autumn", "spring", "winter"], index=0)
-        all_species = sorted(data.synthetic_herds["species"].unique().tolist()) if not data.synthetic_herds.empty else ["sheep", "goat", "cattle", "horse", "mixed"]
-        species_filter = st.multiselect("Species Filter", all_species, default=all_species)
+        selected_season = st.selectbox(
+            "Suitability Season View",
+            ["summer", "autumn", "spring", "winter"],
+            index=0,
+        )
 
-        herd_ids = ["All herds"] + (data.synthetic_herds["herd_id"].tolist() if not data.synthetic_herds.empty else [])
+        all_species = (
+            sorted(
+                synthetic_herds["species"].dropna().astype(str).unique().tolist()
+            )
+            if not synthetic_herds.empty
+            else ["sheep", "goat", "cattle", "horse", "mixed"]
+        )
+        species_filter = st.multiselect(
+            "Species Filter",
+            all_species,
+            default=all_species,
+        )
+
+        herd_ids = ["All herds"] + (
+            synthetic_herds["herd_id"].dropna().astype(str).tolist()
+            if not synthetic_herds.empty
+            else []
+        )
         selected_herd_id = st.selectbox("Focus / Track Herd", herd_ids)
 
         st.divider()
         st.subheader("3D Globe & Layers")
-        camera_mode = st.selectbox("Initial View Mode", ["regional_3d", "global", "central_asia", "son_kul", "at_bashi"], index=0)
-        basemap = st.selectbox("Global Basemap", ["esri_satellite", "esri_topo", "opentopo", "osm"], index=0)
-        vertical_exaggeration = st.slider("Terrain Relief Exaggeration", 1.0, 3.0, 1.35, 0.05)
+        camera_mode = st.selectbox(
+            "Initial View Mode",
+            ["regional_3d", "global", "central_asia", "son_kul", "at_bashi"],
+            index=0,
+        )
+        basemap = st.selectbox(
+            "Global Basemap",
+            ["esri_satellite", "esri_topo", "opentopo", "osm"],
+            index=0,
+        )
+        vertical_exaggeration = st.slider(
+            "Terrain Relief Exaggeration", 1.0, 3.0, 1.35, 0.05
+        )
         playback_speed = st.slider("Default Playback Speed (days/s)", 1, 30, 6)
 
         show_layers = {
@@ -344,11 +452,19 @@ def main() -> None:
             "pastures": st.checkbox("SYNTHETIC · Candidate Pastures", value=True),
             "corridors": st.checkbox("SYNTHETIC · Least-Cost Corridors", value=True),
             "trails": st.checkbox("SYNTHETIC · Animated Herd Trails", value=True),
-            "google_3d_tiles": st.checkbox("Optional · Google Photorealistic 3D Tiles", value=False),
+            "google_3d_tiles": st.checkbox(
+                "Optional · Google Photorealistic 3D Tiles",
+                value=False,
+            ),
         }
 
-    # Push sidebar changes into the shared asset server state so sidebar & CesiumJS stay 100% synced
-    sidebar_sig = (scenario_id, selected_date, selected_herd_id, tuple(species_filter))
+    # Preserve the existing cross-panel timeline state synchronisation.
+    sidebar_sig = (
+        scenario_id,
+        selected_date,
+        selected_herd_id,
+        tuple(species_filter),
+    )
     if st.session_state.get("_last_sidebar_sig") != sidebar_sig:
         st.session_state["_last_sidebar_sig"] = sidebar_sig
         get_asset_server(ROOT).set_ui_state(
@@ -362,46 +478,58 @@ def main() -> None:
         f"#### Mini Transhumance Research Data Atlas (3D) · Naryn Region, Kyrgyzstan · Scenario: `{scenario_id}`"
     )
 
-    atlas_tab, network_tab, rdf_tab = st.tabs([
-        "🌍 3D Spatiotemporal Atlas",
-        "🕸️ Network Analysis",
-        "🔗 Linked Open Data & SPARQL",
-    ])
+    atlas_tab, network_tab, rdf_tab = st.tabs(
+        [
+            "🌍 3D Spatiotemporal Atlas",
+            "🕸️ Network Analysis",
+            "🔗 Linked Open Data & SPARQL",
+        ],
+        on_change="rerun",
+        key="atlas_navigation",
+    )
 
-    with atlas_tab:
-        payload = build_cesium_payload(
-            data,
-            scenario_id=scenario_id,
-            selected_date=selected_date,
-            species_filter=species_filter,
-            selected_herd_id=selected_herd_id,
-            camera_mode=camera_mode,
-            basemap=basemap,
-            vertical_exaggeration=vertical_exaggeration,
-            show_layers=show_layers,
-            playback_speed=playback_speed,
-            cesium_ion_token=os.getenv("CESIUM_ION_ACCESS_TOKEN", ""),
-            google_maps_api_key=os.getenv("GOOGLE_MAPS_API_KEY", ""),
-        )
-        # Unified synchronized 3D globe + live right-hand Selected Herd & State panel
-        render_cesium_globe(ROOT, payload, height=690)
+    if atlas_tab.open:
+        with atlas_tab:
+            with st.spinner("Loading 3D spatial datasets and preparing the atlas..."):
+                data = _load_data(str(ROOT))
+                payload = build_cesium_payload(
+                    data,
+                    scenario_id=scenario_id,
+                    selected_date=selected_date,
+                    species_filter=species_filter,
+                    selected_herd_id=selected_herd_id,
+                    camera_mode=camera_mode,
+                    basemap=basemap,
+                    vertical_exaggeration=vertical_exaggeration,
+                    show_layers=show_layers,
+                    playback_speed=playback_speed,
+                    cesium_ion_token=os.getenv("CESIUM_ION_ACCESS_TOKEN", ""),
+                    google_maps_api_key=os.getenv("GOOGLE_MAPS_API_KEY", ""),
+                )
 
-        # Synchronized bottom climate cursor + exact corridor elevation profile (polls authoritative Cesium timeline state)
-        _synced_charts_panel(data, scenario_id, selected_date, species_filter, selected_herd_id)
+            render_cesium_globe(ROOT, payload, height=690)
+            _synced_charts_panel(
+                data,
+                scenario_id,
+                selected_date,
+                species_filter,
+                selected_herd_id,
+            )
+            _render_scenario_comparison(data, scenario_id, selected_season)
 
-        _render_scenario_comparison(data, scenario_id, selected_season)
+    if network_tab.open:
+        with network_tab:
+            render_network_analysis_tab(
+                ROOT,
+                basemap=basemap,
+                vertical_exaggeration=vertical_exaggeration,
+                default_scenario=scenario_id,
+            )
 
-    with network_tab:
-        render_network_analysis_tab(
-            ROOT,
-            basemap=basemap,
-            vertical_exaggeration=vertical_exaggeration,
-            default_scenario=scenario_id,
-        )
-
-    with rdf_tab:
-        st.subheader("RDF Knowledge Graph & Executable SPARQL 1.1")
-        _render_linked_data_explorer(data)
+    if rdf_tab.open:
+        with rdf_tab:
+            st.subheader("RDF Knowledge Graph & Executable SPARQL 1.1")
+            _render_linked_data_explorer(ROOT)
 
 
 if __name__ == "__main__":

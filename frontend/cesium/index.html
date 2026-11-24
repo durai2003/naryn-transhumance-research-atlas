@@ -442,8 +442,13 @@ class TerrariumTerrainProvider {
       ? `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${level}/${x}/${y}.png`
       : `/proxy/terrarium/${level}/${x}/${y}.png`;
 
-    return fetch(url, { mode: "cors" })
-      .then(async (resp) => {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+
+    return fetch(url, {
+      mode: "cors",
+      signal: controller.signal,
+    }).then(async (resp) => {
         const heights = new Float32Array(dim * dim);
         let gotRemote = false;
         if (resp.ok) {
@@ -498,6 +503,7 @@ class TerrariumTerrainProvider {
         });
       })
       .finally(() => {
+        window.clearTimeout(timeoutId);
         this._activeRequests = Math.max(0, this._activeRequests - 1);
       });
   }
@@ -592,28 +598,33 @@ class TerrariumTerrainProvider {
   function setBasemap(key) {
     clearImagery();
     basemapFallbackApplied = false;
-    if (key === "esri_topo") {
-      const p = new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.esri_topo, maximumLevel: 18 });
-      attachProviderErrorFallback(p, key);
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(p));
-    } else if (key === "opentopo") {
-      const p = new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.opentopo, maximumLevel: 16 });
-      attachProviderErrorFallback(p, key);
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(p));
-    } else if (key === "osm") {
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(
-        new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.osm, maximumLevel: 19 })
-      ));
-    } else {
-      const satProv = new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.esri_satellite, maximumLevel: 18 });
-      attachProviderErrorFallback(satProv, key);
-      const sat = viewer.imageryLayers.addImageryProvider(satProv);
-      sat.contrast = 1.08; sat.saturation = 1.12; activeLayers.push(sat);
-      const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.esri_hillshade, maximumLevel: 16 }));
-      hs.alpha = 0.28; hs.contrast = 1.28; activeLayers.push(hs);
-      const lbl = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.esri_labels, maximumLevel: 15 }));
-      lbl.alpha = 0.86; activeLayers.push(lbl);
+
+    const selectedKey = IMAGERY_URLS[key]
+      ? key
+      : "esri_satellite";
+
+    const maximumLevels = {
+      esri_satellite: 18,
+      esri_topo: 18,
+      opentopo: 16,
+      osm: 19,
+    };
+
+    const provider = new Cesium.UrlTemplateImageryProvider({
+      url: IMAGERY_URLS[selectedKey],
+      maximumLevel: maximumLevels[selectedKey],
+    });
+
+    attachProviderErrorFallback(provider, selectedKey);
+
+    const layer = viewer.imageryLayers.addImageryProvider(provider);
+
+    if (selectedKey === "esri_satellite") {
+      layer.contrast = 1.08;
+      layer.saturation = 1.12;
     }
+
+    activeLayers.push(layer);
   }
   const basemapSel = document.getElementById("basemapSelect");
   basemapSel.value = cfg.basemap || "esri_satellite";

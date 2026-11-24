@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import hashlib
+import json
 
 import pandas as pd
 import plotly.express as px
@@ -17,9 +19,31 @@ from src.network.explorer import (
 from src.network.network_loader import Stage1NetworkData, load_stage1_network
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_resource(show_spinner=False)
 def _load_stage1_cached(root_string: str) -> Stage1NetworkData:
+    """Share the read-only geospatial network object instead of deserializing it per rerun."""
     return load_stage1_network(Path(root_string))
+
+
+@st.cache_resource(show_spinner=False)
+def _cached_network_payload(
+    cache_key: str,
+    _net: Stage1NetworkData,
+    _filtered,
+    _config: tuple,
+):
+    """Keep the expensive layouts and geometry serialisation for each filter state."""
+    del cache_key
+    basemap, vertical_exaggeration, initial_layout, selected_node_id, selected_edge_id = _config
+    return build_network_explorer_payload(
+        _net,
+        _filtered,
+        basemap=basemap,
+        vertical_exaggeration=vertical_exaggeration,
+        initial_layout=initial_layout,
+        selected_node_id=selected_node_id,
+        selected_edge_id=selected_edge_id,
+    )
 
 
 def render_network_analysis_tab(
@@ -164,15 +188,34 @@ def render_network_analysis_tab(
     q_cols[3].metric("Visible Edges", f"{len(filtered.edges_gdf)}", f"{used_edges} active")
     q_cols[4].metric("Connected Components", f"{len(filtered.components)}")
 
-    # Build Stage 2 Explorer Payload & Render Dual-Pane Synchronised Component
-    payload = build_network_explorer_payload(
+    # Cache payload construction by the visible graph/filter state.
+    # This avoids repeating NetworkX layouts and GeoJSON serialisation on unrelated reruns.
+    payload_key_data = {
+        "root": str(root.resolve()),
+        "node_ids": filtered.nodes_gdf["node_id"].astype(str).tolist(),
+        "edge_ids": filtered.edges_gdf["edge_id"].astype(str).tolist(),
+        "filters": filtered.active_filters,
+        "basemap": basemap,
+        "vertical_exaggeration": vertical_exaggeration,
+        "initial_layout": initial_layout,
+        "selected_node_id": selected_node_id,
+        "selected_edge_id": selected_edge_id,
+    }
+    payload_cache_key = hashlib.sha256(
+        json.dumps(payload_key_data, sort_keys=True, default=str).encode("utf-8")
+    ).hexdigest()
+
+    payload = _cached_network_payload(
+        payload_cache_key,
         net,
         filtered,
-        basemap=basemap,
-        vertical_exaggeration=vertical_exaggeration,
-        initial_layout=initial_layout,
-        selected_node_id=selected_node_id,
-        selected_edge_id=selected_edge_id,
+        (
+            basemap,
+            vertical_exaggeration,
+            initial_layout,
+            selected_node_id,
+            selected_edge_id,
+        ),
     )
     render_network_explorer(root, payload, height=780)
 
