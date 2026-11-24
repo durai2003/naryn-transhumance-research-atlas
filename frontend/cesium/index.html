@@ -8,6 +8,57 @@
     window.CESIUM_BASE_URL = "/cesium/";
   </script>
   <link href="/cesium/Widgets/widgets.css" rel="stylesheet" />
+  <script>
+    (function installCesiumWorkerShim() {
+      var NativeWorker = window.Worker;
+      if (!NativeWorker || window.__CESIUM_WORKER_SHIM__) return;
+      window.__CESIUM_WORKER_SHIM__ = true;
+      window.Worker = function PatchedWorker(scriptURL, options) {
+        var urlStr = String(scriptURL);
+        try {
+          var baseHref = (window.location && window.location.protocol !== "about:")
+            ? window.location.href
+            : (window.CESIUM_BASE_URL || "https://cdn.jsdelivr.net/npm/cesium@1.123.0/Build/Cesium/");
+          var resolved = new URL(urlStr, baseHref);
+          var pageOrigin = (window.location && window.location.origin && window.location.origin !== "null")
+            ? window.location.origin
+            : "";
+          if (/^https?:/i.test(resolved.protocol) && resolved.origin !== pageOrigin) {
+            var baseDir = resolved.href.slice(0, resolved.href.lastIndexOf("/") + 1);
+            var isModule = options && options.type === "module";
+            var shimCode = isModule
+              ? ("import " + JSON.stringify(resolved.href) + ";")
+              : ("(function(){"
+                 + "var _base=" + JSON.stringify(baseDir) + ";"
+                 + "var _origImport=self.importScripts.bind(self);"
+                 + "self.importScripts=function(){"
+                 + "  var args=Array.prototype.map.call(arguments,function(u){"
+                 + "    var s=String(u);"
+                 + "    return /^(https?:|blob:|data:)/i.test(s)?s:new URL(s,_base).href;"
+                 + "  });"
+                 + "  return _origImport.apply(self,args);"
+                 + "};"
+                 + "var _origFetch=self.fetch?self.fetch.bind(self):null;"
+                 + "if(_origFetch){"
+                 + "  self.fetch=function(input,init){"
+                 + "    if(typeof input==='string'&&!/^(https?:|blob:|data:)/i.test(input)){"
+                 + "      input=new URL(input,_base).href;"
+                 + "    }"
+                 + "    return _origFetch(input,init);"
+                 + "  };"
+                 + "}"
+                 + "})();importScripts(" + JSON.stringify(resolved.href) + ");");
+            var blob = new Blob([shimCode], { type: "application/javascript" });
+            return new NativeWorker(URL.createObjectURL(blob), options);
+          }
+        } catch (err) {
+          // Fall back to native Worker
+        }
+        return new NativeWorker(scriptURL, options);
+      };
+      window.Worker.prototype = NativeWorker.prototype;
+    })();
+  </script>
   <script src="/cesium/Cesium.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -387,9 +438,11 @@ class TerrariumTerrainProvider {
     const eastDeg = Cesium.Math.toDegrees(rect.east);
     const southDeg = Cesium.Math.toDegrees(rect.south);
     const northDeg = Cesium.Math.toDegrees(rect.north);
-    const url = `/proxy/terrarium/${level}/${x}/${y}.png`;
+    const url = window.__ATLAS_INLINE_MODE__
+      ? `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${level}/${x}/${y}.png`
+      : `/proxy/terrarium/${level}/${x}/${y}.png`;
 
-    return fetch(url)
+    return fetch(url, { mode: "cors" })
       .then(async (resp) => {
         const heights = new Float32Array(dim * dim);
         let gotRemote = false;
@@ -458,15 +511,20 @@ class TerrariumTerrainProvider {
     return;
   }
 
-  const params = new URLSearchParams(window.location.search);
-  const stateId = params.get("state") || "empty";
-  let ATLAS_DATA = {};
-  try {
-    const res = await fetch(`/payload.json?state=${encodeURIComponent(stateId)}`);
-    ATLAS_DATA = await res.json();
-  } catch (e) {
+  let ATLAS_DATA = window.__ATLAS_PAYLOAD__ || null;
+  if (!ATLAS_DATA) {
+    const params = new URLSearchParams(window.location.search);
+    const stateId = params.get("state");
+    if (stateId) {
+      try {
+        const res = await fetch(`/payload.json?state=${encodeURIComponent(stateId)}`);
+        if (res.ok) ATLAS_DATA = await res.json();
+      } catch (e) {}
+    }
+  }
+  if (!ATLAS_DATA || typeof ATLAS_DATA !== "object" || !Object.keys(ATLAS_DATA).length) {
     terrainBadge.className = "status-pill pill-err";
-    terrainBadge.textContent = "ERROR: Could not fetch atlas payload";
+    terrainBadge.textContent = "ERROR: Atlas payload missing in page";
     return;
   }
 
@@ -499,20 +557,35 @@ class TerrariumTerrainProvider {
     for (const lyr of activeLayers) viewer.imageryLayers.remove(lyr, true);
     activeLayers = [];
   }
+  const IMAGERY_URLS = window.__ATLAS_INLINE_MODE__ ? {
+    esri_satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    esri_hillshade: "https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}",
+    esri_labels: "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+    esri_topo: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+    opentopo: "https://tile.opentopomap.org/{z}/{x}/{y}.png",
+    osm: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  } : {
+    esri_satellite: "/proxy/imagery/esri_satellite/{z}/{y}/{x}",
+    esri_hillshade: "/proxy/imagery/esri_hillshade/{z}/{y}/{x}",
+    esri_labels: "/proxy/imagery/esri_labels/{z}/{y}/{x}",
+    esri_topo: "/proxy/imagery/esri_topo/{z}/{y}/{x}",
+    opentopo: "/proxy/imagery/opentopo/{z}/{y}/{x}",
+    osm: "/proxy/imagery/osm/{z}/{y}/{x}",
+  };
   function setBasemap(key) {
     clearImagery();
     if (key === "esri_topo") {
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_topo/{z}/{y}/{x}", maximumLevel: 18 })));
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.esri_topo, maximumLevel: 18 })));
     } else if (key === "opentopo") {
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/opentopo/{z}/{y}/{x}", maximumLevel: 16 })));
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.opentopo, maximumLevel: 16 })));
     } else if (key === "osm") {
-      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/osm/{z}/{y}/{x}", maximumLevel: 19 })));
+      activeLayers.push(viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.osm, maximumLevel: 19 })));
     } else {
-      const sat = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_satellite/{z}/{y}/{x}", maximumLevel: 18 }));
+      const sat = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.esri_satellite, maximumLevel: 18 }));
       sat.contrast = 1.08; sat.saturation = 1.12; activeLayers.push(sat);
-      const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_hillshade/{z}/{y}/{x}", maximumLevel: 16 }));
+      const hs = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.esri_hillshade, maximumLevel: 16 }));
       hs.alpha = 0.28; hs.contrast = 1.28; activeLayers.push(hs);
-      const lbl = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: "/proxy/imagery/esri_labels/{z}/{y}/{x}", maximumLevel: 15 }));
+      const lbl = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: IMAGERY_URLS.esri_labels, maximumLevel: 15 }));
       lbl.alpha = 0.86; activeLayers.push(lbl);
     }
   }
@@ -872,6 +945,7 @@ class TerrariumTerrainProvider {
   }
 
   function pushUiStateToServer(dateStr, featuredHerdId, movingCount, totalCount, immediate = false) {
+    if (window.__ATLAS_INLINE_MODE__) return;
     const syncKey = `${dateStr}|${featuredHerdId || ""}|${cfg.scenarioId || ""}`;
     if (syncKey === lastSyncedKey && !immediate) return;
     const doPost = () => {
