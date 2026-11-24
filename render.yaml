@@ -3,7 +3,7 @@ services:
     name: naryn-transhumance-research-atlas
     runtime: docker
     repo: https://github.com/durai2003/naryn-transhumance-research-atlas
-    branch: deploy/render-container
+    branch: deploy/streamlit-community-cloud
     plan: free
     region: frankfurt
     dockerfilePath: ./Dockerfile
